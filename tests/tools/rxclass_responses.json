@@ -1,0 +1,207 @@
+{
+ "aspirin": {
+  "rxclassDrugInfoList": {
+   "rxclassDrugInfo": [
+    {
+     "minConcept": {
+      "name": "aspirin"
+     },
+     "rxclassMinConceptItem": {
+      "classId": "A01AD",
+      "className": "Other agents for local oral treatment"
+     }
+    },
+    {
+     "minConcept": {
+      "name": "aspirin"
+     },
+     "rxclassMinConceptItem": {
+      "classId": "B01AC",
+      "className": "Platelet aggregation inhibitors excl. heparin"
+     }
+    },
+    {
+     "minConcept": {
+      "name": "aspirin"
+     },
+     "rxclassMinConceptItem": {
+      "classId": "N02BA",
+      "className": "Salicylic acid and derivatives"
+     }
+    },
+    {
+     "minConcept": {
+      "name": "aspirin / codeine"
+     },
+     "rxclassMinConceptItem": {
+      "classId": "N02AJ",
+      "className": "Opioids in combination with non-opioid analgesics"
+     }
+    }
+   ]
+  }
+ },
+ "cisplatin": {
+  "rxclassDrugInfoList": {
+   "rxclassDrugInfo": [
+    {
+     "minConcept": {
+      "name": "cisplatin"
+     },
+     "rxclassMinConceptItem": {
+      "classId": "L01XA",
+      "className": "Platinum compounds"
+     }
+    }
+   ]
+  }
+ },
+ "coumadin": {
+  "rxclassDrugInfoList": {
+   "rxclassDrugInfo": [
+    {
+     "minConcept": {
+      "name": "warfarin"
+     },
+     "rxclassMinConceptItem": {
+      "classId": "B01AA",
+      "className": "Vitamin K antagonists"
+     }
+    }
+   ]
+  }
+ },
+ "metformin": {
+  "rxclassDrugInfoList": {
+   "rxclassDrugInfo": [
+    {
+     "minConcept": {
+      "name": "metformin / saxagliptin"
+     },
+     "rxclassMinConceptItem": {
+      "classId": "A10BD",
+      "className": "Combinations of oral blood glucose lowering drugs"
+     }
+    },
+    {
+     "minConcept": {
+      "name": "linagliptin / metformin"
+     },
+     "rxclassMinConceptItem": {
+      "classId": "A10BD",
+      "className": "Combinations of oral blood glucose lowering drugs"
+     }
+    },
+    {
+     "minConcept": {
+      "name": "alogliptin / metformin"
+     },
+     "rxclassMinConceptItem": {
+      "classId": "A10BD",
+      "className": "Combinations of oral blood glucose lowering drugs"
+     }
+    },
+    {
+     "minConcept": {
+      "name": "dapagliflozin / metformin"
+     },
+     "rxclassMinConceptItem": {
+      "classId": "A10BD",
+      "className": "Combinations of oral blood glucose lowering drugs"
+     }
+    },
+    {
+     "minConcept": {
+      "name": "canagliflozin / metformin"
+     },
+     "rxclassMinConceptItem": {
+      "classId": "A10BD",
+      "className": "Combinations of oral blood glucose lowering drugs"
+     }
+    },
+    {
+     "minConcept": {
+      "name": "empagliflozin / metformin"
+     },
+     "rxclassMinConceptItem": {
+      "classId": "A10BD",
+      "className": "Combinations of oral blood glucose lowering drugs"
+     }
+    },
+    {
+     "minConcept": {
+      "name": "ertugliflozin / metformin"
+     },
+     "rxclassMinConceptItem": {
+      "classId": "A10BD",
+      "className": "Combinations of oral blood glucose lowering drugs"
+     }
+    },
+    {
+     "minConcept": {
+      "name": "dapagliflozin / metformin / saxagliptin"
+     },
+     "rxclassMinConceptItem": {
+      "classId": "A10BD",
+      "className": "Combinations of oral blood glucose lowering drugs"
+     }
+    },
+    {
+     "minConcept": {
+      "name": "empagliflozin / linagliptin / metformin"
+     },
+     "rxclassMinConceptItem": {
+      "classId": "A10BD",
+      "className": "Combinations of oral blood glucose lowering drugs"
+     }
+    },
+    {
+     "minConcept": {
+      "name": "metformin / pioglitazone"
+     },
+     "rxclassMinConceptItem": {
+      "classId": "A10BD",
+      "className": "Combinations of oral blood glucose lowering drugs"
+     }
+    },
+    {
+     "minConcept": {
+      "name": "metformin / rosiglitazone"
+     },
+     "rxclassMinConceptItem": {
+      "classId": "A10BD",
+      "className": "Combinations of oral blood glucose lowering drugs"
+     }
+    },
+    {
+     "minConcept": {
+      "name": "metformin"
+     },
+     "rxclassMinConceptItem": {
+      "classId": "A10BA",
+      "className": "Biguanides"
+     }
+    },
+    {
+     "minConcept": {
+      "name": "metformin / sitagliptin"
+     },
+     "rxclassMinConceptItem": {
+      "classId": "A10BD",
+      "className": "Combinations of oral blood glucose lowering drugs"
+     }
+    },
+    {
+     "minConcept": {
+      "name": "metformin / repaglinide"
+     },
+     "rxclassMinConceptItem": {
+      "classId": "A10BD",
+      "className": "Combinations of oral blood glucose lowering drugs"
+     }
+    }
+   ]
+  }
+ },
+ "notadrug": {}
+}
