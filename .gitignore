@@ -218,3 +218,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Team Zenith: never commit data, model outputs or logs (see the build plan)
+data/
+outputs/
+logs/
