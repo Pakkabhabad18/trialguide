@@ -1,0 +1,31 @@
+# Runs all unit tests on every pull request into main, and on every push to main.
+# A pull request should only be merged when this shows a green tick.
+name: tests
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      # Get the code of the pull request
+      - uses: actions/checkout@v4
+
+      # Same Python version for everyone
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Install pinned packages, then our own package
+      - name: Install
+        run: |
+          pip install -r requirements.txt
+          pip install -e .
+
+      # Run every test in tests/
+      - name: Run tests
+        run: pytest -q
