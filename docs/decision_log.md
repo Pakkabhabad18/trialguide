@@ -30,6 +30,27 @@ decision changes, add a new entry that points back to the old one.
 - **Why:** the team works on Windows laptops, the IIIT cluster and Kaggle; `wget` is not on Windows and shell quoting differs. Python gives identical behaviour everywhere, writes to a `.part` file so an interrupted download is never mistaken for a complete one, can be unit-tested offline, and needs no extra pip package.
 - **Proved wrong if:** a teammate's environment cannot run it (Python 3.10+ is already required by the package).
 
-## Open observations to resolve in T7 (not decisions yet)
-- SIGIR 2016 `queries.jsonl` has **59** patients; the proposal and README say 58 (75 + 50 + 58 = 183). Check for a duplicate or extra patient before T8 fixes the 37/73/73 split.
-- The criterion annotation file has **1,015** rows; the proposal says 1,020. Check against the dataset card (rows may be counted differently).
+## M4. A patient is "usable" only if it has a note and expert trial labels (T7)
+- **Date / who:** 2026-10-27, Murthy
+- **Finding:** SIGIR `queries.jsonl` lists 59 patients but `sigir-201428` has no trial labels in the qrels, so **58 usable**, which matches the proposal (75 + 50 + 58 = 183). The annotation file has **1,015** rows (the Hugging Face card says 1,015; the proposal's 1,020 is a typo). It also has 18 rows for `sigir-201426`, a patient that appears in no cohort file (no note in `queries.jsonl`, no trial labels).
+- **Options:** (a) keep all 59 / all annotated patients; (b) drop patients lacking a note or trial labels.
+- **Chose:** (b). `sigir-201428` and `sigir-201426` are excluded from the split (T8) and from evaluation.
+- **Why:** nothing can be ranked or scored for a patient without trial labels, and a patient without a cohort note cannot be masked or shown to the system. The 18 orphan rows still carry the note text in the annotation file, so they stay available for a rule-level check but not for ranking.
+- **Proved wrong if:** the upstream authors publish the missing files for these two patients.
+
+## M5. "Recoverable NEI" is defined from the annotation file as GPT-4 NEI with a definite expert label (T7)
+- **Date / who:** 2026-10-27, Murthy
+- **Options:** (a) reuse the paper's 30.7% (8 of 26 errors, a manual judgement); (b) define it mechanically on all 1,015 rows; (c) hand-label every NEI row.
+- **Chose:** (b). A row is *recoverable* when GPT-4 answered "not enough information" and the expert gave `included`, `not included`, `excluded` or `not excluded`. Rows where the expert also says NEI are *truly unresolved*, which is where asking or abstaining belongs.
+- **Result** (`results/label_audit.md`): 293 rows (28.9%) are expert NEI; **34 rows (3.3%)** are recoverable (17 inclusion, 17 exclusion), of which 21 have expert-cited evidence sentences. They are 26.4% of the 129 GPT-4/expert disagreements, close to the paper's 30.7%. GPT-4 decided where the expert says NEI on 21 rows, the over-commitment the risk control is for.
+- **Why:** it is reproducible and uses all rows. It is a lower bound: GPT-4 may have resolved a rule the expert could only settle by inference, and "not applicable" is not counted as recoverable.
+- **Proved wrong if:** the 200-rule hand audit (T15 and later) finds many "recoverable" rows where a careful reader cannot infer the answer from the note.
+- **Consequence for the project:** only about 3% of expert-labelled rows are inference-worthy. Rule-targeted masking, not natural NEI, has to supply most of the infer/ask test cases, as the proposal already assumes.
+
+## M6. Expert rule labels exist only for SIGIR; this limits how calibration can work (T7, raised to the team)
+- **Date / who:** 2026-10-27, Murthy, **needs a team decision before T8**
+- **Finding:** all rule-level labels are on SIGIR patients: 52 usable patients, 997 rows. TREC 2021 and 2022 (125 patients) have none.
+- **Why it matters:** the proposal keeps expert-labelled patients in the calibration and test splits. With 52 labelled patients that is about 26 per split (roughly 500 rows each) and no labelled patient in development. Primary harmful-inference claims use expert labels (Section on calibration), so the 5% risk threshold would be fitted on SIGIR only, and TREC would rely on model-derived references.
+- **Options for T8:** (a) as the proposal says, all 52 labelled patients go to cal and test, none to dev; (b) put some labelled patients in dev so prompts can be checked against expert rule labels, at the cost of fewer in cal and test.
+- **Status:** open. Raised for Prakash (owner of risk control) to decide; I will not freeze the split until it is settled.
+- **Not used:** the `training` flag in the annotation file is a per-row boolean mixed within patients (881 true, 134 false) and undocumented, so it is ignored.
