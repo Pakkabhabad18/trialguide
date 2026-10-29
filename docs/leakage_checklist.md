@@ -9,7 +9,7 @@ prevents it. Review this list in every pull request that touches data, prompts o
 - [ ] **Calibration patients (73) are used for one thing:** fitting the risk threshold (T30). Not for prompts, not for choosing a model, not for ablation decisions.
 - [ ] Prompts, few-shot examples, thresholds and code are chosen on the 37 development patients only. No calibration or test note may appear in any prompt, example or fine-tuning set.
 - [ ] Trials are a shared corpus and appear in several splits. That is accepted (proposal Section 6). No test patient-trial label is used for any design decision.
-- [ ] Expert rule labels (997 rows) belong to calibration and test patients only (decision M7). Development has none, so the dev set can never be tuned against them.
+- [ ] Expert rule labels (997 rows) belong to calibration and test patients only, as the proposal states (Section 6). Development has none, so the dev set can never be tuned against them.
 
 ## Files that already contain the answer
 - [ ] **`retrieved_trials.json`** holds each patient's *full note* and lists trials **grouped by their expert label** (0 / 1 / 2). Using it to pick candidates is fine for B6-style reproduction (T4), but the grouping must never be shown to or used by the system as a feature. For masked runs the system sees only the `VisibleNote`.

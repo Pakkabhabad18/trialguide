@@ -3,7 +3,7 @@
     python -m trialguide.data.splits            # check the committed files still match the code
     python -m trialguide.data.splits --write    # write splits/*.txt (done once, then frozen)
 
-Rules (decisions M4, M7, M8 in docs/decision_log.md):
+Rules:
 - A patient is usable only with a note and expert trial labels (183 patients).
 - Patients with expert rule labels (52, all SIGIR) go to calibration and test only, half each,
   paired by number of labelled rules so both splits get a similar amount of gold evidence.
@@ -24,7 +24,7 @@ import pandas as pd
 from trialguide.data.audit import cohort_of, load_queries, patients_with_trial_labels
 from trialguide.schemas import Split
 
-SEED = 20261027                      # fixed once; see decision M8
+SEED = 20261027                      # fixed once, chosen before running (not searched for)
 TARGET = {Split.DEV: 37, Split.CAL: 73, Split.TEST: 73}
 SPLIT_DIR = Path(__file__).resolve().parents[3] / "splits"
 
