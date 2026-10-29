@@ -1,8 +1,10 @@
-"""Clinical tools (T13): values a model should compute or look up, not guess.
+"""Calculators the model should not guess: eGFR (CKD-EPI 2021), BMI, drug class via RxClass (T13).
 
 TOOLS maps each tool name to its function and an OpenAI-style JSON schema, so
 the same definitions serve direct calls and LLM tool calling. call_tool never
 raises: bad arguments come back as a missing result with the reason.
+
+Owner: Prateek.
 """
 
 from trialguide.tools.base import ToolResult, missing

@@ -1,0 +1,16 @@
+# Pinned for local development (versions current on PyPI, Oct 2026).
+# On Kaggle, run `pip install -e . --no-deps` and keep Kaggle's own torch / vLLM / transformers,
+# then log `pip freeze` for each run in docs/experiment_log.md.
+# Add a package here only in a reviewed pull request.
+
+numpy==2.5.4
+pandas==3.1.0
+scipy==1.18.1
+scikit-learn==1.9.1
+datasets==5.1.0
+rank-bm25==0.2.2
+pyyaml==6.0.3
+requests==2.34.2
+openai==3.37.0        # client for the vLLM OpenAI-compatible server
+tqdm==4.70.1
+pytest==9.1.1
