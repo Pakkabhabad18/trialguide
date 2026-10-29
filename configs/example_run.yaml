@@ -1,0 +1,11 @@
+# Example run config. Copy it per experiment, and log the file name in docs/experiment_log.md.
+run_name: example_dev_B6
+split: dev            # dev | cal | test (test only in T33, after the freeze)
+baseline: B6          # B1-B7, or an ablation A1-A6
+backbone: Qwen/Qwen3-8B   # decision D13 (Oct 26)
+masking:
+  type: random        # random | rule | evidence
+  fraction: 0.4       # main runs use 40%
+  seed: 0
+question_budget: 3
+risk_alpha: 0.05
