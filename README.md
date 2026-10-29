@@ -118,3 +118,29 @@ Patient data and model weights are not stored in this repository. They are downl
 ## Status
 
 Work in progress. The project is due for completion on 10 November 2026.
+
+### Rule Checker v1 — Functional Prototype
+
+**Status as of 29 October 2026:** Local functional prototype; not yet calibrated or validated against the target harmful-inference risk.
+
+The T12 checker assesses a trial rule using only the visible patient note. It normalizes supported status labels, validates cited sentence IDs against the visible note, preserves the `stated` / `inferred` / `assumption` / `missing` distinction, and keeps unsupported or missing information unresolved. It aggregates repeated assessments conservatively and returns the shared `RuleCheck` fields, including status, category, evidence IDs, confidence, sample count, explanation, and optional `fact_key`.
+
+**Latest local verification**
+- `python -m pytest -q`: **55 passed in 0.11s**.
+- Mocked smoke test passed for three synthetic cases: evidence-backed inclusion, evidence-backed exclusion, and missing information that remains unresolved.
+- The smoke test patches the model-call function with deterministic fixture responses. It does not run a real model or use patient records.
+
+**Relationship to T19:** The T12 output fields appear structurally compatible with the T19 policy interface (`category`, `evidence_ids`, `confidence`, and `fact_key`). A focused end-to-end T12-to-T19 integration test using the canonical shared schema and policy is still required before claiming full integration.
+
+**What is not yet verified**
+- Real Qwen3-8B inference through the canonical shared LLM client.
+- GPU execution on the IIIT cluster or Kaggle.
+- Complete T12-to-T19 policy integration, including `NOT_APPLICABLE` handling.
+- Prompt/aggregation tuning against the approved development split.
+- Calibration or split-based evaluation of the harmful-inference target of approximately 5%.
+
+The reported `confidence` is an agreement fraction across requested assessments, not a calibrated probability of correctness. Repeated temperature-0 calls may return identical outputs and should not be described as independent judgments. Passing unit tests does not establish clinical correctness or a calibrated risk guarantee.
+
+For the 30 October progress demo, the current defensible description is **“locally tested functional prototype with mocked smoke coverage”**. Real model/GPU inference, end-to-end policy integration, and calibration remain pending until verified. Split-dependent development and risk calibration must follow the team's approved patient-split policy; do not tune against calibration or test data.
+
+See [`decisions.md`](decisions.md) for implementation decisions, verification details, ownership boundaries, and the remaining integration checklist.
