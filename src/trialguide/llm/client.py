@@ -96,6 +96,9 @@ class _HFBatcher:
 		self.torch = torch
 		self.model_name = model_name
 		self.tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="left")
+		if self.tokenizer.pad_token is None:
+			# Llama tokenizers define no pad token; batching needs one
+			self.tokenizer.pad_token = self.tokenizer.eos_token
 		# cap the weights per GPU so they split evenly and every GPU keeps room
 		# for the KV cache (otherwise the last GPU fills up and runs out of memory)
 		max_memory = None
