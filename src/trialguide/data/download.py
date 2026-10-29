@@ -18,7 +18,7 @@ import time
 import urllib.request
 from pathlib import Path
 
-# Pinned upstream versions (decision M1 in docs/decision_log.md)
+# Pinned upstream versions, so every teammate gets byte-identical files
 TRIALGPT_COMMIT = "1b3242cd50c153a9c324661d4a0bd94fc68a4226"
 ANNOTATIONS_REVISION = "1cfcafde94a1560a33b4addc1638664fe28fc059"
 
