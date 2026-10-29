@@ -24,14 +24,15 @@ only the expert-labelled trials of each patient, grouped by label (0 irrelevant,
 
 ## Running
 
-Data: TrialGPT's `dataset/` folder (clone their repo; it ships the patients,
-labels and candidate trials). Point `TRIALGPT_DATA` at it.
+Data: `scripts/download_data.sh` puts TrialGPT's patients, labels and candidate
+trials in `data/raw/trialgpt/` (the default; override with `TRIALGPT_DATA`).
+Sentence splitting needs NLTK's tokenizer data once:
+`python -c "import nltk; nltk.download('punkt_tab')"`.
 
 ```bash
 mkdir -p logs
 # smoke test: 3 SIGIR patients, at most 5 trials per label
-sbatch -w gnode097 --export=ALL,TRIALGPT_DATA=/path/to/TrialGPT/dataset,HF_HOME=/ssd_scratch/$USER/hf \
-    scripts/run_trialgpt.sbatch
+sbatch -w gnode097 --export=ALL,HF_HOME=/ssd_scratch/$USER/hf scripts/run_trialgpt.sbatch
 # chosen patients, all their trials (e.g. the dev split once T8 is frozen)
 PYTHONPATH=src python -m trialguide.baselines.trialgpt.run_matching sigir Qwen/Qwen3-8B --patient_ids dev_ids.txt
 ```

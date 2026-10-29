@@ -10,12 +10,12 @@
 #SBATCH --output=logs/%x_%j.out
 
 # TrialGPT end to end (matching -> aggregation -> ranking -> evaluation) on an
-# open model, for the IIIT ada cluster. Submit from the repo root; every setting
-# below can be overridden with sbatch --export=ALL,VAR=value. Example (smoke test,
-# data and model cache on gnode097's local scratch):
+# open model, for the IIIT ada cluster. Submit from the repo root after
+# scripts/download_data.sh; every setting below can be overridden with
+# sbatch --export=ALL,VAR=value. Example (smoke test, model cache on gnode097's
+# local scratch):
 #   mkdir -p logs
-#   sbatch -w gnode097 --export=ALL,TRIALGPT_DATA=/path/to/TrialGPT/dataset,HF_HOME=/ssd_scratch/$USER/hf \
-#       scripts/run_trialgpt.sbatch
+#   sbatch -w gnode097 --export=ALL,HF_HOME=/ssd_scratch/$USER/hf scripts/run_trialgpt.sbatch
 # Full cohort instead of the smoke subset: add N_PATIENTS=,MAX_TRIALS=,TAG= to --export.
 # It can also run inside an interactive GPU session: bash scripts/run_trialgpt.sbatch
 #
@@ -35,8 +35,8 @@ OUT_DIR=${OUT_DIR:-outputs/trialgpt}
 
 set -euo pipefail
 cd "${SLURM_SUBMIT_DIR:-$(pwd)}"
-: "${TRIALGPT_DATA:?set TRIALGPT_DATA to the dataset folder of the TrialGPT repo}"
-export TRIALGPT_DATA
+# TrialGPT data as put there by scripts/download_data.sh
+export TRIALGPT_DATA=${TRIALGPT_DATA:-data/raw/trialgpt}
 source "$(conda info --base)/etc/profile.d/conda.sh"
 
 export PYTHONPATH=$PWD/src${PYTHONPATH:+:$PYTHONPATH}

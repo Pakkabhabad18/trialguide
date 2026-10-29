@@ -3,11 +3,11 @@ Shared LLM client (Team Zenith). Written for the TrialGPT reproduction (T4);
 the team's shared client is Vidur's T5, so this may be merged into or replaced by it.
 
 Backends (env LLM_BACKEND):
-	azure  - original TrialGPT setup (OPENAI_ENDPOINT, OPENAI_API_KEY)
+	hf     - default: in-process Hugging Face transformers, greedy decoding;
+	         concurrent calls from worker threads are batched (LLM_HF_BATCH)
 	openai - any OpenAI-compatible server, e.g. a local vLLM server
 	         (OPENAI_BASE_URL, default http://localhost:8000/v1)
-	hf     - in-process Hugging Face transformers, greedy decoding; concurrent
-	         calls from worker threads are batched together (LLM_HF_BATCH)
+	azure  - original TrialGPT setup (OPENAI_ENDPOINT, OPENAI_API_KEY)
 
 Every call is cached on disk (keyed by model + messages + params) and logged
 with model, date and seed, so reruns are free and every result is traceable.
@@ -21,7 +21,7 @@ import queue
 import re
 import threading
 
-BACKEND = os.getenv("LLM_BACKEND", "azure")
+BACKEND = os.getenv("LLM_BACKEND", "hf")
 SEED = int(os.getenv("LLM_SEED", "0"))
 # Qwen3 thinks by default; TrialGPT's prompts expect a direct JSON answer.
 DISABLE_THINKING = os.getenv("LLM_DISABLE_THINKING", "1") == "1"

@@ -63,7 +63,7 @@ if __name__ == "__main__":
 	parser.add_argument("corpus")
 	parser.add_argument("ranking_path")
 	parser.add_argument("matching_results_path", nargs="?")
-	parser.add_argument("--data_dir", default=os.getenv("TRIALGPT_DATA", "data/trialgpt"))
+	parser.add_argument("--data_dir", default=os.getenv("TRIALGPT_DATA", "data/raw/trialgpt"))
 	args = parser.parse_args()
 
 	corpus = args.corpus

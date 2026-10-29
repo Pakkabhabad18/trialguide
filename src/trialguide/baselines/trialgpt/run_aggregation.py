@@ -24,7 +24,7 @@ if __name__ == "__main__":
 	parser.add_argument("matching_results_path")
 	parser.add_argument("--workers", type=int, default=16)
 	parser.add_argument("--tag", default="", help="suffix for the output file")
-	parser.add_argument("--data_dir", default=os.getenv("TRIALGPT_DATA", "data/trialgpt"),
+	parser.add_argument("--data_dir", default=os.getenv("TRIALGPT_DATA", "data/raw/trialgpt"),
 		help="folder with {corpus}/retrieved_trials.json etc. (TrialGPT's dataset/ folder)")
 	parser.add_argument("--out_dir", default="outputs/trialgpt")
 	args = parser.parse_args()
