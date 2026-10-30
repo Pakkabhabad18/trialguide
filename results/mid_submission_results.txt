@@ -1,0 +1,217 @@
+TrialGuide (Team Zenith) - results available for the mid-submission
+Compiled 2026-10-30, 19:15 IST. Every number below is copied from a result file in this repository
+or from the run folders on the IIIT ada cluster; the source is given under each block.
+
+Common settings unless stated otherwise
+  Model:     Qwen/Qwen3-8B, revision b968826d9c46dd6066d109eabc6255188de91218, greedy decoding
+  Weights:   8-bit (bitsandbytes) on one RTX 3080 Ti 12 GB  [T4 smoke test: bf16 on two GPUs]
+  Doctor:    meta-llama/Llama-3.1-8B-Instruct, 8-bit, greedy
+  Split:     frozen T8 split, seed 20261027. Only development patients were used, except where noted.
+  Metrics:   NDCG@10 and graded P@10 over expert-labelled patient-trial pairs only (TrialGPT convention)
+
+
+==========================================================================================
+1. DATA AND SPLITS (T3, T7, T8 - Murthy)
+==========================================================================================
+Cohorts: SIGIR 2016 (59 notes), TREC CT 2021 (75), TREC CT 2022 (50); 183 patients have
+expert patient-trial labels.
+
+Frozen split (splits/split_info.json)
+  split   patients   SIGIR  TREC21  TREC22   patients with rule labels   rule-label rows
+  dev        37         2      21      14              0                         0
+  cal        73        28      27      18             26                       501
+  test       73        28      27      18             26                       496
+Development patients have 20,529 expert-labelled patient-trial pairs in total.
+
+Expert rule-label audit (results/label_audit.md)
+  1,015 rule-level rows, 53 patients, 105 patient-trial pairs; all rule labels are SIGIR.
+  Expert says "not enough information" (NEI):                  293 rows (28.9%)
+  GPT-4 says NEI:                                              289;  both NEI: 255
+  Recoverable NEI (GPT-4 NEI, expert gives a definite label):   34
+     ... of which the expert cites note sentences:              21
+  Recoverable rows = 26.4% of the 129 GPT-4/expert disagreements and 11.8% of GPT-4's NEI
+  answers (TrialGPT paper: 30.7% of 26 errors).
+
+
+==========================================================================================
+2. BASELINE: TrialGPT REPRODUCTION, SMOKE TEST (T4 - Prateek)
+==========================================================================================
+Source: results/trialgpt_smoke_sigir_qwen3-8b.json
+Setting: Qwen3-8B bf16 on 2 GPUs; SIGIR patients sigir-20141/42/43 (chosen before the split was
+frozen; sigir-20142 is now in test and 20141/20143 in cal; nothing was tuned on them);
+at most 5 trials per gold label; 43 pairs. Not comparable to the paper's full-cohort numbers.
+
+  NDCG@10                    0.773
+  P@10                       0.517
+  NDCG@10, random ranking    0.620
+  Unparsed model outputs     0 / 86
+  NEI rate (inclusion)       29.0%
+  NEI rate (exclusion)       12.9%
+
+Purpose: shows the TrialGPT pipeline (matching -> aggregation -> ranking -> evaluation) runs end
+to end on an open 8B model on our hardware.
+
+
+==========================================================================================
+3. BASELINE B6 (TrialGPT on masked notes, version a) (T16 - Prateek)
+==========================================================================================
+Source: b6_run/code/outputs/b6/results/full/eval_*.json  (cluster run, gnode098)
+Setting: 5 development patients chosen by seed 20261030 in proportion to cohort size
+(trec-202124, trec-20215, trec-202168, trec-202232, trec-202233); first 2 trials per expert
+label = 29 pairs. Same pairs in both conditions:
+  full     the full note (TrialGPT reference)
+  rule40   rule-targeted masking (T10), 40% of sentences hidden  -> B6
+
+FULL-NOTE CONDITION (finished)
+  cohort      patients  pairs  NDCG@10  P@10   NDCG@10 random  NEI incl.  NEI excl.  unparsed
+  TREC 2021       3      18     0.874   0.300      0.780        26.2%       8.6%      0/36
+  TREC 2022       2      11     0.636   0.275      0.792        40.7%      31.6%      1/22
+  pooled          5      29     0.779   0.290      0.785     (weighted by patients)
+
+MASKED CONDITION (rule40, B6) - finished 20:08 IST (b6_run/code/outputs/b6/summary.json)
+  cohort      patients  pairs  NDCG@10  P@10   NDCG@10 random  unparsed
+  TREC 2021       3      18     0.889   0.300      0.787         0/36
+  TREC 2022       2      11     0.709   0.275      0.798         0/22
+  pooled          5      29     0.817   0.290
+
+  Per patient NDCG@10 (full -> masked):
+    trec-202124 0.903 -> 0.890     trec-20215  0.718 -> 0.969     trec-202168 1.000 -> 0.809
+    trec-202232 0.687 -> 0.833     trec-202233 0.586 -> 0.586
+
+  "Not enough information", pooled over well-formed rule predictions:
+                  inclusion   exclusion
+    full note       29.7%       14.7%
+    masked (B6)     44.1%       13.4%
+
+  Reading: masking removes information as intended (inclusion NEI 29.7% -> 44.1%), but the
+  masked ranking scores HIGHER (0.817 vs 0.779), the opposite of the expected B6 drop. With 5
+  patients and <= 6 trials each this is noise (one patient moves 0.72 -> 0.97); it is not a result.
+
+Caveats - must be stated with these numbers
+  * With at most 6 trials per patient, P@10 is identical for every ordering (all trials are in
+    the top 10), a random ordering already scores NDCG@10 ~0.79, and 5
+    patients cannot separate TrialGPT from random. This sample checks that B6 runs end to end;
+    it is not evidence about ranking quality. A larger sample is needed (see timeline).
+  * TREC 2021, both conditions: 41 exclusion-criterion predictions came back malformed (one trial,
+    NCT04725812, where Qwen returned nested objects instead of [reason, ids, label]); they are
+    skipped by the scorer. TREC 2022: 1 of 22 outputs unparsable.
+
+
+
+==========================================================================================
+3b. B6 (version b), B2, B5 WITH OUR CHECKER AND POLICY (T16 - Prateek)
+==========================================================================================
+Source: b6_run/code/outputs/systems/summary.json (cluster), finished 21:02 IST
+Setting: same 5 patients, 29 trials and masks as section 3; rule checker (T12) once per rule
+(336 rules per condition), then policies B6 (no inference), B2 (every inference), B5 (inference
+if confidence >= 0.9). Confidence = the model's probability of the status it wrote, from one
+greedy call (with greedy decoding the checker's vote share was always 1.0, so B5 equalled B2).
+
+  system  note     NDCG@10  P@10   accepted inference  unresolved
+  B6      full      0.855   0.290        0.0%            26.5%
+  B6      masked    0.908   0.290        0.0%            40.8%
+  B2      full      0.843   0.290        8.0%            18.5%
+  B2      masked    0.902   0.290        2.1%            38.7%
+  B5      full      0.845   0.290        7.1%            19.3%
+  B5      masked    0.902   0.290        1.8%            39.0%
+
+  Checker inferences: full 27 (15 toward exclusion, 12 toward eligibility); masked 7 (6 / 1).
+  B5 rejected 3 eligibility-favouring inferences with confidence < 0.9 (the B2-B5 difference).
+  Confidence spread: 0.42-1.00; median 0.92 for inferences on full notes, 26% below 0.9.
+  Reading: masking raises unresolved rules 26.5% -> 40.8%. Inference is rare, so B2/B5 move
+  little from B6. Masked scores higher than full again: noise on this sample, not a result.
+  Earlier run with vote-share confidence (outputs/systems_votes): identical B6, B5 = B2.
+
+==========================================================================================
+4. MEMORISATION PROBE (T14 - Prateek)
+==========================================================================================
+Source: results/memorisation_probe_dev_qwen3-8b_8bit.json
+Question: has Qwen3-8B memorised the public TREC/SIGIR notes, so that hidden facts could come back
+from memory instead of reasoning? 37 development patients. Control = the same output scored
+against a sentence from a different patient. Decision rule fixed before the run.
+
+  Test                                         Result          Control    Memorisation if
+  A. Continue the note (279 scorable sent.)
+       reproduced word for word                0.0%            0.0%       > 5% and >= 3x control
+       hidden numbers recalled                 14.0%           8.5%       > control + 10 points
+  B. Fill a removed sentence (316 scorable)
+       reproduced word for word                0.3% (1 item)   0.0%       > 5% and >= 3x control
+       hidden numbers recalled                 2.6%            0.9%       > control + 10 points
+       repeated a visible sentence instead     14.0%           -          (reported only)
+  C. Patient age edited in the note (34 notes)
+       reads the real age                      34/34
+       follows the edited age                  34/34                      < 90% would flag it
+       gives the original age                   0/34
+
+VERDICT: no memorisation signal. The one "verbatim" gap fill had wrong content (IVIG instead
+of corticosteroids); number matches in B were ages guessable from the presentation.
+
+
+==========================================================================================
+5. SIMULATED DOCTOR CHECK (T11 - Prateek)
+==========================================================================================
+Source: doctor_check/run.log and doctor_log.jsonl (cluster)
+Setting: Llama-3.1-8B-Instruct 8-bit; record = the 8 sentences of sigir-20141 (cal split, used
+before the split was frozen); 20 hand-written questions, 11 answerable from the record, 9 not.
+
+  Answerable questions answered correctly with an exact quote       11 / 11
+     ... as "sure"                                                  10
+     ... as "probably" (anticoagulants? -> "no medications"; an
+         inference, so capped by the topic check)                    1
+  Unanswerable questions answered "not documented"                   7 / 9
+  Unanswerable questions answered "probably" (capped by the code)    2 / 9
+  Wrong answers that reached "sure"                                  0
+  Unparsable replies                                                 0
+
+Before the fix (first run): 2 wrong answers were returned as "sure" with a real but unrelated
+quote ("pregnant? no", "prior myocardial infarction? no" - the second is a harmful error).
+Fix in code: a "sure" answer must quote a sentence that mentions the question's topic, else it
+is capped at "probably" (goes through risk control); a quote not found in the record becomes
+"not documented". Limit: one patient, questions written by us; the planned 150-answer
+faithfulness check on masked notes is still to do.
+
+
+==========================================================================================
+6. TOOLS (T13 - Prateek)
+==========================================================================================
+Source: results/tools_eka_check.json
+Tools: eGFR (CKD-EPI 2021, race-free), BMI, drug class (RxClass).
+Checked against the Eka medical-calculator set (1,066 items; 15 cover our tools):
+  BMI                                   12 / 12 correct
+  eGFR (Eka grades with CKD-EPI 2009)    3 /  3 correct (2009 reference function)
+  CKD-EPI 2021 and drug class           verified by unit tests (Eka has no such items)
+
+
+==========================================================================================
+7. COMPONENTS BUILT, NO EXPERIMENT NUMBERS YET
+==========================================================================================
+  T12 rule checker (Vidur)            merged; 153 tests pass after integration
+  T19 infer/ask/abstain policy (Prakash)  merged; defines B2, B5, B6, B7, A1, A6 as settings
+  T17 evaluation harness (Murthy)     merged; NDCG@10, P@10, recovery, bootstrap, McNemar
+  T10 masking (Murthy)                merged; random / rule-targeted / evidence-targeted
+  T20 question selector (Prateek)     in PR; Eq. 1, budget 3, fact merging, B3/B4/A2/A3 strategies
+  End-to-end runner (Prateek)         written and tested with scripted models; not yet run
+  Test suite on main + open PRs: 227 passed, 5 skipped.
+
+NOT YET RUN: B1, B3, B4, B7, ablations A1-A7,
+risk-control calibration (T30), E1/E2/E3.
+
+
+==========================================================================================
+8. CHALLENGES AND MITIGATIONS
+==========================================================================================
+  1. GPU capacity. Qwen3-32B does not fit; moved to Qwen3-8B, then to 8-bit on one 12 GB GPU
+     because nodes are busy. Same model and settings for every system, so comparisons stay fair.
+  2. Speed. vLLM could not be installed (PyPI too slow), so generation uses transformers at ~9
+     tokens/s; one TrialGPT pair takes ~1-2 minutes, so all 20,529 dev pairs would take weeks.
+     -> fixed, seeded samples of patients and trials; larger sample planned.
+  3. Only one GPU available to the account (others draining or reserved). B7 needs the checker
+     (Qwen) and the doctor (Llama) at once (~18 GB in 8-bit). -> alternate the two models in
+     rounds on one GPU, or run the doctor as a separate job if a teammate has a GPU.
+  4. Doctor gave unsupported "sure" answers. -> enforced quote and topic checks in code (section 5).
+  5. Memorisation of public notes. -> T14 probe; no signal found (section 4).
+  6. Leakage. The checker prompt included patient and trial IDs (fix requested); one smoke-test
+     patient is now in the test split (documented, nothing tuned on it).
+  7. Malformed model outputs crash parsing. -> parsers skip and count them; counts reported.
+  8. Checker cost: 5 samples per rule are nearly identical under greedy decoding.
+     -> proposal: 1 sample per rule (5x cheaper), pending team decision.
