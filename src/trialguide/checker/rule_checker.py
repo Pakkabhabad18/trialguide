@@ -4,9 +4,10 @@ Uses only the visible patient note. Unsupported assumptions never become facts.
 
 from collections import Counter
 import json
+import math
 import re
 
-from trialguide.llm.client import chat, parse_json
+from trialguide.llm.client import chat, parse_json, span_logprob
 from trialguide.schemas import (
     InfoCategory,
     RuleCheck,
@@ -146,16 +147,38 @@ def _parse_sample(raw, visible_ids, kind):
         return None
 
 
-def check_rule(note, rule, model, n_samples=5):
+def _status_probability(tokens):
+    """The model's probability of the status value it wrote ("met", "not_met", ...): the product
+    of the probabilities of that value's tokens. 0.0 if the reply has no status field."""
+    text = "".join(token for token, _ in tokens)
+    match = re.search(r'"status"\s*:\s*"([^"]*)"', text)
+    if match is None:
+        return 0.0
+    return math.exp(span_logprob(tokens, *match.span(1)))
+
+
+def check_rule(note, rule, model, n_samples=5, confidence="votes"):
     """Check a trial rule against only the visible note.
 
-    Confidence is the modal-status vote fraction over requested samples;
+    confidence="votes": the modal-status vote fraction over requested samples;
     it is an agreement measure, not a calibrated probability of correctness.
     Invalid responses count against the fraction because the denominator is
-    the number of requested samples.
+    the number of requested samples. Under greedy decoding all samples agree,
+    so this is always 1.0.
+    confidence="logprob": one greedy call; the model's own probability of the
+    status it chose (risk control, T30, calibrates it). n_samples must be 1.
     """
     if n_samples < 1:
         raise ValueError("n_samples must be at least 1")
+
+    mode = confidence  # the number computed below reuses the name
+    if mode not in ("votes", "logprob"):
+        raise ValueError(f"Unknown confidence: {mode}")
+
+    if mode == "logprob" and n_samples != 1:
+        raise ValueError("logprob confidence uses a single greedy call (n_samples=1)")
+
+    status_probability = 0.0
 
     if rule.kind not in (RuleKind.INCLUSION, RuleKind.EXCLUSION):
         raise ValueError(f"Unsupported rule kind: {rule.kind}")
@@ -225,7 +248,12 @@ Return the required JSON object only.
                 ],
                 model,
                 temperature=0,
+                **({"logprobs": True} if mode == "logprob" else {}),
             )
+
+            if mode == "logprob":
+                status_probability = _status_probability(raw["tokens"])
+                raw = raw["text"]
 
             parsed = _parse_sample(raw, visible_ids, rule.kind)
 
@@ -254,6 +282,8 @@ Return the required JSON object only.
     status_counts = Counter(sample["status"] for sample in samples)
     winning_status, winning_votes = status_counts.most_common(1)[0]
     confidence = winning_votes / n_samples
+    if mode == "logprob":
+        confidence = status_probability
 
     # A status tie must never produce an arbitrary decision.
     if list(status_counts.values()).count(winning_votes) > 1:

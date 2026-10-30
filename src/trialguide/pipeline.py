@@ -106,6 +106,8 @@ def run_patient(note: VisibleNote, rules: list[TrialRule], config: PolicyConfig,
 
 
 def checker(model: str, n_samples: int = 1) -> CheckFn:
-    """Vidur's rule checker (T12) with a fixed model and sample count."""
+    """Vidur's rule checker (T12) with a fixed model. With one sample (greedy) the confidence is the
+    model's probability of its status; with more, the vote share of the samples."""
     from trialguide.checker.rule_checker import check_rule
-    return lambda note, rule: check_rule(note, rule, model, n_samples=n_samples)
+    mode = "logprob" if n_samples == 1 else "votes"
+    return lambda note, rule: check_rule(note, rule, model, n_samples=n_samples, confidence=mode)

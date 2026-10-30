@@ -74,6 +74,7 @@ def main():
             m["fraction"]).visible,
     }
     summary = {"model": args.model, "n_samples": args.n_samples, "manifest": str(args.manifest),
+               "confidence": "logprob (probability of the status)" if args.n_samples == 1 else "votes",
                "policies": {s: dataclasses.asdict(c) for s, c in configs.items()}, "results": {}}
     gold = {}
     for cond, make_note in conditions.items():
