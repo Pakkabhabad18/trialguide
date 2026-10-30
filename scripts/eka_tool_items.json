@@ -1,0 +1,22 @@
+{
+  "_note": "Inputs transcribed from the question text of each Eka item (ekacare/medical_calculator_eval) whose answer our tools compute. check_tools_eka.py verifies each number appears in the question. eGFR items are graded with CKD-EPI 2009, so they check the 2009 reference function, not the CKD-EPI 2021 tool.",
+  "bmi": [
+    {"id": "bmi_001", "weight": 68.0, "height": 1.60, "height_unit": "m"},
+    {"id": "bmi_003", "weight": 85.0, "height": 1.66, "height_unit": "m"},
+    {"id": "bmi_006", "weight": 54, "height": 1.62, "height_unit": "m"},
+    {"id": "bmi_007", "weight": 72.0, "height": 162, "height_unit": "cm"},
+    {"id": "bmi_009", "weight": 78.0, "height": 1.70, "height_unit": "m"},
+    {"id": "bmi_012", "weight": 62.0, "height": 1.60, "height_unit": "m"},
+    {"id": "bmi_013", "weight": 78.0, "height": 165, "height_unit": "cm"},
+    {"id": "bmi_015", "weight": 82.0, "height": 1.75, "height_unit": "m"},
+    {"id": "bmi_018", "weight": 54, "height": 162, "height_unit": "cm"},
+    {"id": "bmi_019", "weight": 68.0, "height": 1.60, "height_unit": "m"},
+    {"id": "bmi_020", "weight": 72.0, "height": 1.6, "height_unit": "m"},
+    {"id": "bmi_021", "weight": 68.0, "height": 1.60, "height_unit": "m"}
+  ],
+  "egfr_ckd_epi_2009": [
+    {"id": "urology_nephrology_001", "creatinine": 1.6, "age": 62, "sex": "male"},
+    {"id": "urology_nephrology_010", "creatinine": 1.6, "age": 62, "sex": "male"},
+    {"id": "urology_nephrology_019", "creatinine": 1.4, "age": 58, "sex": "female"}
+  ]
+}

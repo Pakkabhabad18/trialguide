@@ -1,0 +1,235 @@
+{
+  "eka_items_total": 1066,
+  "checked": 15,
+  "correct": 15,
+  "by_tool": {
+    "bmi": "12/12",
+    "egfr_ckd_epi_2009": "3/3"
+  },
+  "related_calculators_not_covered": {
+    "albumin_creatinine_ratio_calculator": 3,
+    "bmi_calculator_for_kids": 3,
+    "bmi_calculator_for_teens": 3,
+    "bmi_percentile_calculator": 3,
+    "bmi_weight_loss_calculator": 3,
+    "bun_creatinine_ratio_calculator": 3,
+    "creatinine_clearance_calculator": 3,
+    "drug_halflife_calculator": 3,
+    "lean_body_mass_calculator": 3,
+    "pediatric_gfr_calculator_glomerular_filtration_rate": 3,
+    "protein_creatinine_ratio_calculator": 3
+  },
+  "note": "Eka grades eGFR with CKD-EPI 2009, so those items check the 2009 reference function. The CKD-EPI 2021 tool is checked by unit tests. Eka has no drug-class items.",
+  "items": [
+    {
+      "id": "bmi_001",
+      "calculator": "bmi_calculator_body_mass_index",
+      "tool": "bmi",
+      "inputs": {
+        "weight": 68.0,
+        "height": 1.6,
+        "height_unit": "m"
+      },
+      "ours": 26.56,
+      "eka": 26.6,
+      "tolerance": 0.1,
+      "correct": true
+    },
+    {
+      "id": "bmi_003",
+      "calculator": "bmi_calculator_for_men",
+      "tool": "bmi",
+      "inputs": {
+        "weight": 85.0,
+        "height": 1.66,
+        "height_unit": "m"
+      },
+      "ours": 30.85,
+      "eka": 30.846,
+      "tolerance": 0.01,
+      "correct": true
+    },
+    {
+      "id": "bmi_006",
+      "calculator": "geriatric_bmi_calculator",
+      "tool": "bmi",
+      "inputs": {
+        "weight": 54,
+        "height": 1.62,
+        "height_unit": "m"
+      },
+      "ours": 20.58,
+      "eka": 20.58,
+      "tolerance": 0.1,
+      "correct": true
+    },
+    {
+      "id": "bmi_007",
+      "calculator": "bmi_calculator_body_mass_index",
+      "tool": "bmi",
+      "inputs": {
+        "weight": 72.0,
+        "height": 162,
+        "height_unit": "cm"
+      },
+      "ours": 27.43,
+      "eka": 27.4,
+      "tolerance": 0.1,
+      "correct": true
+    },
+    {
+      "id": "bmi_009",
+      "calculator": "bmi_calculator_for_men",
+      "tool": "bmi",
+      "inputs": {
+        "weight": 78.0,
+        "height": 1.7,
+        "height_unit": "m"
+      },
+      "ours": 26.99,
+      "eka": 26.99,
+      "tolerance": 0.1,
+      "correct": true
+    },
+    {
+      "id": "bmi_012",
+      "calculator": "geriatric_bmi_calculator",
+      "tool": "bmi",
+      "inputs": {
+        "weight": 62.0,
+        "height": 1.6,
+        "height_unit": "m"
+      },
+      "ours": 24.22,
+      "eka": 24.22,
+      "tolerance": 0.1,
+      "correct": true
+    },
+    {
+      "id": "bmi_013",
+      "calculator": "bmi_calculator_body_mass_index",
+      "tool": "bmi",
+      "inputs": {
+        "weight": 78.0,
+        "height": 165,
+        "height_unit": "cm"
+      },
+      "ours": 28.65,
+      "eka": 28.7,
+      "tolerance": 0.1,
+      "correct": true
+    },
+    {
+      "id": "bmi_015",
+      "calculator": "bmi_calculator_for_men",
+      "tool": "bmi",
+      "inputs": {
+        "weight": 82.0,
+        "height": 1.75,
+        "height_unit": "m"
+      },
+      "ours": 26.78,
+      "eka": 26.776,
+      "tolerance": 0.01,
+      "correct": true
+    },
+    {
+      "id": "bmi_018",
+      "calculator": "geriatric_bmi_calculator",
+      "tool": "bmi",
+      "inputs": {
+        "weight": 54,
+        "height": 162,
+        "height_unit": "cm"
+      },
+      "ours": 20.58,
+      "eka": 20.59,
+      "tolerance": 0.1,
+      "correct": true
+    },
+    {
+      "id": "bmi_019",
+      "calculator": "bmi_calculator_for_women",
+      "tool": "bmi",
+      "inputs": {
+        "weight": 68.0,
+        "height": 1.6,
+        "height_unit": "m"
+      },
+      "ours": 26.56,
+      "eka": 26.562,
+      "tolerance": 0.01,
+      "correct": true
+    },
+    {
+      "id": "bmi_020",
+      "calculator": "bmi_calculator_for_women",
+      "tool": "bmi",
+      "inputs": {
+        "weight": 72.0,
+        "height": 1.6,
+        "height_unit": "m"
+      },
+      "ours": 28.12,
+      "eka": 28.125,
+      "tolerance": 0.01,
+      "correct": true
+    },
+    {
+      "id": "bmi_021",
+      "calculator": "bmi_calculator_for_women",
+      "tool": "bmi",
+      "inputs": {
+        "weight": 68.0,
+        "height": 1.6,
+        "height_unit": "m"
+      },
+      "ours": 26.56,
+      "eka": 26.562,
+      "tolerance": 0.01,
+      "correct": true
+    },
+    {
+      "id": "urology_nephrology_001",
+      "calculator": "gfr_calculator_estimated_glomerular_filtration_rate",
+      "tool": "egfr_ckd_epi_2009",
+      "inputs": {
+        "creatinine": 1.6,
+        "age": 62,
+        "sex": "male"
+      },
+      "ours": 45.5,
+      "eka": 45.5,
+      "tolerance": 0.1,
+      "correct": true
+    },
+    {
+      "id": "urology_nephrology_010",
+      "calculator": "gfr_calculator_estimated_glomerular_filtration_rate",
+      "tool": "egfr_ckd_epi_2009",
+      "inputs": {
+        "creatinine": 1.6,
+        "age": 62,
+        "sex": "male"
+      },
+      "ours": 45.5,
+      "eka": 45.5,
+      "tolerance": 0.1,
+      "correct": true
+    },
+    {
+      "id": "urology_nephrology_019",
+      "calculator": "gfr_calculator_estimated_glomerular_filtration_rate",
+      "tool": "egfr_ckd_epi_2009",
+      "inputs": {
+        "creatinine": 1.4,
+        "age": 58,
+        "sex": "female"
+      },
+      "ours": 41.3,
+      "eka": 41.3,
+      "tolerance": 0.1,
+      "correct": true
+    }
+  ]
+}
