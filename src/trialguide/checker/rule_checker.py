@@ -193,12 +193,18 @@ Return ONLY a JSON object with these keys:
 }
 The evidence_ids must be integer IDs copied from the visible note.
 
-For unresolved results (assumption, missing, or not_enough_info), provide
-fact_key as a concise snake_case name for the single missing clinical fact
-when one is identifiable. Use null when no specific fact can be named.
-Use the same key for the same clinical fact across rules/trials. Do not use
-patient, trial, or rule IDs, and do not use generic keys like "unknown".
-For decisive stated/inferred results, fact_key must be null.
+For every result, provide fact_key as a concise snake_case name
+for the relevant clinical fact.
+
+Use null only when status is not_applicable or when no single
+clinical fact applies.
+
+For stated and inferred results, identify the clinical fact
+supported by the evidence. For unresolved results, identify
+the missing clinical fact when one is identifiable.
+
+Use the same key for the same clinical fact across rules/trials.
+Do not use patient, trial, or rule IDs, or generic keys like "unknown".
 """
 
     for sample_index in range(n_samples):
@@ -206,8 +212,6 @@ For decisive stated/inferred results, fact_key must be null.
 Independent assessment sample: {sample_index + 1} of {n_samples}.
 Assess this rule independently from the other samples.
 
-Patient ID: {note.patient_id}
-Trial ID: {rule.trial_id}
 Rule ID: {rule.rule_id}
 Rule kind: {rule.kind.value}
 Rule text: {rule.text}
@@ -331,8 +335,11 @@ Return the required JSON object only.
         sample for sample in winning_samples
         if sample["category"] == winning_category
     ]
-    fact_key = _consensus_fact_key(key_samples) if unresolved else None
-
+    fact_key = (
+        None
+        if winning_status == RuleStatus.NOT_APPLICABLE.value
+        else _consensus_fact_key(key_samples)
+    )
     explanations = [
         sample["explanation"]
         for sample in winning_samples
