@@ -104,8 +104,15 @@ class _HFBatcher:
 		max_memory = None
 		if os.getenv("LLM_HF_MAX_MEMORY") and torch.cuda.device_count() > 1:
 			max_memory = {i: os.getenv("LLM_HF_MAX_MEMORY") for i in range(torch.cuda.device_count())}
+		# LLM_HF_8BIT=1 loads 8-bit weights (bitsandbytes, ~9 GB for an 8B model), so the
+		# model fits on one 12 GB GPU; bf16 (the default) needs two
+		quant = None
+		if os.getenv("LLM_HF_8BIT") == "1":
+			from transformers import BitsAndBytesConfig
+			quant = BitsAndBytesConfig(load_in_8bit=True)
 		self.model = AutoModelForCausalLM.from_pretrained(
-			model_name, dtype=torch.bfloat16, device_map="auto", max_memory=max_memory
+			model_name, dtype=torch.bfloat16, device_map="auto", max_memory=max_memory,
+			quantization_config=quant,
 		).eval()
 		print("hf device map:", sorted(set(self.model.hf_device_map.values()), key=str), flush=True)
 		self.revision = getattr(self.model.config, "_commit_hash", None)
@@ -180,6 +187,7 @@ class _HFBatcher:
 			slot["meta"] = {
 				"served_model": self.model_name,
 				"model_revision": self.revision,
+				"weights": "8bit" if os.getenv("LLM_HF_8BIT") == "1" else "bf16",
 				"finish_reason": "length" if n_out >= MAX_TOKENS else "stop",
 				"prompt_tokens": int(mask.sum()),
 				"completion_tokens": n_out,
@@ -203,6 +211,8 @@ def _complete_hf(messages, model, temperature):
 def chat(messages, model, temperature=0):
 	"""Returns the message content of one chat completion (cached)."""
 	params = {"temperature": temperature, "seed": SEED, "max_tokens": MAX_TOKENS}
+	if BACKEND == "hf" and os.getenv("LLM_HF_8BIT") == "1":
+		params["weights"] = "8bit"  # separate cache entries; bf16 keys stay unchanged
 	key = hashlib.sha256(
 		json.dumps([BACKEND, model, messages, params], sort_keys=True).encode()
 	).hexdigest()
