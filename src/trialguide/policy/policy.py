@@ -104,11 +104,12 @@ def decide(check: RuleCheck, config: PolicyConfig,
         return Action(check.patient_id, check.trial_id, check.rule_id, action_type,
                       reason=reason, confidence=check.confidence, threshold=config.threshold)
 
-    # 1. A rule that cannot apply to this patient is settled (e.g. pregnancy rule, male patient)
-    if check.status == RuleStatus.NOT_APPLICABLE:
-        return act(ActionType.USE_STATED, "not applicable")
-
     category = _effective_category(check, doctor_certainty)
+
+    # 1. A rule that cannot apply to this patient is settled (e.g. pregnancy rule, male patient),
+    #    unless it rests on an 'unsure' doctor answer, which makes it unresolved again
+    if check.status == RuleStatus.NOT_APPLICABLE and category in (InfoCategory.STATED, InfoCategory.INFERRED):
+        return act(ActionType.USE_STATED, "not applicable")
     decided = check.status in (RuleStatus.MET, RuleStatus.NOT_MET)
 
     # 2. Stated in the note (or by a sure doctor answer): use it

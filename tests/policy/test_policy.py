@@ -97,6 +97,12 @@ def test_unsure_answer_is_not_used_as_evidence():
     assert action.action == ActionType.ASK
 
 
+def test_not_applicable_resting_on_an_unsure_answer_is_not_settled():
+    # "not applicable" that only rests on an unsure doctor answer must not settle the rule
+    c = check(InfoCategory.STATED, RuleStatus.NOT_APPLICABLE, evidence=(100,), fact_key="sex")
+    assert decide(c, OURS, doctor_certainty={100: Certainty.UNSURE}).action == ActionType.ASK
+
+
 def test_one_follow_up_after_unsure_but_not_two():
     q = Question(question_id="q1", patient_id="p1", fact_key="prior_chemo", text="...", turn=1)
     unsure = DoctorAnswer(question_id="q1", value="maybe", certainty=Certainty.UNSURE, quote="Some sentence.")
