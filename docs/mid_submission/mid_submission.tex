@@ -85,12 +85,13 @@ Rule checker (T12) & Per-rule check with category (stated / inferred / assumptio
 Policy (T19) & Infer / ask / abstain with risk threshold; B2, B5, B6, B7, A1, A6 as settings & Merged\\
 TrialGPT baseline (T4) & Matching, aggregation, ranking, evaluation on an open model & Merged\\
 Tools (T13) & eGFR (CKD-EPI 2021), BMI, drug class (RxClass) & Merged\\
-LLM client & One cached, logged entry point; 8-bit loading; token probabilities & In review\\
-Question selector (T20) & Eq.~1 of the proposal, budget 3, fact merging; fixed / uncertainty / ask-all strategies & In review\\
-Simulated doctor (T11) & Llama-3.1-8B answers only from hidden facts, quote enforced in code & In review\\
+LLM client & One cached, logged entry point; 8-bit loading; token probabilities & Merged\\
+Question selector (T20) & Eq.~1 of the proposal, budget 3, fact merging; fixed / uncertainty / ask-all strategies & Merged\\
+Simulated doctor (T11) & Llama-3.1-8B answers only from hidden facts, quote enforced in code & Merged\\
 Memorisation probe (T14) & Three tests on the 37 dev patients & Done\\
 B6 runner (T16) & TrialGPT and our checker on full vs.\ masked notes; B2, B5 & Done (5 pts)\\
-End-to-end runner & Checker \(\rightarrow\) policy \(\rightarrow\) question \(\rightarrow\) doctor \(\rightarrow\) re-check \(\rightarrow\) score & In review\\
+End-to-end runner & Checker \(\rightarrow\) policy \(\rightarrow\) question \(\rightarrow\) doctor \(\rightarrow\) re-check \(\rightarrow\) score & Merged\\
+Round runner (T22, T27) & Checker and doctor take turns on one GPU; B7, A2, A3 & Running\\
 E2 data (T24) & Indian-affiliated oncology case reports and trials recruiting in India & Merged\\
 \bottomrule
 \end{tabularx}
@@ -137,14 +138,14 @@ All baselines use the same backbone, patients, masks, trials, visibility rules a
 \midrule
 B1 & Full-note oracle & TrialGPT version run (5 pts)\\
 B2 & Inference, no risk control, no questions & Run (5 pts)\\
-B3 & Ask every candidate fact & Code ready, needs doctor\\
-B4 & Fixed-order questions, budget 3 & Code ready, needs doctor\\
+B3 & Ask every candidate fact & Code ready, not run\\
+B4 & Fixed-order questions, budget 3 & Same run as A2\\
 B5 & Confidence threshold 0.9 & Run (5 pts)\\
 B6 & Abstention (TrialGPT-style) & Run (5 pts), 2 versions\\
-B7 & TrialGuide & Needs doctor, \(\hat\lambda\)\\
+B7 & TrialGuide & Running (5 pts), \(\lambda=0.9\) stand-in\\
 \bottomrule
 \end{tabularx}
-\caption{Baselines. ``Code ready'' means the policy and the runner support the system, but it has not been run on data.}
+\caption{Baselines. ``Code ready'' means the policy and the runner support the system, but it has not been run on data. B7 uses \(\lambda=0.9\) until the threshold is calibrated (T30).}
 \label{tab:baselines}
 \end{table}
 
@@ -193,7 +194,7 @@ Masking raised the share of unresolved rules from 26.5\% to 40.8\%. The checker 
 
 % =====================================================================
 \section{Ablations}
-Each ablation takes one part out of B7 and otherwise runs through the same code. A1, A2, A3 and A6 already exist as settings of the policy or the selector. A4, A5 and A7 still need small additions to the checker or the runner. We have not run any ablation yet, because each depends on B7, and B7 needs both the simulated doctor and the calibrated threshold \(\hat\lambda\).
+Each ablation takes one part out of B7 and otherwise runs through the same code. Because the checker (Qwen) and the simulated doctor (Llama) do not fit on our GPU together, B7 and the ablations that ask questions run in rounds: one round loads the checker, the next the doctor, and every conversation is replayed from the cache of earlier calls until it finishes. A2 and A3 are running in this way together with B7 on the five pilot patients. A1 and A6 already exist as policy settings. A4, A5 and A7 still need small additions; for A5 the tools first have to be connected to the checker, which does not call them yet.
 
 \begin{table}[H]
 \centering\footnotesize
@@ -202,10 +203,10 @@ Each ablation takes one part out of B7 and otherwise runs through the same code.
 \textbf{ID} & \textbf{Removes} & \textbf{Switch}\\
 \midrule
 A1 & Inference (ask or abstain only) & Policy setting \yes\\
-A2 & Adaptive selection (fixed order) & Selector strategy \yes\\
-A3 & Ranking term (least-confident fact first) & Selector strategy \yes\\
+A2 & Adaptive selection (fixed order) & Selector strategy \yes{} (running)\\
+A3 & Ranking term (least-confident fact first) & Selector strategy \yes{} (running)\\
 A4 & Evidence retrieval & Checker input (to add)\\
-A5 & Tools (eGFR, BMI, drug class) & Checker option (to add)\\
+A5 & Tools (eGFR, BMI, drug class) & Tools into checker (to add)\\
 A6 & Risk control (raw confidence) & Policy setting \yes\\
 A7 & One question per turn (all at once) & Runner option (to add)\\
 \bottomrule
