@@ -1,0 +1,40 @@
+{
+  "seed": 20261027,
+  "summary": {
+    "dev": {
+      "patients": 37,
+      "by_cohort": {
+        "sigir": 2,
+        "trec_2021": 21,
+        "trec_2022": 14
+      },
+      "patients_with_rule_labels": 0,
+      "rule_label_rows": 0
+    },
+    "cal": {
+      "patients": 73,
+      "by_cohort": {
+        "sigir": 28,
+        "trec_2021": 27,
+        "trec_2022": 18
+      },
+      "patients_with_rule_labels": 26,
+      "rule_label_rows": 501
+    },
+    "test": {
+      "patients": 73,
+      "by_cohort": {
+        "sigir": 28,
+        "trec_2021": 27,
+        "trec_2022": 18
+      },
+      "patients_with_rule_labels": 26,
+      "rule_label_rows": 496
+    }
+  },
+  "sha256": {
+    "dev.txt": "4fb09f23f9119f8ab7f3aba72555bd9864a0cfefd05d48685a923f8d2865d761",
+    "cal.txt": "9794388851f255f8960f7083bfa714c41e19c728208010be5640df0d9ecdcda2",
+    "test.txt": "9a3f7d986bcd9ab03332749b446ddd65f2c630cdee9789782a29d3226b471479"
+  }
+}
