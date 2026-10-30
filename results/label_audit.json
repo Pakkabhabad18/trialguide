@@ -1,0 +1,75 @@
+{
+  "rows": 1015,
+  "annotated_patients": 53,
+  "cohorts": {
+    "sigir": {
+      "patients_in_queries": 59,
+      "patients_with_trial_labels": 58,
+      "patients_without_trial_labels": [
+        "sigir-201428"
+      ],
+      "patients_with_rule_labels": 52,
+      "rule_label_rows": 997
+    },
+    "trec_2021": {
+      "patients_in_queries": 75,
+      "patients_with_trial_labels": 75,
+      "patients_without_trial_labels": [],
+      "patients_with_rule_labels": 0,
+      "rule_label_rows": 0
+    },
+    "trec_2022": {
+      "patients_in_queries": 50,
+      "patients_with_trial_labels": 50,
+      "patients_without_trial_labels": [],
+      "patients_with_rule_labels": 0,
+      "rule_label_rows": 0
+    }
+  },
+  "annotated_patients_missing_from_cohorts": {
+    "sigir-201426": 18
+  },
+  "expert_label_counts": {
+    "exclusion": {
+      "not excluded": 484,
+      "not enough information": 119,
+      "not applicable": 46,
+      "excluded": 10
+    },
+    "inclusion": {
+      "not enough information": 174,
+      "included": 150,
+      "not included": 23,
+      "not applicable": 9
+    }
+  },
+  "rows_per_patient": {
+    "count": 53.0,
+    "mean": 19.2,
+    "std": 9.6,
+    "min": 5.0,
+    "25%": 12.0,
+    "50%": 18.0,
+    "75%": 25.0,
+    "max": 43.0
+  },
+  "patient_trial_pairs": 105,
+  "nei": {
+    "expert_nei_rows": 293,
+    "expert_nei_share": 0.289,
+    "gpt4_nei_rows": 289,
+    "both_nei": 255,
+    "recoverable_nei": 34,
+    "gpt4_decided_but_expert_nei": 21,
+    "gpt4_nei_other_expert_label": 0,
+    "gpt4_disagreements": 129,
+    "recoverable_share_of_disagreements": 0.264,
+    "recoverable_share_of_gpt4_nei": 0.118,
+    "recoverable_by_type": {
+      "exclusion": 17,
+      "inclusion": 17
+    },
+    "recoverable_with_expert_evidence": 21
+  },
+  "gpt4_accuracy_vs_expert": 0.873
+}
