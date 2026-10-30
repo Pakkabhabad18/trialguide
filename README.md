@@ -27,7 +27,7 @@ For every rule the note doesn't settle, TrialGuide picks one of three actions:
 
 An inference that would make a patient look eligible is accepted only if it passes **conformal risk control**. This keeps the average rate of harmful inferences at or below a target of 5%. Harmful means wrong *and* moving the patient toward eligibility.
 
-**The doctor.** In experiments, a simulated doctor (Llama-3.1-8B-Instruct) answers from the patient's full record. It must quote the sentence it used, and gives a certainty level: sure, probably, unsure or not documented. A "probably" answer goes through the same risk control as an inference, and an "unsure" answer can lead to one follow-up question. In the demo, a person answers in place of the simulated doctor.
+**The doctor.** In experiments, a simulated doctor (Llama-3.1-8B-Instruct) answers each question. It must quote the sentence it used, and gives a certainty level: sure, probably, unsure or not documented. A quote that is not in the record turns the answer into "not documented", and a "sure" answer whose quote does not mention the question's topic is lowered to "probably". A "probably" answer goes through the same risk control as an inference, and an "unsure" answer can lead to one follow-up question. In the demo, a person answers in place of the simulated doctor.
 
 ## Research questions
 
@@ -48,10 +48,10 @@ An inference that would make a patient look eligible is accepted only if it pass
 
 | | |
 | --- | --- |
-| Main model | Qwen3-8B, served with vLLM on the IIIT cluster |
+| Main model | Qwen3-8B on the IIIT cluster (Hugging Face transformers, 8-bit on one 12 GB GPU) |
 | Simulated doctor | Llama-3.1-8B-Instruct (a different model family from the main model) |
 | Patients | TREC Clinical Trials 2021 (75), TREC Clinical Trials 2022 (50) and SIGIR 2016 (58): 183 expert-written synthetic patients |
-| Rule-level gold labels | [TrialGPT criterion annotations](https://huggingface.co/datasets/ncbi/TrialGPT-Criterion-Annotations) (1,020 rows) |
+| Rule-level gold labels | [TrialGPT criterion annotations](https://huggingface.co/datasets/ncbi/TrialGPT-Criterion-Annotations) (1,015 rows, all for SIGIR patients) |
 | Extension | Indian-affiliated case reports from PMC-Patients |
 
 **Splits.** Patients are split once: 37 for development, 73 for calibration and 73 for test. The test set is opened once, after the system is frozen. Facts are hidden from notes in three ways (random, rule-targeted and evidence-targeted), and the system only ever sees the visible part.
@@ -78,7 +78,9 @@ An inference that would make a patient look eligible is accepted only if it pass
 ## Changes since the proposal
 
 - **Main model:** Qwen3-8B instead of Qwen3-32B. The 32B model doesn't fit in the memory of the GPUs we have (2 × 12 GB). RQ3 was redefined to match: tuned vs untuned 8B, instead of 8B vs 32B.
-- **Simulated doctor:** following TA feedback, it now reads the full record and must quote it, and its answers carry a certainty level. This replaces reading a list of facts we hid ourselves.
+- **Simulated doctor:** following TA feedback, its answers must quote the record and carry a certainty level. The plan is for it to read the full record. The current code still gives it only the facts hidden from the system; the switch to the full record is in progress.
+- **Checker confidence:** the model's own probability of the status it chose, from one greedy call, instead of agreement across 5 samples. With greedy decoding the 5 samples always agreed, so the vote share was always 1.0 and no threshold could act. Risk control calibrates this probability.
+- **Label count:** the expert label file has 1,015 rule-level rows, not the 1,020 stated in the proposal.
 
 ## Repository layout
 
@@ -95,9 +97,13 @@ src/trialguide/
   tools/       eGFR, BMI, drug class                     (Prateek)
   policy/      infer / ask / abstain and risk control    (Prakash)
   baselines/   B1-B7 and ablations                       (Prakash, Prateek)
+  pipeline.py  one patient end to end: check, decide, ask, re-check, score
 configs/       one file per experiment run
+scripts/       data download and cluster job scripts
+splits/        the frozen patient splits (with checksums)
+results/       result files used in the reports
 tests/         unit tests (run automatically on every pull request)
-docs/proposal/ project proposal
+docs/          proposal, mid-submission report, leakage checklist, E2 limits
 ```
 
 ## Setup
@@ -115,6 +121,12 @@ pytest
 
 Patient data and model weights are not stored in this repository. They are downloaded by scripts in `scripts/`.
 
-## Status
+## Status (30 October 2026)
 
-Work in progress. The project is due for completion on 10 November 2026.
+**Built and tested:** data download, expert-label audit, frozen patient split, masking, evaluation harness, E2 data, TrialGPT baseline, tools, rule checker, infer / ask / abstain policy, question selector, simulated doctor and the end-to-end runner.
+
+**First runs (5 development patients, too few to compare systems):** TrialGPT reproduction, B6, B2 and B5, and a memorisation probe on all 37 development patients (no memorisation found). Numbers and caveats: [`results/mid_submission_results.txt`](results/mid_submission_results.txt).
+
+**Next:** trial retrieval from the visible note and the RAG check, the checker calling the tools, risk-control calibration, B7 and the other baselines on a larger development sample, the ablations, QLoRA fine-tuning (E1) and E2.
+
+Final submission: 15 November 2026.
