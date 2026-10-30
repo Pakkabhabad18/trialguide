@@ -13,4 +13,5 @@ pyyaml==6.0.3
 requests==2.34.2
 openai==3.37.0        # client for the vLLM OpenAI-compatible server
 tqdm==4.70.1
+nltk==3.9.2           # sentence splitting in the TrialGPT baseline (T4)
 pytest==9.1.1
