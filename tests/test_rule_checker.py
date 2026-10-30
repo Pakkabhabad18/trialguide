@@ -279,3 +279,37 @@ def test_tied_categories_for_winning_status_return_unresolved(monkeypatch):
     assert result.category == InfoCategory.MISSING
     assert result.evidence_ids == []
     assert result.unresolved is True
+
+def logprob_reply(status="met", p_status=0.8):
+    """A reply as chat(..., logprobs=True) returns it, with the status value's tokens at p_status."""
+    import math
+    head, tail = '{"status": "', '", "category": "inferred", "evidence_ids": [0], "explanation": "x", "fact_key": null}'
+    return {"text": head + status + tail,
+            "tokens": [[head, -0.01], [status, math.log(p_status)], [tail, -0.02]]}
+
+
+def test_logprob_confidence_is_the_probability_of_the_chosen_status(monkeypatch):
+    calls = []
+
+    def fake_chat(messages, model, temperature=0, logprobs=False):
+        calls.append(logprobs)
+        return logprob_reply("met", 0.8)
+
+    monkeypatch.setattr(checker, "chat", fake_chat)
+    result = checker.check_rule(make_note(), make_rule(), "model", n_samples=1, confidence="logprob")
+    assert calls == [True]
+    assert result.status == RuleStatus.MET and result.category == InfoCategory.INFERRED
+    assert result.confidence == pytest.approx(0.8)
+
+
+def test_logprob_confidence_needs_one_sample_and_a_known_mode():
+    with pytest.raises(ValueError):
+        checker.check_rule(make_note(), make_rule(), "model", n_samples=5, confidence="logprob")
+    with pytest.raises(ValueError):
+        checker.check_rule(make_note(), make_rule(), "model", n_samples=1, confidence="other")
+
+
+def test_status_probability_reads_only_the_status_value():
+    reply = logprob_reply("not_met", 0.3)
+    assert checker._status_probability(reply["tokens"]) == pytest.approx(0.3)
+    assert checker._status_probability([["no json here", -0.1]]) == 0.0

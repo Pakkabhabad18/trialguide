@@ -68,8 +68,10 @@ def _append(path, entry):
 		f.write(json.dumps(entry) + "\n")
 
 
-def _complete_api(messages, model, temperature):
+def _complete_api(messages, model, temperature, logprobs=False):
 	kwargs = dict(model=model, messages=messages, temperature=temperature)
+	if logprobs:
+		kwargs["logprobs"] = True
 	if BACKEND == "openai":
 		kwargs["seed"] = SEED
 		kwargs["max_tokens"] = MAX_TOKENS
@@ -77,7 +79,11 @@ def _complete_api(messages, model, temperature):
 			kwargs["extra_body"] = {"chat_template_kwargs": {"enable_thinking": False}}
 
 	response = client.chat.completions.create(**kwargs)
-	return response.choices[0].message.content, {
+	output = response.choices[0].message.content
+	if logprobs:
+		output = {"text": output,
+				  "tokens": [[t.token, t.logprob] for t in response.choices[0].logprobs.content]}
+	return output, {
 		"served_model": response.model,
 		"system_fingerprint": getattr(response, "system_fingerprint", None),
 		"finish_reason": response.choices[0].finish_reason,
@@ -96,22 +102,34 @@ class _HFBatcher:
 		self.torch = torch
 		self.model_name = model_name
 		self.tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="left")
+		if self.tokenizer.pad_token is None:
+			# Llama tokenizers define no pad token; batching needs one
+			self.tokenizer.pad_token = self.tokenizer.eos_token
 		# cap the weights per GPU so they split evenly and every GPU keeps room
 		# for the KV cache (otherwise the last GPU fills up and runs out of memory)
 		max_memory = None
 		if os.getenv("LLM_HF_MAX_MEMORY") and torch.cuda.device_count() > 1:
 			max_memory = {i: os.getenv("LLM_HF_MAX_MEMORY") for i in range(torch.cuda.device_count())}
+		# LLM_HF_8BIT=1 loads 8-bit weights (bitsandbytes, ~9 GB for an 8B model), so the
+		# model fits on one 12 GB GPU; bf16 (the default) needs two
+		quant = None
+		if os.getenv("LLM_HF_8BIT") == "1":
+			from transformers import BitsAndBytesConfig
+			quant = BitsAndBytesConfig(load_in_8bit=True)
 		self.model = AutoModelForCausalLM.from_pretrained(
-			model_name, dtype=torch.bfloat16, device_map="auto", max_memory=max_memory
+			model_name, dtype=torch.bfloat16, device_map="auto", max_memory=max_memory,
+			quantization_config=quant,
 		).eval()
-		print("hf device map:", sorted(set(self.model.hf_device_map.values()), key=str), flush=True)
+		# no hf_device_map when the whole model sits on one device
+		devices = getattr(self.model, "hf_device_map", {"": self.model.device}).values()
+		print("hf device map:", sorted(set(devices), key=str), flush=True)
 		self.revision = getattr(self.model.config, "_commit_hash", None)
 		self.requests = queue.Queue()
 		threading.Thread(target=self._loop, daemon=True).start()
 
-	def submit(self, messages):
+	def submit(self, messages, logprobs=False):
 		done = threading.Event()
-		slot = {"messages": messages, "done": done}
+		slot = {"messages": messages, "done": done, "logprobs": logprobs}
 		self.requests.put(slot)
 		done.wait()
 		if "error" in slot:
@@ -164,29 +182,65 @@ class _HFBatcher:
 			for slot in batch
 		]
 		inputs = self.tokenizer(texts, return_tensors="pt", padding=True).to(self.model.device)
+		recorder = _GreedyLogprobs() if any(slot["logprobs"] for slot in batch) else None
 		with self.torch.no_grad():
 			out = self.model.generate(
 				**inputs, max_new_tokens=MAX_TOKENS, do_sample=False,
 				temperature=None, top_p=None, top_k=None,
 				pad_token_id=self.tokenizer.pad_token_id,
+				logits_processor=[recorder] if recorder else None,
 			)
 		new_tokens = out[:, inputs["input_ids"].shape[1]:]
-		for slot, mask, tokens in zip(batch, inputs["attention_mask"], new_tokens):
+		special = set(self.tokenizer.all_special_ids)
+		for i, (slot, mask, tokens) in enumerate(zip(batch, inputs["attention_mask"], new_tokens)):
 			n_out = int((tokens != self.tokenizer.pad_token_id).sum())
 			slot["output"] = self.tokenizer.decode(tokens, skip_special_tokens=True)
+			if slot["logprobs"]:
+				# one [token text, log-probability] pair per generated token, special tokens left out
+				ids = tokens.tolist()
+				slot["output"] = {"text": slot["output"], "tokens": [
+					[self.tokenizer.decode([t]), float(recorder.steps[step][i])]
+					for step, t in enumerate(ids) if t not in special]}
 			slot["meta"] = {
 				"served_model": self.model_name,
 				"model_revision": self.revision,
+				"weights": "8bit" if os.getenv("LLM_HF_8BIT") == "1" else "bf16",
 				"finish_reason": "length" if n_out >= MAX_TOKENS else "stop",
 				"prompt_tokens": int(mask.sum()),
 				"completion_tokens": n_out,
 			}
 
 
+class _GreedyLogprobs:
+	"""Logits processor that records, at each step, the log-probability of the token greedy
+	decoding is about to pick (the maximum); it leaves the scores unchanged. Keeps one number per
+	sequence and step instead of whole-vocabulary logits, so it costs almost no memory."""
+
+	def __init__(self):
+		self.steps = []
+
+	def __call__(self, input_ids, scores):
+		import torch
+		self.steps.append(torch.log_softmax(scores.float(), dim=-1).max(dim=-1).values.cpu())
+		return scores
+
+
+def span_logprob(tokens, start, end):
+	"""Sum of the log-probabilities of the tokens overlapping characters [start, end) of the text
+	the tokens spell out. With chat(..., logprobs=True), exp() of this is the model's probability
+	of that part of its answer."""
+	total, pos = 0.0, 0
+	for text, logprob in tokens:
+		if pos < end and pos + len(text) > start:
+			total += logprob
+		pos += len(text)
+	return total
+
+
 _hf = None
 
 
-def _complete_hf(messages, model, temperature):
+def _complete_hf(messages, model, temperature, logprobs=False):
 	global _hf
 	with _lock:
 		if _hf is None:
@@ -194,12 +248,20 @@ def _complete_hf(messages, model, temperature):
 	assert _hf.model_name == model, "hf backend serves one model per process"
 	# TrialGPT always uses temperature 0, i.e. greedy decoding
 	assert temperature == 0, "hf backend only implements greedy decoding"
-	return _hf.submit(messages)
+	return _hf.submit(messages, logprobs)
 
 
-def chat(messages, model, temperature=0):
-	"""Returns the message content of one chat completion (cached)."""
+def chat(messages, model, temperature=0, logprobs=False):
+	"""Returns the message content of one chat completion (cached).
+
+	logprobs=True returns {"text": content, "tokens": [[token, logprob], ...]} instead, with the
+	log-probability of every generated token; e.g. a checker's confidence in its own label.
+	"""
 	params = {"temperature": temperature, "seed": SEED, "max_tokens": MAX_TOKENS}
+	if logprobs:
+		params["logprobs"] = True
+	if BACKEND == "hf" and os.getenv("LLM_HF_8BIT") == "1":
+		params["weights"] = "8bit"  # separate cache entries; bf16 keys stay unchanged
 	key = hashlib.sha256(
 		json.dumps([BACKEND, model, messages, params], sort_keys=True).encode()
 	).hexdigest()
@@ -210,7 +272,7 @@ def chat(messages, model, temperature=0):
 			return cache[key]
 
 	complete = _complete_hf if BACKEND == "hf" else _complete_api
-	output, meta = complete(messages, model, temperature)
+	output, meta = complete(messages, model, temperature, logprobs)
 
 	with _lock:
 		_cache[key] = output

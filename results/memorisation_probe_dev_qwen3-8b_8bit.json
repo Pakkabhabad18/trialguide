@@ -1,0 +1,59 @@
+{
+  "task": "T14 memorisation probe",
+  "date": "2026-10-30",
+  "model": "Qwen/Qwen3-8B",
+  "revision": "b968826d9c46dd6066d109eabc6255188de91218",
+  "weights": "8bit",
+  "decoding": "greedy",
+  "max_new_tokens": 96,
+  "seed": 20261030,
+  "split": "splits/dev.txt",
+  "patients": 37,
+  "transformers": "5.5.4",
+  "torch": "2.6.0+cu124",
+  "gpus": [
+    "NVIDIA GeForce RTX 3080 Ti"
+  ],
+  "rule": {
+    "verbatim_rate_max": 0.05,
+    "verbatim_vs_control": 3.0,
+    "number_gap_max": 0.1,
+    "edit_follow_min": 0.9
+  },
+  "min_words": 6,
+  "verbatim_threshold": 0.8,
+  "A_continuation": {
+    "items": 306,
+    "mean_recall": 0.1547,
+    "mean_recall_control": 0.0902,
+    "items_long_enough": 279,
+    "verbatim_rate": 0.0,
+    "verbatim_rate_control": 0.0,
+    "copied_visible_rate": 0.0,
+    "items_with_unseen_numbers": 86,
+    "number_recall": 0.1395,
+    "number_recall_control": 0.0854
+  },
+  "B_gap": {
+    "items": 343,
+    "mean_recall": 0.1309,
+    "mean_recall_control": 0.0729,
+    "items_long_enough": 316,
+    "verbatim_rate": 0.0032,
+    "verbatim_rate_control": 0.0,
+    "copied_visible_rate": 0.1399,
+    "items_with_unseen_numbers": 116,
+    "number_recall": 0.0259,
+    "number_recall_control": 0.009
+  },
+  "C_edited_age": {
+    "notes": 34,
+    "reads_original_rate": 1.0,
+    "follows_edit_rate": 1.0,
+    "gives_old_age_rate": 0.0
+  },
+  "verdict": {
+    "memorisation_signal": false,
+    "reasons": []
+  }
+}

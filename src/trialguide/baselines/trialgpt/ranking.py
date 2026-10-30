@@ -45,7 +45,9 @@ def convert_criteria_pred_to_string(
 
 			criterion = idx2criterion[criterion_idx]
 
-			if len(preds) != 3:
+			# malformed model output (e.g. a dict instead of [reason, ids, label]) is skipped,
+			# as rank_results.get_matching_score does
+			if not isinstance(preds, list) or len(preds) != 3:
 				continue
 
 			output += f"{inc_exc} criterion {idx}: {criterion}\n"
