@@ -1,0 +1,31 @@
+{
+  "task": "T4 smoke test: TrialGPT end to end with an open model",
+  "date": "2026-10-25",
+  "model": "Qwen/Qwen3-8B (revision b968826d9c46dd6066d109eabc6255188de91218), bf16, greedy",
+  "backend": "transformers on 2x RTX 3080 Ti (IIIT ada, gnode097)",
+  "subset": "sigir-20141, sigir-20142, sigir-20143 (first 3 SIGIR patients), at most 5 trials per gold label; chosen before the T8 split was frozen, not used for any design decision",
+  "comparable_to_paper": false,
+  "corpus": "sigir",
+  "n_patients": 3,
+  "n_pairs": 43,
+  "NDCG@10": 0.7728481508217454,
+  "P@10": 0.5166666666666667,
+  "NDCG@10_random_ranking": 0.6198983924921148,
+  "criterion_labels": {
+    "inclusion": {
+      "included": 75,
+      "not enough information": 56,
+      "not applicable": 45,
+      "not included": 17
+    },
+    "exclusion": {
+      "not applicable": 108,
+      "not excluded": 73,
+      "not enough information": 27,
+      "excluded": 2
+    }
+  },
+  "unparsed_outputs": "0/86",
+  "inclusion_not_enough_information_rate": 0.29015544041450775,
+  "exclusion_not_enough_information_rate": 0.12857142857142856
+}
