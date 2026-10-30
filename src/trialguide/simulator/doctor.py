@@ -38,6 +38,7 @@ Rules:
 - Quote the sentence from the record that answers the question, copied exactly.
 - If the record does not answer the question, say so: certainty "not_documented", empty answer, quote null.
 - Answer only the question asked. Do not volunteer other facts.
+- Never infer a fact from the patient's age, sex or presenting complaint.
 
 Certainty:
 - "sure": the record states the answer directly.
@@ -73,6 +74,25 @@ def _parse(text: str) -> Optional[dict]:
 
 def _norm(text: str) -> str:
     return re.sub(r"\s+", " ", text.lower()).strip(" .")
+
+
+# Question words that say nothing about the topic
+STOPWORDS = set("""a an the is are was were be been does do did has have had any what which who how when
+where why of on in at to for from with about by as such and or not no patient patients patient's
+she he her his their there this that ever currently current taking take given received get before
+prior history level status value""".split())
+
+
+def _stem(word: str) -> str:
+    """Crude stem, enough to match smoke/smoking, obese/obesity, pregnant/pregnancy."""
+    return word[: max(4, len(word) - 3)]
+
+
+def mentions_topic(question: str, quote: str) -> bool:
+    """Does the quote mention at least one topic word of the question?"""
+    topic = {_stem(w) for w in re.findall(r"[a-z]+", question.lower()) if w not in STOPWORDS and len(w) >= 3}
+    quote_words = re.findall(r"[a-z]+", quote.lower())
+    return any(w.startswith(t) for t in topic for w in quote_words)
 
 
 def find_quote(quote: str, facts: list[str]) -> Optional[str]:
@@ -136,9 +156,14 @@ class SimulatedDoctor:
         if source is None:
             # D10: an answer the record does not support is not used
             return self._not_documented(question, raw), "quote not found in the record"
+        reason = ""
+        if certainty == Certainty.SURE and not mentions_topic(question.text, source):
+            # A real quote that does not mention the topic is an inference, not a stated fact:
+            # cap it at "probably", so it goes through risk control like any other inference
+            certainty, reason = Certainty.PROBABLY, "quote does not mention the topic"
         answer = DoctorAnswer(question_id=question.question_id, value=str(data.get("answer", "")).strip(),
                               certainty=certainty, quote=source, raw_text=raw)
-        return answer, ""
+        return answer, reason
 
     @staticmethod
     def _not_documented(question: Question, raw: str = "") -> DoctorAnswer:

@@ -3,7 +3,7 @@
 import json
 
 from trialguide.schemas import Certainty, Question
-from trialguide.simulator.doctor import SimulatedDoctor, find_quote
+from trialguide.simulator.doctor import SimulatedDoctor, find_quote, mentions_topic
 
 FACTS = {"p1": ["She denies smoking, diabetes, hypercholesterolemia, or a family history of heart disease.",
                 "She currently takes no medications."]}
@@ -95,3 +95,21 @@ def test_every_exchange_is_logged_with_the_reason(tmp_path):
 def test_find_quote_rejects_unrelated_text():
     assert find_quote("No known drug allergies.", FACTS["p1"]) is None
     assert find_quote("", FACTS["p1"]) is None
+
+
+def test_sure_answer_whose_quote_is_off_topic_is_capped_at_probably(tmp_path):
+    # Seen on Llama: "pregnant? no" quoting the smoking sentence, i.e. a guess with a real quote
+    reply = {"answer": "no", "certainty": "sure",
+             "quote": "She denies smoking, diabetes, hypercholesterolemia, or a family history of heart disease."}
+    d, _ = doctor(reply, tmp_path)
+    a = d.answer("p1", question("Is the patient pregnant?"))
+    assert a.certainty == Certainty.PROBABLY and a.value == "no"
+    assert json.loads((tmp_path / "log.jsonl").read_text())["reason"] == "quote does not mention the topic"
+
+
+def test_mentions_topic_matches_word_forms_and_ignores_question_words():
+    assert mentions_topic("Does the patient smoke?", "She denies smoking.")
+    assert mentions_topic("Is the patient obese?", "She has hypertension and obesity.")
+    assert mentions_topic("How old is the patient?", "A 58-year-old woman.")
+    assert not mentions_topic("Has the patient had a myocardial infarction before?", "The pain started while walking.")
+    assert not mentions_topic("Is the patient taking anticoagulants?", "She currently takes no medications.")
