@@ -148,7 +148,8 @@ def gap_items(notes: dict) -> list:
     return out
 
 
-AGE_RE = re.compile(r"\b(\d{1,3})(?=[- ](?:year|yr|yo\b|y/o|y\.o\.))", re.I)
+# "58-year-old", "41 year man", "65 yo"; not ranges or durations such as "10-15 years ago"
+AGE_RE = re.compile(r"(?<![\d-])\b(\d{1,3})(?=[- ](?:years?[- ](?!ago)|yrs?\b|yo\b|y/o|y\.o\.))", re.I)
 
 
 def edit_age(note: str, rng: random.Random):

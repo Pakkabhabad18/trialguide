@@ -54,6 +54,8 @@ def test_edit_age_changes_every_mention_and_stays_plausible():
     _, old, new = edit_age("A 4-year-old girl with fever.", random.Random(0))
     assert old == 4 and 1 <= new <= 17
     assert edit_age("Patient with fever.", random.Random(0)) is None
+    assert edit_age("He had a stroke 10-15 years ago.", random.Random(0)) is None
+    assert edit_age("Fernandez is a 41 year man.", random.Random(0))[1] == 41
 
 
 def sentences(text):
