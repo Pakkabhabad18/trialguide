@@ -114,7 +114,9 @@ class _HFBatcher:
 			model_name, dtype=torch.bfloat16, device_map="auto", max_memory=max_memory,
 			quantization_config=quant,
 		).eval()
-		print("hf device map:", sorted(set(self.model.hf_device_map.values()), key=str), flush=True)
+		# no hf_device_map when the whole model sits on one device
+		devices = getattr(self.model, "hf_device_map", {"": self.model.device}).values()
+		print("hf device map:", sorted(set(devices), key=str), flush=True)
 		self.revision = getattr(self.model.config, "_commit_hash", None)
 		self.requests = queue.Queue()
 		threading.Thread(target=self._loop, daemon=True).start()
