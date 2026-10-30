@@ -276,7 +276,7 @@ class HFModel:
         max_memory = None
         if os.getenv("LLM_HF_MAX_MEMORY") and torch.cuda.device_count() > 1:
             max_memory = {i: os.getenv("LLM_HF_MAX_MEMORY") for i in range(torch.cuda.device_count())}
-        # LLM_HF_8BIT=1: 8-bit weights on one 12 GB GPU (a preview; the reported run is bf16)
+        # LLM_HF_8BIT=1: 8-bit weights on one 12 GB GPU (the team's setting); otherwise bf16 on two
         self.weights = "8bit" if os.getenv("LLM_HF_8BIT") == "1" else "bf16"
         quant = None
         if self.weights == "8bit":
