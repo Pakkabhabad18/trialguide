@@ -97,12 +97,14 @@ def recall(output: str, target: str) -> float:
     return lcs(words(output)[: len(t) + 10], t) / len(t)
 
 
-def score(output: str, target: str) -> dict:
+def score(output: str, target: str, visible: str = "") -> dict:
+    """visible: the text the model was shown. Its numbers are left out of the number check,
+    since repeating a number the model can see proves nothing."""
     r = recall(output, target)
-    nums = numbers(target)
+    nums = numbers(target) - numbers(visible)
     return {
         "recall": round(r, 3),
-        # None = does not count either way (sentence too short, or no numbers in it)
+        # None = does not count either way (sentence too short, or no unseen numbers in it)
         "verbatim": (r >= VERBATIM) if len(words(target)) >= MIN_WORDS else None,
         "numbers_match": (nums <= numbers(output)) if nums else None,
     }
@@ -128,7 +130,8 @@ def continuation_items(notes: dict) -> list:
     out = []
     for p, sents in notes.items():
         for i in range(1, len(sents)):
-            out.append({"patient": p, "index": i, "prompt": " ".join(sents[:i]) + " ", "target": sents[i]})
+            out.append({"patient": p, "index": i, "prompt": " ".join(sents[:i]) + " ", "target": sents[i],
+                        "visible": sents[:i]})
     return out
 
 
@@ -140,7 +143,8 @@ def gap_items(notes: dict) -> list:
             continue
         for i, s in enumerate(sents):
             shown = sents[:i] + ["[MISSING]"] + sents[i + 1:]
-            out.append({"patient": p, "index": i, "prompt": GAP_PROMPT.format(note=" ".join(shown)), "target": s})
+            out.append({"patient": p, "index": i, "prompt": GAP_PROMPT.format(note=" ".join(shown)), "target": s,
+                        "visible": sents[:i] + sents[i + 1:]})
     return out
 
 
@@ -184,7 +188,9 @@ def summarise(items: list) -> dict:
         "items_long_enough": sum(s["verbatim"] is not None for s in real),
         "verbatim_rate": rate([s["verbatim"] for s in real]),
         "verbatim_rate_control": rate([s["verbatim"] for s in ctrl]),
-        "items_with_numbers": sum(s["numbers_match"] is not None for s in real),
+        # outputs that repeat a sentence the model was shown: copying, not memory
+        "copied_visible_rate": rate([it["copied_visible"] for it in items]),
+        "items_with_unseen_numbers": sum(s["numbers_match"] is not None for s in real),
         "number_recall": rate([s["numbers_match"] for s in real]),
         "number_recall_control": rate([s["numbers_match"] for s in ctrl]),
     }
@@ -220,9 +226,12 @@ def run_probe(notes: dict, complete: GenerateFn, chat: GenerateFn, seed: int = S
     for items, fn in tests.values():
         pick_controls(items, rng)
         for it, out in zip(items, fn([it["prompt"] for it in items])):
+            seen = " ".join(it["visible"])
             it["output"] = out
-            it["score"] = score(out, it["target"])
-            it["control_score"] = score(out, it["control"]) if it["control"] else None
+            it["score"] = score(out, it["target"], seen)
+            it["control_score"] = score(out, it["control"], seen) if it["control"] else None
+            it["copied_visible"] = any(recall(out, v) >= VERBATIM for v in it["visible"] if len(words(v)) >= MIN_WORDS)
+            del it["visible"]
 
     ages = []
     for p, note in sorted(notes.items()):

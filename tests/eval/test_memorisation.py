@@ -34,6 +34,8 @@ def test_score_verbatim_needs_long_sentence_and_numbers_need_all():
     assert score("Chest pain.", "Chest pain.")["verbatim"] is None           # too short to count
     assert score("BP 120/80", "BP 120/80, HR 90")["numbers_match"] is False
     assert score("No numbers", "She takes no medications.")["numbers_match"] is None
+    # a number the model could see does not count
+    assert score("aged 58", "She is 58.", visible="A 58-year-old woman.")["numbers_match"] is None
 
 
 def test_items_cover_every_sentence():
@@ -96,6 +98,16 @@ def test_probe_flags_a_model_that_remembers_the_notes():
     assert summary["C_edited_age"]["reads_original_rate"] == 1.0
     assert summary["verdict"]["memorisation_signal"]
     assert len(items["B_gap"]) == 6 and all(it["control"] for it in items["B_gap"])
+    assert summary["B_gap"]["copied_visible_rate"] == 0.0
+
+
+def test_copying_a_visible_sentence_is_reported_not_counted_as_memory():
+    def copy_first(prompts):   # always repeats the note's first sentence
+        return ["A 58-year-old woman has chest pain." if "woman" in p else "A 45-year-old man has a cough for 3 weeks."
+                for p in prompts]
+    summary, _ = run_probe(NOTES, copy_first, copy_first, split=sentences)
+    assert summary["A_continuation"]["copied_visible_rate"] == 1.0
+    assert summary["A_continuation"]["verbatim_rate"] == 0.0
 
 
 def test_probe_passes_a_model_that_only_reads_the_text():
