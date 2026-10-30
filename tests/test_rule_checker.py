@@ -239,3 +239,18 @@ def test_tied_categories_for_winning_status_return_unresolved(monkeypatch):
     assert result.category == InfoCategory.MISSING
     assert result.evidence_ids == []
     assert result.unresolved is True
+
+def test_prompt_contains_no_patient_or_trial_id(monkeypatch):
+    sent = []
+
+    def fake_chat(messages, *args, **kwargs):
+        sent.append(" ".join(m["content"] for m in messages))
+        return response()
+
+    monkeypatch.setattr(checker, "chat", fake_chat)
+    note = make_note()
+    note.patient_id = "trec-20215"
+    rule = make_rule()
+    rule.trial_id = "NCT04725812"
+    checker.check_rule(note, rule, "model", n_samples=2)
+    assert sent and all("trec-20215" not in p and "NCT04725812" not in p for p in sent)

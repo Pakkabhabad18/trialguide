@@ -201,13 +201,13 @@ patient, trial, or rule IDs, and do not use generic keys like "unknown".
 For decisive stated/inferred results, fact_key must be null.
 """
 
+    # No patient or trial id in the prompt: the notes and trials are public, and an id would
+    # let the model recall a patient instead of reading the visible note (leakage checklist)
     for sample_index in range(n_samples):
         user_prompt = f"""
 Independent assessment sample: {sample_index + 1} of {n_samples}.
 Assess this rule independently from the other samples.
 
-Patient ID: {note.patient_id}
-Trial ID: {rule.trial_id}
 Rule ID: {rule.rule_id}
 Rule kind: {rule.kind.value}
 Rule text: {rule.text}
