@@ -40,4 +40,5 @@ for COND in full "rule$(python -c "print(round($FRACTION * 100))")"; do
 		cat "$R/eval_$NAME.json"
 	done
 done
+python -m trialguide.baselines.b6 --summarise "$OUT" --model "$MODEL"
 echo "end=$(date -Is)"

@@ -2,6 +2,8 @@
 
 import json
 
+import pytest
+
 from trialguide.baselines.b6 import cap_trials, choose_patients, visible_text, write_condition
 
 DEV = {**{f"sigir-{i}": "sigir" for i in range(2)},
@@ -36,3 +38,21 @@ def test_write_condition_replaces_the_note_everywhere(tmp_path):
     assert r[0]["patient"] == "visible part" and r[0]["1"] == [{"NCTID": "NCT1"}]
     assert q == [{"_id": "p1", "text": "visible part"}]
     assert rows["sigir"][0]["patient"] == "FULL NOTE"
+
+
+def test_summarise_scores_each_patient_per_condition(tmp_path):
+    pytest.importorskip("trialguide.baselines.trialgpt.evaluate")   # T4 code, PR #1
+    from trialguide.baselines.b6 import summarise
+    rows = {"trec_2021": [{"patient_id": "p1", "patient": "x", "0": [{"NCTID": "A"}], "2": [{"NCTID": "B"}]}]}
+    side = {"0": ["", [], "included"], "1": ["", [], "not enough information"]}
+    for cond, order in (("full", {"B": 2.0, "A": 1.0}), ("rule40", {"A": 2.0, "B": 1.0})):
+        write_condition(tmp_path / "data" / cond, rows, {"p1": "x"})
+        res = tmp_path / "results" / cond
+        res.mkdir(parents=True)
+        (res / "ranking_trec_2021_Qwen_Qwen3-8B.json").write_text(json.dumps({"p1": order}))
+        (res / "matching_results_trec_2021_Qwen_Qwen3-8B.json").write_text(json.dumps(
+            {"p1": {"0": {"A": {"inclusion": side, "exclusion": side}}, "1": {}, "2": {}}}))
+    s = summarise(tmp_path, "Qwen/Qwen3-8B")["conditions"]
+    assert s["full"]["NDCG@10"] == 1.0                      # relevant trial ranked first
+    assert s["rule40"]["NDCG@10"] < 1.0
+    assert s["full"]["inclusion_not_enough_information_rate"] == 0.5

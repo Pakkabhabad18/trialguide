@@ -68,6 +68,42 @@ def write_condition(folder: Path, entries: dict, notes: dict) -> None:
                 f.write(json.dumps({"_id": r["patient_id"], "text": r["patient"]}) + "\n")
 
 
+def summarise(out: Path, model: str) -> dict:
+    """Per-patient NDCG@10 / P@10 and pooled "not enough information" rates for each condition,
+    from the T4 pipeline's outputs in {out}/results/{condition}/. Written to {out}/summary.json."""
+    from trialguide.baselines.trialgpt.evaluate import label_distribution, ndcg, precision
+    name = model.replace("/", "_")
+    summary = {"model": model, "conditions": {}}
+    for cond_dir in sorted((out / "data").iterdir()):
+        if not cond_dir.is_dir():
+            continue
+        cond, per_patient, nei, total = cond_dir.name, {}, {"inclusion": 0, "exclusion": 0}, {"inclusion": 0, "exclusion": 0}
+        for cohort_dir in sorted(cond_dir.iterdir()):
+            res = out / "results" / cond / f"ranking_{cohort_dir.name}_{name}.json"
+            if not res.exists():
+                continue
+            rel = {e["patient_id"]: {t["NCTID"]: int(lab) for lab in LABELS for t in e.get(lab, [])}
+                   for e in json.load(open(cohort_dir / "retrieved_trials.json"))}
+            for p, scores in json.load(open(res)).items():
+                gains = [rel[p][t] for t in scores if t in rel[p]]
+                per_patient[p] = {"NDCG@10": ndcg(gains), "P@10": precision(gains)}
+            counts, _, _ = label_distribution(json.load(open(
+                out / "results" / cond / f"matching_results_{cohort_dir.name}_{name}.json")))
+            for side in nei:
+                nei[side] += counts[side].get("not enough information", 0)
+                total[side] += sum(counts[side].values())
+        scored = [v for v in per_patient.values() if v["NDCG@10"] is not None]
+        summary["conditions"][cond] = {
+            "patients": len(scored),
+            "NDCG@10": sum(v["NDCG@10"] for v in scored) / len(scored) if scored else None,
+            "P@10": sum(v["P@10"] for v in scored) / len(scored) if scored else None,
+            **{f"{side}_not_enough_information_rate": nei[side] / total[side] if total[side] else None for side in nei},
+            "per_patient": per_patient,
+        }
+    (out / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
+    return summary
+
+
 def main():
     # Imported here: masking and patients come from T10, which may not be on main yet
     from trialguide.data.masking import candidate_rules, mask_none, mask_rule, rule_demand
@@ -80,7 +116,13 @@ def main():
     ap.add_argument("--n", type=int, default=5, help="development patients")
     ap.add_argument("--per-label", type=int, default=2, help="trials per expert label (0/1/2)")
     ap.add_argument("--fraction", type=float, default=0.4, help="share of sentences rule-targeted masking hides")
+    ap.add_argument("--summarise", type=Path, default=None, metavar="OUT",
+                    help="instead of preparing data, summarise the finished runs in OUT")
+    ap.add_argument("--model", default="Qwen/Qwen3-8B")
     args = ap.parse_args()
+    if args.summarise:
+        print(json.dumps(summarise(args.summarise, args.model), indent=2))
+        return
 
     patients = load_patients(args.raw, Split.DEV)              # never the test split
     chosen = choose_patients({p: pt.cohort for p, pt in patients.items()}, args.n)
