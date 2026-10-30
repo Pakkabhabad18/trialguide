@@ -61,7 +61,7 @@ Prateek Singh, 2026701041 & Vidur Shah, 2026909004\\
 \vspace{-2pt}
 \begin{center}
 \fcolorbox{muted}{tint2}{\parbox{0.97\textwidth}{\small
-\textbf{Summary.} When a patient note does not settle an eligibility rule, TrialGuide either infers the missing fact from evidence in the note, asks the doctor a short question, or abstains. It may ask at most three questions per patient and picks the one whose answer could most change the top-10 trials. An inference that would make a patient look eligible is accepted only under conformal risk control~\cite{crc}. Halfway through, most of the system exists: data loading, the frozen split, masking, the rule checker, the policy, the question selector, the simulated doctor, the tools and the evaluation code are written and tested (233 tests), and are either merged or waiting for review. TrialGPT runs end to end on Qwen3-8B, a probe found no sign that the model has memorised the public notes, and after one fix the simulated doctor gave no wrong ``sure'' answer in our check. We have run four baselines on a five-patient development sample. The main comparison (TrialGuide against all baselines) and the ablations are still to come, and compute is what limits us: we have a single 12\,GB GPU.}}
+\textbf{Summary.} When a patient note does not settle an eligibility rule, TrialGuide either infers the missing fact from evidence in the note, asks the doctor a short question, or abstains. It may ask at most three questions per patient and picks the one whose answer could most change the top-10 trials. An inference that would make a patient look eligible is accepted only under conformal risk control~\cite{crc}. Halfway through, most of the system exists: data loading, the frozen split, masking, the rule checker, the policy, the question selector, the simulated doctor, the tools and the evaluation code are written and tested (236 tests), and are either merged or waiting for review. TrialGPT runs end to end on Qwen3-8B, a probe found no sign that the model has memorised the public notes, and after one fix the simulated doctor gave no wrong ``sure'' answer in our check. We have run four baselines on a five-patient development sample. The main comparison (TrialGuide against all baselines) and the ablations are still to come, and compute is what limits us: we have a single 12\,GB GPU.}}
 \end{center}
 \vspace{4pt}
 }]
@@ -91,7 +91,7 @@ Simulated doctor (T11) & Llama-3.1-8B answers only from hidden facts, quote enfo
 Memorisation probe (T14) & Three tests on the 37 dev patients & Done\\
 B6 runner (T16) & TrialGPT and our checker on full vs.\ masked notes; B2, B5 & Done (5 pts)\\
 End-to-end runner & Checker \(\rightarrow\) policy \(\rightarrow\) question \(\rightarrow\) doctor \(\rightarrow\) re-check \(\rightarrow\) score & Merged\\
-Round runner (T22, T27) & Checker and doctor take turns on one GPU; B7, A2, A3 & Running\\
+Round runner (T22, T27) & Checker and doctor take turns on one GPU; B7, A2, A3 & Pilot run done\\
 E2 data (T24) & Indian-affiliated oncology case reports and trials recruiting in India & Merged\\
 \bottomrule
 \end{tabularx}
@@ -142,7 +142,7 @@ B3 & Ask every candidate fact & Code ready, not run\\
 B4 & Fixed-order questions, budget 3 & Same run as A2\\
 B5 & Confidence threshold 0.9 & Run (5 pts)\\
 B6 & Abstention (TrialGPT-style) & Run (5 pts), 2 versions\\
-B7 & TrialGuide & Running (5 pts), \(\lambda=0.9\) stand-in\\
+B7 & TrialGuide & Pilot (5 pts), \(\lambda=0.9\) stand-in\\
 \bottomrule
 \end{tabularx}
 \caption{Baselines. ``Code ready'' means the policy and the runner support the system, but it has not been run on data. B7 uses \(\lambda=0.9\) until the threshold is calibrated (T30).}
@@ -194,7 +194,7 @@ Masking raised the share of unresolved rules from 26.5\% to 40.8\%. The checker 
 
 % =====================================================================
 \section{Ablations}
-Each ablation takes one part out of B7 and otherwise runs through the same code. Because the checker (Qwen) and the simulated doctor (Llama) do not fit on our GPU together, B7 and the ablations that ask questions run in rounds: one round loads the checker, the next the doctor, and every conversation is replayed from the cache of earlier calls until it finishes. A2 and A3 are running in this way together with B7 on the five pilot patients. A1 and A6 already exist as policy settings. A4, A5 and A7 still need small additions; for A5 the tools first have to be connected to the checker, which does not call them yet.
+Each ablation takes one part out of B7 and otherwise runs through the same code. Because the checker (Qwen) and the simulated doctor (Llama) do not fit on our GPU together, B7 and the ablations that ask questions run in rounds: one round loads the checker, the next the doctor, and every conversation is replayed from the cache of earlier calls until it finishes. A2 and A3 have been run in this way together with B7 on the five pilot patients (results below). A1 and A6 already exist as policy settings. A4, A5 and A7 still need small additions; for A5 the tools first have to be connected to the checker, which does not call them yet.
 
 \begin{table}[H]
 \centering\footnotesize
@@ -203,8 +203,8 @@ Each ablation takes one part out of B7 and otherwise runs through the same code.
 \textbf{ID} & \textbf{Removes} & \textbf{Switch}\\
 \midrule
 A1 & Inference (ask or abstain only) & Policy setting \yes\\
-A2 & Adaptive selection (fixed order) & Selector strategy \yes{} (running)\\
-A3 & Ranking term (least-confident fact first) & Selector strategy \yes{} (running)\\
+A2 & Adaptive selection (fixed order) & Pilot run \yes{}\\
+A3 & Ranking term (least-confident fact first) & Pilot run \yes{}\\
 A4 & Evidence retrieval & Checker input (to add)\\
 A5 & Tools (eGFR, BMI, drug class) & Tools into checker (to add)\\
 A6 & Risk control (raw confidence) & Policy setting \yes\\
@@ -214,6 +214,8 @@ A7 & One question per turn (all at once) & Runner option (to add)\\
 \caption{Ablations, all planned on development patients. \yes{} marks a switch that already exists in the code.}
 \label{tab:ablations}
 \end{table}
+
+\paragraph{B7, A2 and A3 pilot.} On the same five patients and masked notes, with at most three questions per patient, B7 reached an NDCG@10 of 0.862, A2 0.862 and A3 0.902 (B6 on the same masked notes: 0.908). The run took four rounds and about three minutes once both models were on disk. The doctor answered ``not documented'' to 13 of B7's 14 questions. That answer was correct: in a keyword check, only about 3 of the 28 distinct facts asked across the three systems appear anywhere in the full notes. The selector asked about facts that many trials need (prior chemotherapy came first for four patients), but most of these facts are missing from the original note, not just hidden by the mask, so no answer could change a check. The next step is to make the selector prefer facts that a note of this kind is likely to record, and to run on more patients, since with at most six trials per patient these NDCG differences are within noise.
 
 % =====================================================================
 \section{Results of component experiments}
@@ -280,7 +282,7 @@ The final submission is due on 15 November, and we aim to finish internally by 1
 \textbf{Dates} & \textbf{Work}\\
 \midrule
 Oct 31--Nov 1 & Merge open pull requests; larger dev sample (about 10 patients, 15 trials each) for B6, B2, B5\\
-Nov 1--2 & Runner that alternates checker and doctor on one GPU; first B7, B3, B4 runs on dev; failure analysis\\
+Nov 1--2 & Selector change toward facts notes usually record; B7, B3, B4 on more dev patients; failure analysis\\
 Nov 2--4 & Ablations A1--A7 on dev; doctor faithfulness check (150 answers); freeze models and prompts\\
 Nov 4--5 & Risk control: fit \(\hat\lambda\) on the calibration split (T30)\\
 Nov 5--7 & Open the test split once; run B1--B7\\
@@ -296,7 +298,7 @@ Compute is the main risk to this plan. If B7 has not run on enough development p
 
 % =====================================================================
 \section{Code}
-All code is in the repository linked above. It is private for now, and we can give course staff access. Under \texttt{src/trialguide/} each component (data, llm, checker, tools, simulator, selector, policy, baselines, eval) has its own folder, and the code names its owner. A teammate reviews every pull request, and it can only be merged once the automatic tests pass; 233 tests pass at present. Every model call is cached and logged with the model, revision, date and seed, and every result file records the settings that produced it.
+All code is in the repository linked above. It is private for now, and we can give course staff access. Under \texttt{src/trialguide/} each component (data, llm, checker, tools, simulator, selector, policy, baselines, eval) has its own folder, and the code names its owner. A teammate reviews every pull request, and it can only be merged once the automatic tests pass; 236 tests pass at present. Every model call is cached and logged with the model, revision, date and seed, and every result file records the settings that produced it.
 
 % ---------------- references ----------------
 {\footnotesize\raggedright
