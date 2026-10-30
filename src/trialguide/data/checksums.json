@@ -1,0 +1,19 @@
+{
+  "annotations/criterion_annotations.parquet": "14c547184fac9b013cd17441fd028845b40150c76b022e58334f5494077e5234",
+  "pmc_patients/PMC-Patients.csv": "97f41501c8fb05e1c5e0ec35b6509d0f354cca86777ae8db9ff2f204ce2eef20",
+  "trialgpt/sigir/corpus.jsonl": "4b430f25e1557d188017f9a2eeac20905a32fd9862cbd74fa7e8ca6cbf6836d4",
+  "trialgpt/sigir/id2queries.json": "cdbd1146547f651e4ec6156f0f0c8322c9b1358328aabbc5d7ea12e833d40845",
+  "trialgpt/sigir/qrels/test.tsv": "5298efb4859cfcdfe2cae5748eb1df1d4970c383c35a87e20145d1b3c25ea8ab",
+  "trialgpt/sigir/queries.jsonl": "97ce3172bf6f80f3a5ac81371b83c9f031eccb243004b12cb5fd0015d372aa9b",
+  "trialgpt/sigir/retrieved_trials.json": "8516049da9f4663b1288086532cc885da232532bd2e081a2b70f54fb035ddb81",
+  "trialgpt/trec_2021/corpus.jsonl": "01692c847b2da798c57a8e0a74273ec262a7e42ad3f02b4ff5a87a6442462f9c",
+  "trialgpt/trec_2021/id2queries.json": "cc7231e28523fb208de28fe7f21ad356e2d8a9c0ae44ef468c6979e6ad1937f2",
+  "trialgpt/trec_2021/qrels/test.tsv": "7d22a83550ec02d1fe506a311b3bcb6d8d438cc491be0000d6a9711e1c05b5f4",
+  "trialgpt/trec_2021/queries.jsonl": "292ef5c4bb3393a800320386a7415e5919c3eaa95b9ae1d1b8ac43a65e51e00c",
+  "trialgpt/trec_2021/retrieved_trials.json": "86222e0ae2f0f0a99765d6b4b730dac080ea3be2c01316dec7ecce740be6bcc7",
+  "trialgpt/trec_2022/corpus.jsonl": "baf63d82df91d3c1bf1f8ec53c6747d9585a4c81e221a4e1bbb3042da64be76a",
+  "trialgpt/trec_2022/id2queries.json": "b8424b7252be0673e7cc40dcc3c04f5ec04265cab419f8f320655fa5c24dd7b9",
+  "trialgpt/trec_2022/qrels/test.tsv": "ca11e9777c2a8d902da2cc5d4cf5df5436894e379a358b58532b1ee24dc13826",
+  "trialgpt/trec_2022/queries.jsonl": "329a8e55d56b55c81335119d3c26177a6ac9cddf10ed85ea4ab676d8d1d96964",
+  "trialgpt/trec_2022/retrieved_trials.json": "c9fd3b96cdaec0bf8fc1e972102ca47ebc8ea7a1a7f231aa8ac419c520632b76"
+}

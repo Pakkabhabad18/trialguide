@@ -1,0 +1,7 @@
+# The frozen split files and shell scripts must keep LF endings on every machine,
+# otherwise checksums change when Windows converts them.
+splits/*.txt text eol=lf
+splits/*.json text eol=lf
+*.sh text eol=lf
+splits/**/*.txt text eol=lf
+splits/**/*.json text eol=lf
