@@ -1,0 +1,290 @@
+% Team Zenith -- TrialGuide -- mid-submission report (two columns)
+\documentclass[10pt,a4paper,twocolumn]{article}
+
+% ---------------- layout and fonts (as in the proposal) ----------------
+\usepackage[a4paper,left=1.5cm,right=1.5cm,top=1.5cm,bottom=1.6cm,columnsep=0.6cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{mathptmx}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{booktabs,tabularx,array}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{xurl}
+\usepackage[hidelinks]{hyperref}
+\usepackage{caption}
+\usepackage{pifont}
+\usepackage{float}
+
+\definecolor{ink}{HTML}{1F2A37}
+\definecolor{accent}{HTML}{1D4E89}
+\definecolor{muted}{HTML}{5B6573}
+\definecolor{tint2}{HTML}{F6F7F9}
+\urlstyle{same}
+\hypersetup{colorlinks=true,urlcolor=accent,linkcolor=accent,citecolor=accent}
+
+\titleformat{\section}{\large\bfseries}{\thesection}{0.6em}{}
+\titlespacing*{\section}{0pt}{6pt}{2pt}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.5em}{}
+\titlespacing*{\subsection}{0pt}{4pt}{1pt}
+\setlist{nosep,leftmargin=1.1em}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{3pt}
+\captionsetup{font=small,labelfont=bf,skip=2.5pt}
+\setlength{\textfloatsep}{7pt}
+\setlength{\intextsep}{5pt}
+\setlength{\tabcolsep}{3.5pt}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+\renewcommand{\arraystretch}{1.08}
+\newcommand{\yes}{\ding{51}}
+\newcommand{\no}{\textcolor{muted}{\ding{55}}}
+\newcommand{\partly}{\textcolor{muted}{\(\sim\)}}
+% Numbers still being computed when this draft was written; replace before submitting
+\newcommand{\tbd}{\textcolor{red}{\textbf{TBD}}}
+
+\begin{document}
+
+% ---------------- title (spans both columns) ----------------
+\twocolumn[{%
+\begin{center}
+{\Large\bfseries Beyond Abstention: Risk-Controlled Inference and Selective Clarification for Clinical Trial Matching}\\[3pt]
+{\normalsize Prototype: \textbf{TrialGuide} \quad\textbullet\quad \textbf{Mid-submission report}}\\[4pt]
+{\small
+\begin{tabular}{@{}l@{\hspace{2em}}l@{}}
+Prakash Bhabad, 2025204016 & Metta Venkata Ramana Murthy, 2025204034\\
+Prateek Singh, 2026701041 & Vidur Shah, 2026909004\\
+\end{tabular}}\\[2pt]
+{\small\itshape Team Zenith \textbullet\ Language Models and Agents (CL3410), Monsoon 2026, IIIT Hyderabad \textbullet\ Code: \url{https://github.com/Pakkabhabad18/trialguide}}
+\end{center}
+\vspace{-2pt}
+\begin{center}
+\fcolorbox{muted}{tint2}{\parbox{0.97\textwidth}{\small
+\textbf{Summary.} TrialGuide decides, for every eligibility rule a patient note does not settle, whether to \emph{infer} the fact from evidence, \emph{ask} the doctor a short question (at most three per patient, chosen by how much the answer could change the top-10 trials), or \emph{abstain}; inferences that favour eligibility are accepted only under conformal risk control. \textbf{Status at mid-term:} data, frozen splits, masking, the rule checker, the infer/ask/abstain policy, the question selector, the simulated doctor, tools and the evaluation harness are implemented, tested (227 tests) and merged or under review. The TrialGPT baseline runs end to end on Qwen3-8B; the backbone shows no sign of having memorised the public notes; the simulated doctor returns no wrong ``sure'' answer on our check. The main comparison (B7 against B1--B6) and the ablations have not been run yet; the binding constraint is compute (one 12\,GB GPU). Section~\ref{sec:plan} gives the plan to the final submission on 15 November.}}
+\end{center}
+\vspace{4pt}
+}]
+
+% =====================================================================
+\section{Progress}
+Table~\ref{tab:progress} lists every component in the proposal with its state. ``Merged'' means reviewed by a teammate, passing the automatic test run, and on the \texttt{main} branch.
+
+\begin{table}[H]
+\centering\footnotesize
+\begin{tabularx}{\columnwidth}{@{}P{2.75cm}LP{1.25cm}@{}}
+\toprule
+\textbf{Component (task)} & \textbf{What exists} & \textbf{State}\\
+\midrule
+Data download, audit (T3, T7) & TREC CT 2021/22, SIGIR 2016, expert rule labels; label audit & Merged\\
+Frozen split (T8) & 37 dev / 73 cal / 73 test, seeded, hash-checked; leakage checklist & Merged\\
+Masking (T10) & Random, rule-targeted, evidence-targeted; only the visible note leaves the module & Merged\\
+Evaluation (T17) & NDCG@10, P@10, recovery, decision errors, paired bootstrap, McNemar & Merged\\
+Shared formats (T42) & Typed records for notes, rules, checks, questions, answers & Merged\\
+Rule checker (T12) & Per-rule check with category (stated / inferred / assumption / missing) and cited sentence ids & Merged\\
+Policy (T19) & Infer / ask / abstain with risk threshold; B2, B5, B6, B7, A1, A6 as settings & Merged\\
+TrialGPT baseline (T4) & Matching, aggregation, ranking, evaluation on an open model & Merged\\
+Tools (T13) & eGFR (CKD-EPI 2021), BMI, drug class (RxClass) & Merged\\
+LLM client & One cached, logged entry point; 8-bit loading for one GPU & In review\\
+Question selector (T20) & Eq.~1 of the proposal, budget 3, fact merging; fixed / uncertainty / ask-all strategies & In review\\
+Simulated doctor (T11) & Llama-3.1-8B answers only from hidden facts, quote enforced in code & In review\\
+Memorisation probe (T14) & Three tests on the 37 dev patients & Done\\
+B6 runner (T16) & TrialGPT on full vs.\ masked notes & Running\\
+End-to-end runner & Checker \(\rightarrow\) policy \(\rightarrow\) question \(\rightarrow\) doctor \(\rightarrow\) re-check \(\rightarrow\) score & In review\\
+E2 data (T24) & Indian-affiliated oncology case reports and trials recruiting in India & Merged\\
+\bottomrule
+\end{tabularx}
+\caption{Implementation status, 30 October.}
+\label{tab:progress}
+\end{table}
+
+\textbf{Changes since the proposal.} (1) \emph{Backbone:} Qwen3-8B instead of Qwen3-32B, which does not fit our GPUs; RQ3 becomes tuned vs.\ untuned 8B. (2) \emph{Precision:} 8-bit weights (bitsandbytes) on one 12\,GB GPU, because only one GPU is available to us; every system uses the same setting. (3) \emph{Serving:} transformers instead of vLLM, which could not be installed on the cluster. (4) \emph{Simulated doctor:} a ``sure'' answer must quote a record sentence that mentions the question's topic, otherwise it is capped at ``probably'' (Section~\ref{sec:doctor}).
+
+% =====================================================================
+\section{Datasets}
+\textbf{Patients and trials.} SIGIR 2016 (59 notes), TREC Clinical Trials 2021 (75) and 2022 (50), with the candidate trials and graded patient--trial labels (0 not relevant, 1 excluded or potential, 2 eligible) distributed with TrialGPT~\cite{trialgpt}; 183 patients have trial labels. \textbf{Rule-level gold labels:} the TrialGPT criterion annotations~\cite{trialgptann}, 1{,}015 rows on 53 patients, all SIGIR.
+
+\textbf{Frozen split.} One seeded split (Table~\ref{tab:split}). Patients with expert rule labels go only to calibration and test, so harmful inferences are measured against expert labels and nothing is tuned on them. The test split is sealed in code until the single test run.
+
+\begin{table}[H]
+\centering\footnotesize
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+\textbf{Split} & \textbf{Patients} & \textbf{SIGIR} & \textbf{TREC21} & \textbf{TREC22} & \textbf{Rule rows}\\
+\midrule
+Development & 37 & 2 & 21 & 14 & 0\\
+Calibration & 73 & 28 & 27 & 18 & 501\\
+Test (sealed) & 73 & 28 & 27 & 18 & 496\\
+\bottomrule
+\end{tabular}
+\caption{Frozen patient split (seed 20261027). Development patients have 20{,}529 labelled patient--trial pairs.}
+\label{tab:split}
+\end{table}
+
+\textbf{Label audit.} Experts marked 293 of 1{,}015 rules (28.9\%) as ``not enough information''. In 34 rules GPT-4 said ``not enough information'' but the expert gave a definite label (21 of them citing note sentences): these are the \emph{recoverable} gaps our method targets, 26.4\% of the 129 GPT-4/expert disagreements (TrialGPT reports 30.7\% of 26 errors~\cite{trialgpt}).
+
+\textbf{Masking.} Facts are note sentences. \emph{Random} hides 20/40/60\% of sentences; \emph{rule-targeted} hides those the candidate trials' rules ask about most (TF-IDF similarity); \emph{evidence-targeted} hides exactly the sentences experts cited. Hidden sentences go only to the simulated doctor. \textbf{E2:} Indian-affiliated oncology case reports and trials recruiting in India are prepared as a separate set.
+
+% =====================================================================
+\section{Baseline experiments}
+All baselines share the backbone, patients, masks, trials, visibility rules and scoring code. Table~\ref{tab:baselines} shows where each stands.
+
+\begin{table}[H]
+\centering\footnotesize
+\begin{tabularx}{\columnwidth}{@{}P{0.55cm}LP{2.2cm}@{}}
+\toprule
+\textbf{ID} & \textbf{System} & \textbf{Status}\\
+\midrule
+B1 & Full-note oracle & TrialGPT version run (5 pts)\\
+B2 & Inference, no risk control, no questions & Code ready\\
+B3 & Ask every candidate fact & Code ready, needs doctor\\
+B4 & Fixed-order questions, budget 3 & Code ready, needs doctor\\
+B5 & Confidence threshold 0.9 & Code ready\\
+B6 & Abstention (TrialGPT-style) & Running (5 pts)\\
+B7 & TrialGuide & Needs doctor, \(\hat\lambda\)\\
+\bottomrule
+\end{tabularx}
+\caption{Baselines. ``Code ready'': the policy and runner support it; not yet run on data.}
+\label{tab:baselines}
+\end{table}
+
+\textbf{TrialGPT reproduction.} We ported TrialGPT~\cite{trialgpt} to an open model and our client. Smoke test on three SIGIR patients (selected before the split was frozen; nothing was tuned on them), at most five trials per label, 43 pairs, Qwen3-8B in bf16: NDCG@10 0.773 and P@10 0.517, against 0.620 for a random ordering of the same trials; 0 of 86 outputs unparsable; ``not enough information'' on 29.0\% of inclusion and 12.9\% of exclusion rules. This shows the pipeline works with an 8B model; it is not comparable with the paper's full-cohort numbers.
+
+\textbf{B6, first run.} Five development patients (seeded, proportional to cohort size: three TREC 2021, two TREC 2022), the first two trials per gold label (29 pairs), TrialGPT on the full note (B1-style reference) and on notes with 40\% of sentences hidden by rule-targeted masking (B6). Same pairs in both conditions.
+
+\begin{table}[H]
+\centering\footnotesize
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+\textbf{Condition} & \textbf{NDCG@10} & \textbf{P@10} & \textbf{NEI incl.} & \textbf{NEI excl.}\\
+\midrule
+Full note & 0.779 & 0.290 & 29.7\% & 14.7\%\\
+Masked, rule 40\% (B6) & 0.817 & 0.290 & 44.1\% & 13.4\%\\
+Random order of the same trials & 0.785 & 0.290 & n/a & n/a\\
+\bottomrule
+\end{tabular}
+\caption{B6 on five development patients, Qwen3-8B 8-bit. NDCG@10 and P@10 averaged over patients; NEI = share of well-formed rule predictions labelled ``not enough information''.}
+\label{tab:b6}
+\end{table}
+
+Masking removes information as intended: ``not enough information'' on inclusion rules rises from 29.7\% to 44.1\%. The ranking, however, scores \emph{higher} on the masked notes (0.817 vs.\ 0.779), driven mostly by one patient (0.72 to 0.97). ``Random order'' ranks the same trials by chance (NDCG@10 averaged over 100 shuffles). With at most six trials per patient a random order already scores about 0.79, and P@10 cannot differ between orderings at all, because every trial is in the top 10; five patients cannot separate TrialGPT from random, so this run checks that B6 works end to end, not ranking quality. In both conditions one trial produced 41 malformed exclusion predictions (nested objects instead of TrialGPT's three-field list); the scorer skips and counts them. Section~\ref{sec:plan} enlarges the sample.
+
+% =====================================================================
+\section{Ablations}
+Each ablation removes one part of B7 and runs through B7's code path. A1, A2, A3 and A6 already exist as settings of the policy or the selector; A4, A5 and A7 need small changes to the checker or the runner. None has been run: all need B7, which needs the simulated doctor and the calibrated threshold \(\hat\lambda\).
+
+\begin{table}[H]
+\centering\footnotesize
+\begin{tabularx}{\columnwidth}{@{}P{0.5cm}LP{2.6cm}@{}}
+\toprule
+\textbf{ID} & \textbf{Removes} & \textbf{Switch}\\
+\midrule
+A1 & Inference (ask or abstain only) & Policy setting \yes\\
+A2 & Adaptive selection (fixed order) & Selector strategy \yes\\
+A3 & Ranking term (least-confident fact first) & Selector strategy \yes\\
+A4 & Evidence retrieval & Checker input (to add)\\
+A5 & Tools (eGFR, BMI, drug class) & Checker option (to add)\\
+A6 & Risk control (raw confidence) & Policy setting \yes\\
+A7 & One question per turn (all at once) & Runner option (to add)\\
+\bottomrule
+\end{tabularx}
+\caption{Ablations, all planned on development patients. \yes{} = the switch exists in the code.}
+\label{tab:ablations}
+\end{table}
+
+% =====================================================================
+\section{Results of component experiments}
+\subsection{Memorisation probe}
+The notes are public, so the backbone might reproduce a hidden fact from memory rather than infer it. On all 37 development patients, Qwen3-8B (8-bit, greedy) was tested three ways, each against a control (the same output scored against another patient's sentence), with the decision rule fixed before the run (Table~\ref{tab:mem}).
+
+\begin{table}[H]
+\centering\footnotesize
+\begin{tabularx}{\columnwidth}{@{}LP{1.15cm}P{1.15cm}@{}}
+\toprule
+\textbf{Test} & \textbf{Result} & \textbf{Control}\\
+\midrule
+A. Continue the note: sentence reproduced verbatim (279) & 0.0\% & 0.0\%\\
+\quad hidden numbers recalled & 14.0\% & 8.5\%\\
+B. Fill a removed sentence: verbatim (316) & 0.3\% & 0.0\%\\
+\quad hidden numbers recalled & 2.6\% & 0.9\%\\
+C. Age edited in the note: model follows the edit & 34/34 & --\\
+\quad model gives the original age & 0/34 & --\\
+\bottomrule
+\end{tabularx}
+\caption{Memorisation probe. ``Memorised'' would require a verbatim rate above 5\% and 3\(\times\) the control, number recall more than 10 points above the control, or following the edited age in under 90\% of notes.}
+\label{tab:mem}
+\end{table}
+
+No test meets its threshold. The single verbatim gap fill had wrong content, and the number matches in B are ages that can be guessed from the presentation. We still rely on evidence-targeted masking, as planned.
+
+\subsection{Simulated doctor}\label{sec:doctor}
+Llama-3.1-8B-Instruct (8-bit) held one patient's eight note sentences and answered 20 questions, 11 answerable from the record and 9 not. In the first run it answered two unanswerable questions ``sure'' with a real but unrelated quote (``pregnant? no''; ``prior myocardial infarction? no'', the latter a harmful error). We enforce faithfulness in code: a quote not found in the record becomes ``not documented'', and a ``sure'' answer whose quote does not mention the question's topic is capped at ``probably'' and passes through risk control. After the fix: 11/11 answerable questions answered with an exact quote (10 ``sure'', one inference capped at ``probably''), 7/9 unanswerable ones ``not documented'', two capped at ``probably'', and \textbf{no wrong ``sure'' answer}. One patient and our own questions; the planned 150-answer faithfulness check follows on masked notes.
+
+\subsection{Tools}
+On the Eka medical-calculator set~\cite{ekacalc} (1{,}066 items, 15 covering our tools): BMI 12/12 and eGFR 3/3 correct (Eka grades eGFR with CKD-EPI 2009, so those items check our 2009 reference function). CKD-EPI 2021~\cite{ckdepi} and drug-class lookup~\cite{rxnav} are verified by unit tests.
+
+% =====================================================================
+\section{Challenges and mitigation}
+\begin{table}[H]
+\centering\footnotesize
+\begin{tabularx}{\columnwidth}{@{}P{2.9cm}L@{}}
+\toprule
+\textbf{Challenge} & \textbf{Mitigation}\\
+\midrule
+32B model does not fit; nodes busy & Qwen3-8B, 8-bit, one GPU; same setting for every system\\
+vLLM not installable; generation \(\approx\)9 tokens/s, so all 20{,}529 dev pairs would take weeks & Seeded samples of patients and trials; enlarge as time allows; cache every model call so reruns cost nothing\\
+Only one GPU; B7 needs checker and doctor at once (\(\approx\)18\,GB) & Alternate the two models in rounds on one GPU (all patients' checks, then all answers, \dots); separate doctor job if a GPU frees up\\
+Doctor gave unsupported ``sure'' answers & Quote and topic checks in code (Sec.~\ref{sec:doctor})\\
+Public notes may be memorised & Probe on dev: no signal; evidence-targeted masking\\
+Leakage: checker prompt held patient and trial ids; one smoke-test patient is in test & Ids to be removed from prompts; smoke test documented, nothing tuned on it\\
+Malformed model outputs & Parsers skip and count them; counts reported\\
+Checker asks 5 samples per rule, nearly identical under greedy decoding & One sample per rule (5\(\times\) cheaper); confidence from a calibrated score instead of vote share, to be decided\\
+Small B6 sample cannot separate systems & More patients and trials per patient before conclusions\\
+\bottomrule
+\end{tabularx}
+\caption{Challenges met so far and how we handle them.}
+\label{tab:challenges}
+\end{table}
+
+% =====================================================================
+\section{Timeline to the final submission}\label{sec:plan}
+Final submission 15 November; internal finish 10 November.
+
+\begin{table}[H]
+\centering\footnotesize
+\begin{tabularx}{\columnwidth}{@{}P{1.45cm}L@{}}
+\toprule
+\textbf{Dates} & \textbf{Work}\\
+\midrule
+Oct 31--Nov 1 & Finish B6; B6 with our checker and policy, B2, B5 on the dev sample; merge open pull requests; remove ids from prompts\\
+Nov 1--2 & Round-based runner for checker + doctor on one GPU; first B7, B3, B4 runs on dev; failure analysis\\
+Nov 2--4 & Ablations A1--A7 on dev; enlarge the dev sample; doctor faithfulness check (150 answers); freeze models and prompts\\
+Nov 4--5 & Risk control: fit \(\hat\lambda\) on the calibration split (T30)\\
+Nov 5--7 & Open the test split once; run B1--B7\\
+Nov 7--9 & Bootstrap CIs, McNemar, error breakdown by rule type, case studies; E1/E2 if time allows\\
+Nov 9--10 & Report, demo, code release\\
+\bottomrule
+\end{tabularx}
+\caption{Plan to the final submission.}
+\label{tab:plan}
+\end{table}
+
+\textbf{Risk to the plan.} Compute is the critical path: if B7 cannot run on enough development patients by 4 November, we will run the test comparison on a smaller fixed subset of the test split and report the confidence intervals that subset supports, rather than drop systems.
+
+% =====================================================================
+\section{Code}
+All code is in the repository above (private; course staff can be given access). \texttt{src/trialguide/} has one folder per component (data, llm, checker, tools, simulator, selector, policy, baselines, eval) with its owner named in the code. Every pull request is reviewed by a teammate and must pass the automatic test run; 227 tests pass. Every model call is cached and logged with model, revision, date and seed, and every result file records its settings.
+
+% ---------------- references ----------------
+{\footnotesize\raggedright
+\begin{thebibliography}{9}\setlength{\itemsep}{0.3pt}
+\bibitem{trialgpt} Q.~Jin et al. Matching patients to clinical trials with large language models. \emph{Nature Communications}, 2024.
+\bibitem{trialgptann} TrialGPT criterion-level annotations. \url{https://huggingface.co/datasets/ncbi/TrialGPT-Criterion-Annotations}
+\bibitem{ekacalc} Eka Care. Medical calculator evaluation set. \url{https://huggingface.co/datasets/ekacare/medical_calculator_eval}
+\bibitem{ckdepi} L.~A.~Inker et al. New creatinine- and cystatin C-based equations to estimate GFR without race. \emph{NEJM}, 2021.
+\bibitem{rxnav} US National Library of Medicine. RxNav and RxClass APIs. \url{https://lhncbc.nlm.nih.gov/RxNav/APIs/}
+\bibitem{crc} A.~N.~Angelopoulos et al. Conformal risk control. ICLR 2024.
+\bibitem{mediq} S.~S.~Li et al. MediQ: question-asking LLMs and a benchmark for reliable interactive clinical reasoning. NeurIPS 2024.
+\end{thebibliography}}
+
+\end{document}
