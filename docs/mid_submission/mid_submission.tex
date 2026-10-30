@@ -89,7 +89,7 @@ LLM client & One cached, logged entry point; 8-bit loading for one GPU & In revi
 Question selector (T20) & Eq.~1 of the proposal, budget 3, fact merging; fixed / uncertainty / ask-all strategies & In review\\
 Simulated doctor (T11) & Llama-3.1-8B answers only from hidden facts, quote enforced in code & In review\\
 Memorisation probe (T14) & Three tests on the 37 dev patients & Done\\
-B6 runner (T16) & TrialGPT on full vs.\ masked notes & Running\\
+B6 runner (T16) & TrialGPT and our checker on full vs.\ masked notes; B2, B5 & Done (5 pts)\\
 End-to-end runner & Checker \(\rightarrow\) policy \(\rightarrow\) question \(\rightarrow\) doctor \(\rightarrow\) re-check \(\rightarrow\) score & In review\\
 E2 data (T24) & Indian-affiliated oncology case reports and trials recruiting in India & Merged\\
 \bottomrule
@@ -136,11 +136,11 @@ All baselines share the backbone, patients, masks, trials, visibility rules and 
 \textbf{ID} & \textbf{System} & \textbf{Status}\\
 \midrule
 B1 & Full-note oracle & TrialGPT version run (5 pts)\\
-B2 & Inference, no risk control, no questions & Code ready\\
+B2 & Inference, no risk control, no questions & Run (5 pts)\\
 B3 & Ask every candidate fact & Code ready, needs doctor\\
 B4 & Fixed-order questions, budget 3 & Code ready, needs doctor\\
-B5 & Confidence threshold 0.9 & Code ready\\
-B6 & Abstention (TrialGPT-style) & Running (5 pts)\\
+B5 & Confidence threshold 0.9 & Run (5 pts)\\
+B6 & Abstention (TrialGPT-style) & Run (5 pts), 2 versions\\
 B7 & TrialGuide & Needs doctor, \(\hat\lambda\)\\
 \bottomrule
 \end{tabularx}
@@ -168,6 +168,28 @@ Random order of the same trials & 0.785 & 0.290 & n/a & n/a\\
 \end{table}
 
 Masking removes information as intended: ``not enough information'' on inclusion rules rises from 29.7\% to 44.1\%. The ranking, however, scores \emph{higher} on the masked notes (0.817 vs.\ 0.779), driven mostly by one patient (0.72 to 0.97). ``Random order'' ranks the same trials by chance (NDCG@10 averaged over 100 shuffles). With at most six trials per patient a random order already scores about 0.79, and P@10 cannot differ between orderings at all, because every trial is in the top 10; five patients cannot separate TrialGPT from random, so this run checks that B6 works end to end, not ranking quality. In both conditions one trial produced 41 malformed exclusion predictions (nested objects instead of TrialGPT's three-field list); the scorer skips and counts them. Section~\ref{sec:plan} enlarges the sample.
+
+\textbf{B6, B2 and B5 with our checker and policy.} Same patients, trials and masks; the rule checker (T12) runs once per rule and the three policies are applied to the same checks. Confidence is the model's probability of the status it wrote (one greedy call): with greedy decoding the checker's original vote share is always 1.0, so no threshold could act (Section~\ref{sec:challenges}).
+
+\begin{table}[H]
+\centering\footnotesize
+\begin{tabular}{@{}llrrr@{}}
+\toprule
+\textbf{System} & \textbf{Note} & \textbf{NDCG@10} & \textbf{Inferred} & \textbf{Unresolved}\\
+\midrule
+B6 & full & 0.855 & 0.0\% & 26.5\%\\
+B6 & masked & 0.908 & 0.0\% & 40.8\%\\
+B2 & full & 0.843 & 8.0\% & 18.5\%\\
+B2 & masked & 0.902 & 2.1\% & 38.7\%\\
+B5 (\(\ge\)0.9) & full & 0.845 & 7.1\% & 19.3\%\\
+B5 (\(\ge\)0.9) & masked & 0.902 & 1.8\% & 39.0\%\\
+\bottomrule
+\end{tabular}
+\caption{Our checker (Qwen3-8B 8-bit), 5 dev patients, 336 rules per condition. Inferred: share of rules settled by an accepted inference; unresolved: share left as ``not enough information''.}
+\label{tab:systems}
+\end{table}
+
+Masking raises unresolved rules from 26.5\% to 40.8\%. The checker infers rarely (27 of 336 rules on full notes: 15 toward exclusion, 12 toward eligibility; B5 rejects the 3 eligibility-favouring ones below 0.9), so B2 and B5 differ from B6 only slightly, and as with TrialGPT the masked notes score higher, which on this sample is noise. Confidences now spread from 0.42 to 1.0 (median 0.92 for inferences), so thresholds and risk control have a signal to act on.
 
 % =====================================================================
 \section{Ablations}
@@ -224,7 +246,7 @@ Llama-3.1-8B-Instruct (8-bit) held one patient's eight note sentences and answer
 On the Eka medical-calculator set~\cite{ekacalc} (1{,}066 items, 15 covering our tools): BMI 12/12 and eGFR 3/3 correct (Eka grades eGFR with CKD-EPI 2009, so those items check our 2009 reference function). CKD-EPI 2021~\cite{ckdepi} and drug-class lookup~\cite{rxnav} are verified by unit tests.
 
 % =====================================================================
-\section{Challenges and mitigation}
+\section{Challenges and mitigation}\label{sec:challenges}
 \begin{table}[H]
 \centering\footnotesize
 \begin{tabularx}{\columnwidth}{@{}P{2.9cm}L@{}}
@@ -238,7 +260,7 @@ Doctor gave unsupported ``sure'' answers & Quote and topic checks in code (Sec.~
 Public notes may be memorised & Probe on dev: no signal; evidence-targeted masking\\
 Leakage: checker prompt held patient and trial ids; one smoke-test patient is in test & Ids to be removed from prompts; smoke test documented, nothing tuned on it\\
 Malformed model outputs & Parsers skip and count them; counts reported\\
-Checker asks 5 samples per rule, nearly identical under greedy decoding & One sample per rule (5\(\times\) cheaper); confidence from a calibrated score instead of vote share, to be decided\\
+Checker confidence was a vote share of 5 samples, always 1.0 under greedy decoding & One greedy call per rule (5\(\times\) cheaper); confidence = model's probability of its status, calibrated by risk control\\
 Small B6 sample cannot separate systems & More patients and trials per patient before conclusions\\
 \bottomrule
 \end{tabularx}

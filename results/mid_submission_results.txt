@@ -97,6 +97,31 @@ Caveats - must be stated with these numbers
     skipped by the scorer. TREC 2022: 1 of 22 outputs unparsable.
 
 
+
+==========================================================================================
+3b. B6 (version b), B2, B5 WITH OUR CHECKER AND POLICY (T16 - Prateek)
+==========================================================================================
+Source: b6_run/code/outputs/systems/summary.json (cluster), finished 21:02 IST
+Setting: same 5 patients, 29 trials and masks as section 3; rule checker (T12) once per rule
+(336 rules per condition), then policies B6 (no inference), B2 (every inference), B5 (inference
+if confidence >= 0.9). Confidence = the model's probability of the status it wrote, from one
+greedy call (with greedy decoding the checker's vote share was always 1.0, so B5 equalled B2).
+
+  system  note     NDCG@10  P@10   accepted inference  unresolved
+  B6      full      0.855   0.290        0.0%            26.5%
+  B6      masked    0.908   0.290        0.0%            40.8%
+  B2      full      0.843   0.290        8.0%            18.5%
+  B2      masked    0.902   0.290        2.1%            38.7%
+  B5      full      0.845   0.290        7.1%            19.3%
+  B5      masked    0.902   0.290        1.8%            39.0%
+
+  Checker inferences: full 27 (15 toward exclusion, 12 toward eligibility); masked 7 (6 / 1).
+  B5 rejected 3 eligibility-favouring inferences with confidence < 0.9 (the B2-B5 difference).
+  Confidence spread: 0.42-1.00; median 0.92 for inferences on full notes, 26% below 0.9.
+  Reading: masking raises unresolved rules 26.5% -> 40.8%. Inference is rare, so B2/B5 move
+  little from B6. Masked scores higher than full again: noise on this sample, not a result.
+  Earlier run with vote-share confidence (outputs/systems_votes): identical B6, B5 = B2.
+
 ==========================================================================================
 4. MEMORISATION PROBE (T14 - Prateek)
 ==========================================================================================
@@ -168,7 +193,7 @@ Checked against the Eka medical-calculator set (1,066 items; 15 cover our tools)
   End-to-end runner (Prateek)         written and tested with scripted models; not yet run
   Test suite on main + open PRs: 227 passed, 5 skipped.
 
-NOT YET RUN: B1, B2, B3, B4, B5, B6 (version b: our checker + policy), B7, ablations A1-A7,
+NOT YET RUN: B1, B3, B4, B7, ablations A1-A7,
 risk-control calibration (T30), E1/E2/E3.
 
 
