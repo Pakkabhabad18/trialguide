@@ -3,3 +3,5 @@
 splits/*.txt text eol=lf
 splits/*.json text eol=lf
 *.sh text eol=lf
+splits/**/*.txt text eol=lf
+splits/**/*.json text eol=lf

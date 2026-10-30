@@ -1,0 +1,26 @@
+{
+  "built": "2026-10-30",
+  "seed": 20261030,
+  "sample_size": 100,
+  "pubmed_term": "India[ad] AND case reports[pt] AND neoplasms[majr]",
+  "ctgov_condition_query": "cancer OR neoplasm OR tumor OR carcinoma OR lymphoma OR leukemia OR myeloma OR sarcoma",
+  "counts": {
+    "pubmed_hits": 16085,
+    "pubmed_affiliation_verified": 16041,
+    "verified_and_in_pmc_patients": 346,
+    "articles_any_age": 346,
+    "pool_adults_one_per_article": 276,
+    "ctgov_studies_returned": 181,
+    "trials_recruiting_at_an_indian_site": 157
+  },
+  "pool_gender": {
+    "M": 147,
+    "F": 129
+  },
+  "sha256": {
+    "e2_cal.txt": "995a669af79801119698e7d7b5cac73aeb28dc14c19d91abdcb658310253ac26",
+    "e2_test.txt": "28a698f71d667596a2c09270eb1e5f6295803f689f4c0077a84609a76cd720a9",
+    "e2_trials.txt": "7e8aabcfdb4d47917fd731471e2b46802556d1178fdd1c38cd32eb0e432e6b47",
+    "e1_exclude_pmids.txt": "e1d07dda86bc9f07fb3a489f9adf9e63c53e3738f1f381273ea4142e4487146a"
+  }
+}

@@ -2,6 +2,7 @@
 
     python -m trialguide.data.download                 # core files, ~0.4 GB
     python -m trialguide.data.download --with-trial-info   # + trial_info.json, 1.2 GB
+    python -m trialguide.data.download --with-pmc-patients # + PMC-Patients V1, 0.5 GB (E1, E2)
     python -m trialguide.data.download --update-checksums  # maintainers only
 
 Files land in <root>/raw/ (default root: ./data, which is git-ignored). Each file is
@@ -21,15 +22,17 @@ from pathlib import Path
 # Pinned upstream versions, so every teammate gets byte-identical files
 TRIALGPT_COMMIT = "1b3242cd50c153a9c324661d4a0bd94fc68a4226"
 ANNOTATIONS_REVISION = "1cfcafde94a1560a33b4addc1638664fe28fc059"
+PMC_PATIENTS_REVISION = "28d8836518f86d4f1e6358ea8ec09977023e5766"
 
 _GH = f"https://raw.githubusercontent.com/ncbi-nlp/TrialGPT/{TRIALGPT_COMMIT}/dataset"
 _NCBI = "https://ftp.ncbi.nlm.nih.gov/pub/lu/TrialGPT"
 _HF = f"https://huggingface.co/datasets/ncbi/TrialGPT-Criterion-Annotations/resolve/{ANNOTATIONS_REVISION}"
+_PMCP = f"https://huggingface.co/datasets/zhengyun21/PMC-Patients/resolve/{PMC_PATIENTS_REVISION}"
 
 CHECKSUM_FILE = Path(__file__).with_name("checksums.json")
 
 
-def manifest(with_trial_info: bool = False) -> dict:
+def manifest(with_trial_info: bool = False, with_pmc_patients: bool = False) -> dict:
     """Map of destination path (relative to raw/) -> source URL."""
     files = {}
     # Patients (queries), expert trial labels (qrels), cached keywords, candidate trials
@@ -44,6 +47,9 @@ def manifest(with_trial_info: bool = False) -> dict:
     files["annotations/criterion_annotations.parquet"] = f"{_HF}/data/train-00000-of-00001.parquet"
     if with_trial_info:
         files["trialgpt/trial_info.json"] = f"{_NCBI}/trial_info.json"
+    if with_pmc_patients:
+        # V1 (167,034 summaries, CC BY-NC-SA 4.0), the version the proposal cites
+        files["pmc_patients/PMC-Patients.csv"] = f"{_PMCP}/PMC-Patients.csv"
     return files
 
 
@@ -73,12 +79,13 @@ def _fetch(url: str, dest: Path, retries: int = 3) -> None:
             time.sleep(2 * attempt)
 
 
-def download(root: Path, with_trial_info: bool = False, update_checksums: bool = False) -> int:
+def download(root: Path, with_trial_info: bool = False, update_checksums: bool = False,
+             with_pmc_patients: bool = False) -> int:
     """Fetch every missing file and verify all of them. Returns the number of problems."""
     raw = root / "raw"
     known = json.loads(CHECKSUM_FILE.read_text()) if CHECKSUM_FILE.exists() else {}
     problems, computed = 0, {}
-    for rel, url in manifest(with_trial_info).items():
+    for rel, url in manifest(with_trial_info, with_pmc_patients).items():
         dest = raw / rel
         if not dest.exists():
             print(f"downloading {rel}")
@@ -103,9 +110,11 @@ def main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     p.add_argument("--root", default="data", help="data folder (default: ./data)")
     p.add_argument("--with-trial-info", action="store_true", help="also fetch trial_info.json (1.2 GB)")
+    p.add_argument("--with-pmc-patients", action="store_true", help="also fetch PMC-Patients V1 (0.5 GB)")
     p.add_argument("--update-checksums", action="store_true", help="rewrite checksums.json from the files on disk")
     args = p.parse_args(argv)
-    return 1 if download(Path(args.root), args.with_trial_info, args.update_checksums) else 0
+    problems = download(Path(args.root), args.with_trial_info, args.update_checksums, args.with_pmc_patients)
+    return 1 if problems else 0
 
 
 if __name__ == "__main__":
