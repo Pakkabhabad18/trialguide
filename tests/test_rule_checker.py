@@ -36,14 +36,35 @@ def response(
     category="stated",
     evidence_ids=None,
     explanation="Supported by the note.",
+    fact_key=None,
 ):
     return json.dumps({
         "status": status,
         "category": category,
         "evidence_ids": [0] if evidence_ids is None else evidence_ids,
         "explanation": explanation,
+        "fact_key": fact_key,
     })
 
+def test_inferred_result_preserves_fact_key(monkeypatch):
+    monkeypatch.setattr(
+        checker,
+        "chat",
+        lambda *args, **kwargs: response(
+            status="met",
+            category="inferred",
+            evidence_ids=[0],
+            fact_key="age",
+        ),
+    )
+
+    result = checker.check_rule(
+        make_note(), make_rule(), "mock-model", n_samples=1
+    )
+
+    assert result.status == RuleStatus.MET
+    assert result.category == InfoCategory.INFERRED
+    assert result.fact_key == "age"
 
 def test_inclusion_alias_included_maps_to_met():
     result = checker._parse_sample(
@@ -134,10 +155,12 @@ def test_zero_samples_is_rejected():
     with pytest.raises(ValueError, match="at least 1"):
         checker.check_rule(make_note(), make_rule(), "mock-model", n_samples=0)
 def test_exclusion_met_remains_met_and_is_unresolved_only_if_needed(monkeypatch):
+
     monkeypatch.setattr(
         checker,
         "chat",
         lambda *args, **kwargs: response(
+            fact_key="diabetes_history",
             status="excluded",
             category="stated",
             evidence_ids=[1],
@@ -156,7 +179,23 @@ def test_exclusion_met_remains_met_and_is_unresolved_only_if_needed(monkeypatch)
     assert result.category == InfoCategory.STATED
     assert result.evidence_ids == [1]
     assert result.unresolved is False
+    assert result.fact_key == "diabetes_history"
 
+def test_prompt_excludes_patient_and_trial_ids(monkeypatch):
+    captured = {}
+
+    def fake_chat(*args, **kwargs):
+        captured["prompt"] = str((args, kwargs))
+        return response(fact_key="age")
+
+    monkeypatch.setattr(checker, "chat", fake_chat)
+
+    checker.check_rule(
+        make_note(), make_rule(), "mock-model", n_samples=1
+    )
+
+    assert "P1" not in captured["prompt"]
+    assert "T1" not in captured["prompt"]
 
 def test_invalid_evidence_results_in_unresolved_rule(monkeypatch):
     monkeypatch.setattr(
@@ -202,6 +241,7 @@ def test_not_applicable_status_is_preserved_when_evidence_backed(monkeypatch):
 
     assert result.status == RuleStatus.NOT_APPLICABLE
     assert result.unresolved is False
+    assert result.fact_key is None
 
 def test_tied_status_votes_return_unresolved(monkeypatch):
     outputs = iter([
@@ -239,22 +279,6 @@ def test_tied_categories_for_winning_status_return_unresolved(monkeypatch):
     assert result.category == InfoCategory.MISSING
     assert result.evidence_ids == []
     assert result.unresolved is True
-
-def test_prompt_contains_no_patient_or_trial_id(monkeypatch):
-    sent = []
-
-    def fake_chat(messages, *args, **kwargs):
-        sent.append(" ".join(m["content"] for m in messages))
-        return response()
-
-    monkeypatch.setattr(checker, "chat", fake_chat)
-    note = make_note()
-    note.patient_id = "trec-20215"
-    rule = make_rule()
-    rule.trial_id = "NCT04725812"
-    checker.check_rule(note, rule, "model", n_samples=2)
-    assert sent and all("trec-20215" not in p and "NCT04725812" not in p for p in sent)
-
 
 def logprob_reply(status="met", p_status=0.8):
     """A reply as chat(..., logprobs=True) returns it, with the status value's tokens at p_status."""
