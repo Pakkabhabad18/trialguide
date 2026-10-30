@@ -266,8 +266,15 @@ class HFModel:
         max_memory = None
         if os.getenv("LLM_HF_MAX_MEMORY") and torch.cuda.device_count() > 1:
             max_memory = {i: os.getenv("LLM_HF_MAX_MEMORY") for i in range(torch.cuda.device_count())}
+        # LLM_HF_8BIT=1: 8-bit weights on one 12 GB GPU (a preview; the reported run is bf16)
+        self.weights = "8bit" if os.getenv("LLM_HF_8BIT") == "1" else "bf16"
+        quant = None
+        if self.weights == "8bit":
+            from transformers import BitsAndBytesConfig
+            quant = BitsAndBytesConfig(load_in_8bit=True)
         self.model = AutoModelForCausalLM.from_pretrained(
-            name, torch_dtype=torch.bfloat16, device_map="auto", max_memory=max_memory).eval()
+            name, dtype=torch.bfloat16, device_map="auto", max_memory=max_memory,
+            quantization_config=quant).eval()
         self.revision = getattr(self.model.config, "_commit_hash", None)
 
     def _generate(self, texts: list) -> list:
@@ -336,13 +343,15 @@ def main():
     import transformers
     meta = {
         "task": "T14 memorisation probe", "date": datetime.date.today().isoformat(),
-        "model": args.model, "revision": m.revision, "dtype": "bf16", "decoding": "greedy",
+        "model": args.model, "revision": m.revision, "weights": m.weights, "decoding": "greedy",
         "max_new_tokens": m.max_new_tokens, "seed": SEED, "split": str(args.split), "patients": len(ids),
         "transformers": transformers.__version__, "torch": torch.__version__,
         "gpus": [torch.cuda.get_device_name(i) for i in range(torch.cuda.device_count())],
         "rule": RULE, "min_words": MIN_WORDS, "verbatim_threshold": VERBATIM,
     }
     name = f"memorisation_probe_{args.split.stem}_{args.model.split('/')[-1].lower()}"
+    name += "_8bit" if m.weights == "8bit" else ""
+    name += f"_limit{args.limit}" if args.limit else ""
     args.out.mkdir(parents=True, exist_ok=True)
     args.raw_out.mkdir(parents=True, exist_ok=True)
     (args.out / f"{name}.json").write_text(json.dumps({**meta, **summary}, indent=2) + "\n")
