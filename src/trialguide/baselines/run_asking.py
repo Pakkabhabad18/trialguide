@@ -55,7 +55,7 @@ def main():
     from trialguide.data.patients import load_patients
     from trialguide.eval.ranking import per_patient_metrics
     from trialguide.llm.client import ONLY_MODEL, ModelNotLoaded
-    from trialguide.pipeline import checker, rules_of_trial, run_patient
+    from trialguide.pipeline import checker, effective_checks, rules_of_trial, run_patient
     from trialguide.policy.policy import system_config
     from trialguide.schemas import Split
     from trialguide.simulator.doctor import SimulatedDoctor
@@ -155,6 +155,11 @@ def main():
                 "per_patient": metrics,
             }
             (args.out / f"rankings_{system}.json").write_text(json.dumps(rankings, indent=1))
+            # final status of every rule after the policy (for rule-level recovery, eval/recovery.py)
+            final = {pid: {f"{c.trial_id}|{c.rule_id}": [c.status.value, c.category.value, c.kind.value]
+                           for c in effective_checks(results[(system, pid)].checks, results[(system, pid)].actions)}
+                     for pid in notes}
+            (args.out / f"final_{system}.json").write_text(json.dumps(final))
             for pid, t in turns.items():
                 f.write(json.dumps({"system": system, "patient_id": pid,
                                     "turns": [{"question": to_json(q), "answer": to_json(a)} for q, a in t]}) + "\n")
