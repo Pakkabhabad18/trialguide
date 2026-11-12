@@ -1,8 +1,8 @@
 """Simulated doctor (task T11, proposal Section 6, decisions D8, D10, D11).
 
-The doctor answers TrialGuide's questions about one patient using ONLY the facts
-masking hid from the system. It never sees the trials, the rules, the visible
-note or the patient id, only the question and the hidden facts. The prompt is
+The doctor answers TrialGuide's questions about one patient using ONLY the record it is
+given: the full original note in the experiments (TA feedback), or only the facts masking
+hid. It never sees the trials, the rules or the patient id, only the question and the record. The prompt is
 adapted from the MediQ patient simulator (Li et al., NeurIPS 2024).
 
 Faithfulness is enforced in code, not just asked for in the prompt (D10): an
@@ -119,7 +119,8 @@ class SimulatedDoctor:
 
     def __init__(self, hidden_facts: dict[str, list[str]], model: str = MODEL,
                  chat_fn: Optional[ChatFn] = None, log_path: Optional[str] = LOG_PATH):
-        """hidden_facts: patient_id -> the facts masking hid (from the masking module, T10)."""
+        """hidden_facts: patient_id -> the record the doctor reads (the full note's sentences in
+        the experiments; the name is kept from when it held only the facts masking hid)."""
         self.hidden_facts = hidden_facts
         self.model = model
         self.chat_fn = chat_fn or _default_chat

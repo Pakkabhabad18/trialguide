@@ -1,4 +1,4 @@
-"""Run the systems that ask the doctor (B7, A2, A3, B4, B3) on one GPU, in rounds.
+"""Run the systems that ask the doctor (B7, B3, B4, A1, A2, A3, A5, A6) on one GPU, in rounds.
 
 The checker (Qwen) and the simulated doctor (Llama) do not fit on one 12 GB GPU together, so
 each round loads ONE of them (LLM_ONLY_MODEL) and replays every patient's conversation from the
@@ -11,7 +11,7 @@ round. Rounds alternate until every conversation is finished (run_asking.sh driv
 Each call prints how many conversations finished and writes {out}/status.json; when all are
 finished it writes {out}/summary.json (NDCG@10, questions, answers, per patient) and the turns.
 Uses the same patients, trials and rule-targeted masks as the B6 runs; only masked notes,
-since on the full note nothing is hidden and the doctor has nothing to answer.
+since on the full note nothing is hidden. The doctor reads the full note.
 Owner of this file: Prateek (T22, T27).
 """
 
@@ -24,13 +24,16 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 CHECKER_MODEL = "Qwen/Qwen3-8B"
-# system -> (policy name, question strategy, question budget)
+# system -> (policy name, question strategy, question budget, checker uses the tools)
 SYSTEMS = {
-    "B7": ("B7", "ranking", 3),       # TrialGuide: Eq. 1 question choice
-    "A2": ("A2", "fixed", 3),         # no adaptive selection: fact of the best-ranked trial first
-    "A3": ("A3", "uncertainty", 3),   # no ranking term: least confident fact first
-    "B4": ("B4", "fixed", 3),         # fixed-order questions (same strategy as A2 here)
-    "B3": ("B3", "all", 50),          # ask every candidate fact
+    "B7": ("B7", "ranking", 3, True),       # TrialGuide: Eq. 1 question choice
+    "A1": ("A1", "ranking", 3, True),       # no inference: ask or abstain only
+    "A2": ("A2", "fixed", 3, True),         # no adaptive selection: fact of the best-ranked trial first
+    "A3": ("A3", "uncertainty", 3, True),   # no ranking term: least confident fact first
+    "A5": ("A5", "ranking", 3, False),      # no tools in the checker
+    "A6": ("A6", "ranking", 3, True),       # no risk control: every inference accepted
+    "B4": ("B4", "fixed", 3, True),         # fixed-order questions (same strategy as A2 here)
+    "B3": ("B3", "all", 50, True),          # ask every candidate fact
 }
 LABELS = ("0", "1", "2")
 
@@ -68,35 +71,38 @@ def main():
 
     m = json.loads(args.manifest.read_text())
     patients = load_patients(args.raw, Split.DEV)            # never the test split
-    check = checker(CHECKER_MODEL, n_samples=1)
+    checks = {True: checker(CHECKER_MODEL, n_samples=1, tools=True),
+              False: checker(CHECKER_MODEL, n_samples=1, tools=False)}
+    tool_settings = sorted({SYSTEMS[s][3] for s in args.systems})
 
-    # Same masked notes as the B6 runs; the hidden sentences go to the doctor only
-    notes, hidden, rules, gold = {}, {}, {}, {}
+    # Same masked notes as the B6 runs. The doctor reads the whole record (TA feedback): it can
+    # answer anything the full note says, and "not documented" means the note never said it.
+    notes, record, rules, gold = {}, {}, {}, {}
     for pid, info in m["patients"].items():
         pt = patients[pid]
         masked = mask_rule(pt, rule_demand(pt.sentences, candidate_rules(args.raw, pt.cohort, pid)),
                            m["fraction"])
         notes[pid] = masked.visible
-        hidden[pid] = [pt.sentences[i] for i in masked.hidden_ids]
+        record[pid] = [pt.sentences[i] for i in sorted(pt.sentences)]
         entry = {e["patient_id"]: e for e in json.load(
             open(args.raw / "trialgpt" / info["cohort"] / "retrieved_trials.json"))}[pid]
         trials = [t for lab in LABELS for t in entry.get(lab, []) if t["NCTID"] in info["trials"][lab]]
         gold[pid] = {t["NCTID"]: int(lab) for lab in LABELS for t in entry.get(lab, [])
                      if t["NCTID"] in info["trials"][lab]}
         rules[pid] = [r for t in trials for r in rules_of_trial(t)]
-    doctor = SimulatedDoctor(hidden, log_path=None)          # turns are saved below instead
+    doctor = SimulatedDoctor(record, log_path=None)          # turns are saved below instead
 
     # First check of every rule, all at once so the GPU batches them (cache hits in later rounds)
     if ONLY_MODEL in ("", CHECKER_MODEL):
-        jobs = [(pid, r) for pid in notes for r in rules[pid]]
+        jobs = [(t, pid, r) for t in tool_settings for pid in notes for r in rules[pid]]
         with ThreadPoolExecutor(args.workers) as pool:
-            list(pool.map(lambda job: check(notes[job[0]], job[1]), jobs))
+            list(pool.map(lambda job: checks[job[0]](notes[job[1]], job[2]), jobs))
 
     def run(job):
         system, pid = job
-        policy, strategy, budget = SYSTEMS[system]
+        policy, strategy, budget, tools = SYSTEMS[system]
         config = system_config(policy, args.threshold)
-        return run_patient(notes[pid], rules[pid], config, check, doctor=doctor,
+        return run_patient(notes[pid], rules[pid], config, checks[tools], doctor=doctor,
                            strategy=strategy, budget=budget)
 
     jobs = [(s, pid) for s in args.systems for pid in notes]
@@ -128,6 +134,7 @@ def main():
             answers = [a.certainty.value for t in turns.values() for _, a in t]
             summary["systems"][system] = {
                 "policy": SYSTEMS[system][0], "strategy": SYSTEMS[system][1], "budget": SYSTEMS[system][2],
+                "tools": SYSTEMS[system][3],
                 "patients": len(metrics),
                 "NDCG@10": sum(v["ndcg"] for v in metrics.values()) / len(metrics) if metrics else None,
                 "P@10": sum(v["p10"] for v in metrics.values()) / len(metrics) if metrics else None,

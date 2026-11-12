@@ -105,9 +105,11 @@ def run_patient(note: VisibleNote, rules: list[TrialRule], config: PolicyConfig,
                          [(t.question, t.answer) for t in state.turns], n_checks)
 
 
-def checker(model: str, n_samples: int = 1) -> CheckFn:
+def checker(model: str, n_samples: int = 1, tools: bool = True) -> CheckFn:
     """Vidur's rule checker (T12) with a fixed model. With one sample (greedy) the confidence is the
-    model's probability of its status; with more, the vote share of the samples."""
+    model's probability of its status; with more, the vote share of the samples. tools=False is
+    ablation A5 (no eGFR, BMI or drug-class results in the prompt)."""
     from trialguide.checker.rule_checker import check_rule
     mode = "logprob" if n_samples == 1 else "votes"
-    return lambda note, rule: check_rule(note, rule, model, n_samples=n_samples, confidence=mode)
+    return lambda note, rule: check_rule(note, rule, model, n_samples=n_samples, confidence=mode,
+                                         tools=tools)

@@ -157,7 +157,7 @@ def _status_probability(tokens):
     return math.exp(span_logprob(tokens, *match.span(1)))
 
 
-def check_rule(note, rule, model, n_samples=5, confidence="votes"):
+def check_rule(note, rule, model, n_samples=5, confidence="votes", tools=False):
     """Check a trial rule against only the visible note.
 
     confidence="votes": the modal-status vote fraction over requested samples;
@@ -167,6 +167,8 @@ def check_rule(note, rule, model, n_samples=5, confidence="votes"):
     so this is always 1.0.
     confidence="logprob": one greedy call; the model's own probability of the
     status it chose (risk control, T30, calibrates it). n_samples must be 1.
+    tools=True: the prompt also gets the tool results for the visible note (eGFR, BMI, drug
+    classes; tools/note_tools.py). Ablation A5 sets it to False.
     """
     if n_samples < 1:
         raise ValueError("n_samples must be at least 1")
@@ -232,6 +234,12 @@ Do not use patient, trial, or rule IDs, or generic keys like "unknown".
 
     # No patient or trial id in the prompt: the notes and trials are public, and an id would
     # let the model recall a patient instead of reading the visible note (leakage checklist)
+    tool_text = ""
+    if tools:
+        from trialguide.tools.note_tools import tool_block
+        block = tool_block(note_text, model)
+        tool_text = f"\n{block}\n" if block else ""
+
     for sample_index in range(n_samples):
         user_prompt = f"""
 Independent assessment sample: {sample_index + 1} of {n_samples}.
@@ -243,7 +251,7 @@ Rule text: {rule.text}
 
 Visible patient note:
 {note_text}
-
+{tool_text}
 Return the required JSON object only.
 """
         try:
