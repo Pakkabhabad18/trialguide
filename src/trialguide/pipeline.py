@@ -64,7 +64,8 @@ class PatientResult:
 
 
 def run_patient(note: VisibleNote, rules: list[TrialRule], config: PolicyConfig, check: CheckFn,
-                doctor: Optional[Doctor] = None, strategy: str = "ranking", budget: int = 3) -> PatientResult:
+                doctor: Optional[Doctor] = None, strategy: str = "ranking", budget: int = 3,
+                p_answer: Optional[Callable[[str], float]] = None) -> PatientResult:
     """One patient through one system. `rules` are all rules of the patient's candidate trials."""
     by_ref = {(r.trial_id, r.rule_id): r for r in rules}
     checks = {ref: check(note, r) for ref, r in by_ref.items()}
@@ -83,7 +84,7 @@ def run_patient(note: VisibleNote, rules: list[TrialRule], config: PolicyConfig,
         else:
             candidates = merge_candidates(question_candidates(actions, checks.values()))
             question = select_question(candidates, effective_checks(list(checks.values()), actions),
-                                       state, strategy=strategy)
+                                       state, strategy=strategy, p_answer=p_answer)
         if question is None:
             break
         answer = doctor.answer(note.patient_id, question)

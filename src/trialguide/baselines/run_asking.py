@@ -24,16 +24,18 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 CHECKER_MODEL = "Qwen/Qwen3-8B"
-# system -> (policy name, question strategy, question budget, checker uses the tools)
+# system -> (policy name, question strategy, question budget, checker uses the tools,
+#            Eq. 1 weighted by the chance of an answer)
 SYSTEMS = {
-    "B7": ("B7", "ranking", 3, True),       # TrialGuide: Eq. 1 question choice
-    "A1": ("A1", "ranking", 3, True),       # no inference: ask or abstain only
-    "A2": ("A2", "fixed", 3, True),         # no adaptive selection: fact of the best-ranked trial first
-    "A3": ("A3", "uncertainty", 3, True),   # no ranking term: least confident fact first
-    "A5": ("A5", "ranking", 3, False),      # no tools in the checker
-    "A6": ("A6", "ranking", 3, True),       # no risk control: every inference accepted
-    "B4": ("B4", "fixed", 3, True),         # fixed-order questions (same strategy as A2 here)
-    "B3": ("B3", "all", 50, True),          # ask every candidate fact
+    "B7": ("B7", "ranking", 3, True, True),        # TrialGuide: answerability-weighted Eq. 1
+    "B7-eq1": ("B7", "ranking", 3, True, False),   # B7 as first run on dev: plain Eq. 1
+    "A1": ("A1", "ranking", 3, True, True),        # no inference: ask or abstain only
+    "A2": ("A2", "fixed", 3, True, False),         # no adaptive selection: fact of the best-ranked trial first
+    "A3": ("A3", "uncertainty", 3, True, False),   # no ranking term: least confident fact first
+    "A5": ("A5", "ranking", 3, False, True),       # no tools in the checker
+    "A6": ("A6", "ranking", 3, True, True),        # no risk control: every inference accepted
+    "B4": ("B4", "fixed", 3, True, False),         # fixed-order questions (same strategy as A2 here)
+    "B3": ("B3", "all", 50, True, False),          # ask every candidate fact
 }
 LABELS = ("0", "1", "2")
 
@@ -65,6 +67,8 @@ def main():
     ap.add_argument("--systems", nargs="+", default=["B7", "A2", "A3"])
     ap.add_argument("--threshold", type=float, default=0.9,
                     help="lambda for the risk check; a stand-in until calibration (T30)")
+    ap.add_argument("--prior", type=Path, default=Path("results/answerability_prior.json"),
+                    help="P(answer | fact), estimated on dev turns (selector/answerability.py)")
     ap.add_argument("--workers", type=int, default=16)
     ap.add_argument("--out", type=Path, default=Path("outputs/asking"))
     args = ap.parse_args()
@@ -94,6 +98,10 @@ def main():
         gold[pid] = {t["NCTID"]: int(lab) for lab in LABELS for t in entry.get(lab, [])
                      if t["NCTID"] in info["trials"][lab]}
         rules[pid] = [r for t in trials for r in rules_of_trial(t)]
+    p_answer = None
+    if any(SYSTEMS[s][4] for s in args.systems):
+        from trialguide.selector.answerability import load
+        p_answer = load(args.prior)
     doctor = SimulatedDoctor(record, log_path=None)          # turns are saved below instead
 
     # First check of every rule, all at once so the GPU batches them (cache hits in later rounds)
@@ -104,10 +112,10 @@ def main():
 
     def run(job):
         system, pid = job
-        policy, strategy, budget, tools = SYSTEMS[system]
+        policy, strategy, budget, tools, weighted = SYSTEMS[system]
         config = system_config(policy, args.threshold)
         return run_patient(notes[pid], rules[pid], config, checks[tools], doctor=doctor,
-                           strategy=strategy, budget=budget)
+                           strategy=strategy, budget=budget, p_answer=p_answer if weighted else None)
 
     jobs = [(s, pid) for s in args.systems for pid in notes]
     results, waiting = {}, []
@@ -138,7 +146,7 @@ def main():
             answers = [a.certainty.value for t in turns.values() for _, a in t]
             summary["systems"][system] = {
                 "policy": SYSTEMS[system][0], "strategy": SYSTEMS[system][1], "budget": SYSTEMS[system][2],
-                "tools": SYSTEMS[system][3],
+                "tools": SYSTEMS[system][3], "answerability": SYSTEMS[system][4],
                 "patients": len(metrics),
                 "NDCG@10": sum(v["ndcg"] for v in metrics.values()) / len(metrics) if metrics else None,
                 "P@10": sum(v["p10"] for v in metrics.values()) / len(metrics) if metrics else None,
