@@ -28,7 +28,7 @@ for ((round = 1; round <= MAX_ROUNDS; round++)); do
 	if ((round % 2)); then MODEL=Qwen/Qwen3-8B; else MODEL=meta-llama/Llama-3.1-8B-Instruct; fi
 	echo "== round $round ($MODEL) $(date -Is)"
 	LLM_ONLY_MODEL=$MODEL python -m trialguide.baselines.run_asking --manifest "$MANIFEST" \
-		--systems $SYSTEMS --threshold "$THRESHOLD" --out "$OUT"
+		--systems $SYSTEMS --threshold "$THRESHOLD" --out "$OUT" ${ALLOW_TEST:+--allow-test}
 	if [ -f "$OUT/summary.json" ] && python -c "import json,sys; sys.exit(bool(json.load(open('$OUT/status.json'))['waiting']))"; then
 		echo "all conversations finished end=$(date -Is)"
 		exit 0

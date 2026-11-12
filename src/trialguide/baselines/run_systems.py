@@ -50,6 +50,7 @@ def main():
 
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--manifest", type=Path, required=True)
+    ap.add_argument("--allow-test", action="store_true", help="needed for a test-split manifest")
     ap.add_argument("--raw", type=Path, default=Path("data/raw"))
     ap.add_argument("--systems", nargs="+", default=list(SYSTEMS))
     ap.add_argument("--model", default="Qwen/Qwen3-8B")
@@ -62,7 +63,10 @@ def main():
     asking = [s for s, c in configs.items() if c.allow_asking]
     assert not asking, f"{asking} ask questions and need the doctor; not run here"
     m = json.loads(args.manifest.read_text())
-    patients = load_patients(args.raw, Split.DEV)            # never the test split
+    split = Split(m.get("split", "dev"))
+    if split == Split.TEST and not args.allow_test:
+        raise SystemExit("the test split is opened once, after the system is frozen: pass --allow-test")
+    patients = load_patients(args.raw, split, allow_test=args.allow_test)
     check = checker(args.model, args.n_samples)
     args.out.mkdir(parents=True, exist_ok=True)
 

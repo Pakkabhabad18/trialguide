@@ -60,6 +60,7 @@ def main():
 
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--manifest", type=Path, required=True)
+    ap.add_argument("--allow-test", action="store_true", help="needed for a test-split manifest")
     ap.add_argument("--raw", type=Path, default=Path("data/raw"))
     ap.add_argument("--systems", nargs="+", default=["B7", "A2", "A3"])
     ap.add_argument("--threshold", type=float, default=0.9,
@@ -70,7 +71,10 @@ def main():
     args.out.mkdir(parents=True, exist_ok=True)
 
     m = json.loads(args.manifest.read_text())
-    patients = load_patients(args.raw, Split.DEV)            # never the test split
+    split = Split(m.get("split", "dev"))
+    if split == Split.TEST and not args.allow_test:
+        raise SystemExit("the test split is opened once, after the system is frozen: pass --allow-test")
+    patients = load_patients(args.raw, split, allow_test=args.allow_test)
     checks = {True: checker(CHECKER_MODEL, n_samples=1, tools=True),
               False: checker(CHECKER_MODEL, n_samples=1, tools=False)}
     tool_settings = sorted({SYSTEMS[s][3] for s in args.systems})
