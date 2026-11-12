@@ -125,3 +125,36 @@ def test_conflicting_fact_keys_do_not_pick_arbitrary_key(monkeypatch):
 
     assert result.status == RuleStatus.NOT_ENOUGH_INFO
     assert result.fact_key is None
+
+
+def test_sampling_uses_shared_client_with_distinct_reproducible_sample_seeds(monkeypatch):
+    calls = []
+
+    def fake_chat(messages, model, temperature=0, seed=None, **kwargs):
+        calls.append((messages, model, temperature, seed, kwargs))
+        return response(status="met", category="stated", evidence_ids=[0])
+
+    monkeypatch.setattr(checker, "chat", fake_chat)
+    result = checker.check_rule(make_note(), make_rule(), "mock-model", n_samples=3,
+                                confidence="votes", temperature=0.65, seed=100)
+    assert len(calls) == 3
+    assert [call[3] for call in calls] == [100, 101, 102]
+    assert all(call[2] == 0.65 for call in calls)
+    assert all("P1" not in str(call[0]) and "T1" not in str(call[0]) for call in calls)
+    assert all("R1" not in str(call[0]) for call in calls)
+    assert result.n_samples == 3 and result.confidence == 1.0
+
+
+def test_invalid_evidence_resolves_to_explicit_empty_evidence(monkeypatch):
+    monkeypatch.setattr(checker, "chat", lambda *a, **k: json.dumps({
+        "status": "met", "category": "stated", "evidence_ids": [99], "fact_key": "age"}))
+    result = checker.check_rule(make_note(), make_rule(), "mock-model", n_samples=1)
+    assert result.status == RuleStatus.NOT_ENOUGH_INFO
+    assert result.category == InfoCategory.MISSING and result.evidence_ids == []
+    assert "no valid visible-note evidence IDs" in result.explanation
+
+
+def test_logprob_mode_rejects_sampling_temperature():
+    with pytest.raises(ValueError, match="greedy"):
+        checker.check_rule(make_note(), make_rule(), "mock-model", n_samples=1,
+                           confidence="logprob", temperature=0.2)

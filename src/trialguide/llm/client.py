@@ -9,8 +9,9 @@ Backends (env LLM_BACKEND):
 	         (OPENAI_BASE_URL, default http://localhost:8000/v1)
 	azure  - original TrialGPT setup (OPENAI_ENDPOINT, OPENAI_API_KEY)
 
-Every call is cached on disk (keyed by model + messages + params) and logged
-with model, date and seed, so reruns are free and every result is traceable.
+Every generated call is cached on disk (keyed by model + messages + sampling params) and logged
+with requested/served model, UTC timestamp, and sampling settings. A seed is a reproducibility
+control, not a cross-backend or cross-hardware guarantee.
 """
 
 import datetime
@@ -68,28 +69,29 @@ def _append(path, entry):
 		f.write(json.dumps(entry) + "\n")
 
 
-def _complete_api(messages, model, temperature, logprobs=False):
-	kwargs = dict(model=model, messages=messages, temperature=temperature)
-	if logprobs:
-		kwargs["logprobs"] = True
-	if BACKEND == "openai":
-		kwargs["seed"] = SEED
-		kwargs["max_tokens"] = MAX_TOKENS
-		if DISABLE_THINKING:
-			kwargs["extra_body"] = {"chat_template_kwargs": {"enable_thinking": False}}
+def _complete_api(messages, model, temperature, logprobs=False, seed=None, top_p=1.0):
+    kwargs = dict(model=model, messages=messages, temperature=temperature, top_p=top_p)
+    if logprobs:
+        kwargs["logprobs"] = True
+    if seed is not None:
+        kwargs["seed"] = seed
+    if BACKEND == "openai":
+        kwargs["max_tokens"] = MAX_TOKENS
+        if DISABLE_THINKING:
+            kwargs["extra_body"] = {"chat_template_kwargs": {"enable_thinking": False}}
 
-	response = client.chat.completions.create(**kwargs)
-	output = response.choices[0].message.content
-	if logprobs:
-		output = {"text": output,
-				  "tokens": [[t.token, t.logprob] for t in response.choices[0].logprobs.content]}
-	return output, {
-		"served_model": response.model,
-		"system_fingerprint": getattr(response, "system_fingerprint", None),
-		"finish_reason": response.choices[0].finish_reason,
-		"prompt_tokens": getattr(response.usage, "prompt_tokens", None),
-		"completion_tokens": getattr(response.usage, "completion_tokens", None),
-	}
+    response = client.chat.completions.create(**kwargs)
+    output = response.choices[0].message.content
+    if logprobs:
+        output = {"text": output,
+                  "tokens": [[t.token, t.logprob] for t in response.choices[0].logprobs.content]}
+    return output, {
+        "served_model": response.model,
+        "system_fingerprint": getattr(response, "system_fingerprint", None),
+        "finish_reason": response.choices[0].finish_reason,
+        "prompt_tokens": getattr(response.usage, "prompt_tokens", None),
+        "completion_tokens": getattr(response.usage, "completion_tokens", None),
+    }
 
 
 class _HFBatcher:
@@ -127,9 +129,10 @@ class _HFBatcher:
 		self.requests = queue.Queue()
 		threading.Thread(target=self._loop, daemon=True).start()
 
-	def submit(self, messages, logprobs=False):
+	def submit(self, messages, temperature=0, logprobs=False, seed=None, top_p=1.0):
 		done = threading.Event()
-		slot = {"messages": messages, "done": done, "logprobs": logprobs}
+		slot = {"messages": messages, "done": done, "logprobs": logprobs,
+			"temperature": temperature, "seed": seed, "top_p": top_p}
 		self.requests.put(slot)
 		done.wait()
 		if "error" in slot:
@@ -161,6 +164,15 @@ class _HFBatcher:
 					batch.append(self.requests.get(timeout=0.5))
 			except queue.Empty:
 				pass
+			configs = {(s["temperature"], s["seed"], s["top_p"], s["logprobs"]) for s in batch}
+			if len(configs) > 1 or batch[0]["temperature"] > 0:
+				for slot in batch:
+					error = self._try_generate([slot])
+					if error:
+						slot["error"] = error
+				for slot in batch:
+					slot["done"].set()
+				continue
 			error = self._try_generate(batch)
 			if error and len(batch) > 1:
 				# long prompts may not fit as a batch; retry them one at a time
@@ -183,13 +195,20 @@ class _HFBatcher:
 		]
 		inputs = self.tokenizer(texts, return_tensors="pt", padding=True).to(self.model.device)
 		recorder = _GreedyLogprobs() if any(slot["logprobs"] for slot in batch) else None
-		with self.torch.no_grad():
-			out = self.model.generate(
-				**inputs, max_new_tokens=MAX_TOKENS, do_sample=False,
-				temperature=None, top_p=None, top_k=None,
-				pad_token_id=self.tokenizer.pad_token_id,
-				logits_processor=[recorder] if recorder else None,
-			)
+		generation = {"max_new_tokens": MAX_TOKENS,
+			"do_sample": batch[0]["temperature"] > 0,
+			"pad_token_id": self.tokenizer.pad_token_id,
+			"logits_processor": [recorder] if recorder else None}
+		if batch[0]["temperature"] > 0:
+			generation.update(temperature=batch[0]["temperature"], top_p=batch[0]["top_p"])
+			devices = list(range(self.torch.cuda.device_count()))
+			with self.torch.random.fork_rng(devices=devices):
+				self.torch.manual_seed(batch[0]["seed"])
+				with self.torch.no_grad():
+					out = self.model.generate(**inputs, **generation)
+		else:
+			with self.torch.no_grad():
+				out = self.model.generate(**inputs, **generation)
 		new_tokens = out[:, inputs["input_ids"].shape[1]:]
 		special = set(self.tokenizer.all_special_ids)
 		for i, (slot, mask, tokens) in enumerate(zip(batch, inputs["attention_mask"], new_tokens)):
@@ -240,24 +259,25 @@ def span_logprob(tokens, start, end):
 _hf = None
 
 
-def _complete_hf(messages, model, temperature, logprobs=False):
+def _complete_hf(messages, model, temperature, logprobs=False, seed=None, top_p=1.0):
 	global _hf
 	with _lock:
 		if _hf is None:
 			_hf = _HFBatcher(model)
 	assert _hf.model_name == model, "hf backend serves one model per process"
-	# TrialGPT always uses temperature 0, i.e. greedy decoding
-	assert temperature == 0, "hf backend only implements greedy decoding"
-	return _hf.submit(messages, logprobs)
+	return _hf.submit(messages, temperature, logprobs, seed, top_p)
 
 
-def chat(messages, model, temperature=0, logprobs=False):
+def chat(messages, model, temperature=0, logprobs=False, seed=None, top_p=1.0):
 	"""Returns the message content of one chat completion (cached).
 
 	logprobs=True returns {"text": content, "tokens": [[token, logprob], ...]} instead, with the
 	log-probability of every generated token; e.g. a checker's confidence in its own label.
 	"""
-	params = {"temperature": temperature, "seed": SEED, "max_tokens": MAX_TOKENS}
+	if temperature < 0 or top_p <= 0 or top_p > 1:
+		raise ValueError("temperature must be non-negative and top_p must be in (0, 1]")
+	seed = SEED if seed is None else int(seed)
+	params = {"temperature": temperature, "seed": seed, "top_p": top_p, "max_tokens": MAX_TOKENS}
 	if logprobs:
 		params["logprobs"] = True
 	if BACKEND == "hf" and os.getenv("LLM_HF_8BIT") == "1":
@@ -272,7 +292,7 @@ def chat(messages, model, temperature=0, logprobs=False):
 			return cache[key]
 
 	complete = _complete_hf if BACKEND == "hf" else _complete_api
-	output, meta = complete(messages, model, temperature, logprobs)
+	output, meta = complete(messages, model, temperature, logprobs, seed, top_p)
 
 	with _lock:
 		_cache[key] = output
@@ -281,9 +301,10 @@ def chat(messages, model, temperature=0, logprobs=False):
 			"key": key,
 			"backend": BACKEND,
 			"model": model,
-			"date": datetime.datetime.now().isoformat(),
-			"seed": SEED,
+			"date": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+			"seed": seed,
 			"temperature": temperature,
+			"top_p": top_p,
 			**meta,
 		})
 

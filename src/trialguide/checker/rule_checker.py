@@ -157,7 +157,7 @@ def _status_probability(tokens):
     return math.exp(span_logprob(tokens, *match.span(1)))
 
 
-def check_rule(note, rule, model, n_samples=5, confidence="votes"):
+def check_rule(note, rule, model, n_samples=5, confidence="votes", temperature=0, seed=None):
     """Check a trial rule against only the visible note.
 
     confidence="votes": the modal-status vote fraction over requested samples;
@@ -177,6 +177,10 @@ def check_rule(note, rule, model, n_samples=5, confidence="votes"):
 
     if mode == "logprob" and n_samples != 1:
         raise ValueError("logprob confidence uses a single greedy call (n_samples=1)")
+    if mode == "logprob" and temperature != 0:
+        raise ValueError("logprob confidence requires greedy decoding (temperature=0)")
+    if temperature < 0:
+        raise ValueError("temperature must be non-negative")
 
     status_probability = 0.0
 
@@ -237,7 +241,6 @@ Do not use patient, trial, or rule IDs, or generic keys like "unknown".
 Independent assessment sample: {sample_index + 1} of {n_samples}.
 Assess this rule independently from the other samples.
 
-Rule ID: {rule.rule_id}
 Rule kind: {rule.kind.value}
 Rule text: {rule.text}
 
@@ -253,7 +256,8 @@ Return the required JSON object only.
                     {"role": "user", "content": user_prompt},
                 ],
                 model,
-                temperature=0,
+                temperature=temperature,
+                **({"seed": seed + sample_index} if seed is not None else {}),
                 **({"logprobs": True} if mode == "logprob" else {}),
             )
 
