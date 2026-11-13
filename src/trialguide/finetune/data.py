@@ -24,7 +24,9 @@ target is a JSON answer built from the teacher's full-note answer:
 Dropped (counted in the report): evidence partly visible and partly hidden (unclear target),
 answers that used a tool result (the tuned model is trained and tested with tools off), and
 answers that contradict the expert trial label (the trial is labelled eligible, but the teacher
-says the patient fails an inclusion rule or meets an exclusion rule). These are model-made
+says the patient fails an inclusion rule or meets an exclusion rule), and criteria that are only
+punctuation. Also, the teacher's fact_key is set to null where it is "prior_chemotherapy" copied from
+the prompt example onto a rule that is not about cancer drugs (clean_fact_key). These are model-made
 labels, not expert labels, and are reported as such (proposal, E1).
 
 Only development patients are used. Calibration and test patients are never read here, so the
@@ -40,6 +42,7 @@ from __future__ import annotations
 import argparse
 import json
 import random
+import re
 from collections import Counter
 from pathlib import Path
 
@@ -53,6 +56,25 @@ ELIGIBLE = "2"
 # How many examples of each type to keep at most (the "unresolved" type is the most common one
 # and would otherwise teach the model to abstain on everything)
 DEFAULT_CAPS = {"visible": 700, "hidden": 700, "unresolved": 300, "not_applicable": 100}
+
+# The checker prompt gives "prior_chemotherapy" as its fact_key example, and the teacher copies it:
+# 57% of the dev-run teacher answers carry that key, mostly on rules about something else. Training
+# on those keys would teach the copying, so the key is dropped (null) unless the rule is about
+# cancer drug treatment.
+COPIED_KEY = "prior_chemotherapy"
+CHEMO_WORDS = re.compile(r"chemo|cytotoxic|antineoplastic|anti-?cancer|anticancer", re.I)
+
+
+def clean_fact_key(fact_key, rule_text: str):
+    """The teacher's fact_key, or None when it is the copied prompt example on an unrelated rule."""
+    if fact_key == COPIED_KEY and not CHEMO_WORDS.search(rule_text or ""):
+        return None
+    return fact_key
+
+
+def is_empty_rule(rule_text: str) -> bool:
+    """Criteria that are only punctuation (e.g. ":" left over from a header) say nothing to check."""
+    return len(re.findall(r"[A-Za-z]", rule_text or "")) < 3
 
 
 def visible_note(patient, hidden_ids) -> VisibleNote:
@@ -83,13 +105,13 @@ def excludes(kind: str, status: str) -> bool:
            (kind == RuleKind.EXCLUSION.value and status == RuleStatus.MET.value)
 
 
-def target_for(teacher: dict, visible_ids: set, trial_label: str):
+def target_for(teacher: dict, visible_ids: set, trial_label: str, rule_text: str = ""):
     """(example type, target JSON text) for one teacher answer, or (drop reason, None).
 
     `teacher` is one check from checks_full.jsonl (a RuleCheck as JSON)."""
     status, category = teacher["status"], teacher["category"]
     evidence = list(teacher.get("evidence_ids") or [])
-    fact_key = teacher.get("fact_key")
+    fact_key = clean_fact_key(teacher.get("fact_key"), rule_text)
 
     if teacher.get("tool_calls"):
         return "drop_tool", None
@@ -150,7 +172,12 @@ def build(manifest: dict, teacher: dict, patients: dict, trials: dict, caps: dic
                     if t is None:
                         counts["drop_no_teacher"] += 1
                         continue
-                    kind, target = target_for(t, set(note.sentences), label)
+                    if is_empty_rule(rule.text):
+                        counts["drop_empty_rule"] += 1
+                        continue
+                    if t.get("fact_key") == COPIED_KEY and clean_fact_key(COPIED_KEY, rule.text) is None:
+                        counts["copied_fact_key_removed"] += 1      # counted; the example is kept
+                    kind, target = target_for(t, set(note.sentences), label, rule.text)
                     counts[kind] += 1
                     if target is None:
                         continue
