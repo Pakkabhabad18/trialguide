@@ -123,6 +123,27 @@ greedy call (with greedy decoding the checker's vote share was always 1.0, so B5
   Earlier run with vote-share confidence (outputs/systems_votes): identical B6, B5 = B2.
 
 ==========================================================================================
+3c. B7, A2, A3 PILOT WITH THE SIMULATED DOCTOR (T22, T27 - Prateek)
+==========================================================================================
+Source: b6_run/code/outputs/asking/summary.json and turns.jsonl (cluster), finished 22:42 IST
+Setting: same 5 patients, 29 trials and rule-40% masks; masked notes only. Checker Qwen3-8B,
+doctor Llama-3.1-8B (both 8-bit, greedy), lambda 0.9 (stand-in until T30), budget 3 questions.
+Checker and doctor alternate in rounds on one GPU: 4 rounds, ~3 minutes.
+
+  system  strategy      NDCG@10  P@10   questions/patient  doctor answers
+  B6      (no asking)    0.908   0.290        0            -
+  B7      ranking (Eq.1) 0.862   0.290        2.8          13 not documented, 1 probably
+  A2      fixed order    0.862   0.290        3.0          14 not documented, 1 probably
+  A3      uncertainty    0.902   0.290        3.0          14 not documented, 1 probably
+
+  Reading: almost every answer was "not documented", and correctly so: a keyword check finds
+  only ~3 of the 28 distinct asked facts anywhere in the FULL notes. The selector picks facts
+  many trials need (prior chemotherapy first for 4 of 5 patients under B7), but most are absent
+  from the original note, not hidden by the mask, so answers cannot change the checks.
+  Next: make the selector favour facts this kind of note usually records; run more patients.
+  NDCG differences here are noise (<=6 trials per patient, P@10 identical).
+
+==========================================================================================
 4. MEMORISATION PROBE (T14 - Prateek)
 ==========================================================================================
 Source: results/memorisation_probe_dev_qwen3-8b_8bit.json
@@ -191,9 +212,9 @@ Checked against the Eka medical-calculator set (1,066 items; 15 cover our tools)
   T10 masking (Murthy)                merged; random / rule-targeted / evidence-targeted
   T20 question selector (Prateek)     in PR; Eq. 1, budget 3, fact merging, B3/B4/A2/A3 strategies
   End-to-end runner (Prateek)         written and tested with scripted models; not yet run
-  Test suite on main + open PRs: 227 passed, 5 skipped.
+  Test suite on prateek branch: 236 passed, 5 skipped.
 
-NOT YET RUN: B1, B3, B4, B7, ablations A1-A7,
+NOT YET RUN: B1, B3, B4, ablations A1, A4-A7 (B7, A2, A3: 5-patient pilot only),
 risk-control calibration (T30), E1/E2/E3.
 
 

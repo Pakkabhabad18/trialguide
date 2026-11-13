@@ -50,6 +50,9 @@ def main():
 
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--manifest", type=Path, required=True)
+    ap.add_argument("--allow-test", action="store_true", help="needed for a test-split manifest")
+    ap.add_argument("--conditions", nargs="+", default=None,
+                    help="only these notes (full, rule40); default both. Summary keeps earlier results")
     ap.add_argument("--raw", type=Path, default=Path("data/raw"))
     ap.add_argument("--systems", nargs="+", default=list(SYSTEMS))
     ap.add_argument("--model", default="Qwen/Qwen3-8B")
@@ -62,7 +65,10 @@ def main():
     asking = [s for s, c in configs.items() if c.allow_asking]
     assert not asking, f"{asking} ask questions and need the doctor; not run here"
     m = json.loads(args.manifest.read_text())
-    patients = load_patients(args.raw, Split.DEV)            # never the test split
+    split = Split(m.get("split", "dev"))
+    if split == Split.TEST and not args.allow_test:
+        raise SystemExit("the test split is opened once, after the system is frozen: pass --allow-test")
+    patients = load_patients(args.raw, split, allow_test=args.allow_test)
     check = checker(args.model, args.n_samples)
     args.out.mkdir(parents=True, exist_ok=True)
 
@@ -73,6 +79,8 @@ def main():
             pt, rule_demand(pt.sentences, candidate_rules(args.raw, pt.cohort, pt.patient_id)),
             m["fraction"]).visible,
     }
+    if args.conditions:
+        conditions = {c: f for c, f in conditions.items() if c in args.conditions}
     summary = {"model": args.model, "n_samples": args.n_samples, "manifest": str(args.manifest),
                "confidence": "logprob (probability of the status)" if args.n_samples == 1 else "votes",
                "policies": {s: dataclasses.asdict(c) for s, c in configs.items()}, "results": {}}
@@ -128,7 +136,15 @@ def main():
             }
         summary.setdefault("checker_outputs", {})[cond] = checker_counts
 
-    (args.out / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
+    old = args.out / "summary.json"
+    if args.conditions and old.exists():                   # keep the other condition's results
+        previous = json.loads(old.read_text())
+        for sys_name, by_cond in previous.get("results", {}).items():
+            for c, v in by_cond.items():
+                summary["results"].setdefault(sys_name, {}).setdefault(c, v)
+        for c, v in previous.get("checker_outputs", {}).items():
+            summary.setdefault("checker_outputs", {}).setdefault(c, v)
+    old.write_text(json.dumps(summary, indent=2) + "\n")
     print(json.dumps({s: {c: {k: v[k] for k in ("NDCG@10", "P@10", "accepted_inference_rate", "abstain_rate")}
                           for c, v in r.items()} for s, r in summary["results"].items()}, indent=2))
 

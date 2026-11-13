@@ -61,14 +61,14 @@ Prateek Singh, 2026701041 & Vidur Shah, 2026909004\\
 \vspace{-2pt}
 \begin{center}
 \fcolorbox{muted}{tint2}{\parbox{0.97\textwidth}{\small
-\textbf{Summary.} TrialGuide decides, for every eligibility rule a patient note does not settle, whether to \emph{infer} the fact from evidence, \emph{ask} the doctor a short question (at most three per patient, chosen by how much the answer could change the top-10 trials), or \emph{abstain}; inferences that favour eligibility are accepted only under conformal risk control. \textbf{Status at mid-term:} data, frozen splits, masking, the rule checker, the infer/ask/abstain policy, the question selector, the simulated doctor, tools and the evaluation harness are implemented, tested (227 tests) and merged or under review. The TrialGPT baseline runs end to end on Qwen3-8B; the backbone shows no sign of having memorised the public notes; the simulated doctor returns no wrong ``sure'' answer on our check. The main comparison (B7 against B1--B6) and the ablations have not been run yet; the binding constraint is compute (one 12\,GB GPU). Section~\ref{sec:plan} gives the plan to the final submission on 15 November.}}
+\textbf{Summary.} When a patient note does not settle an eligibility rule, TrialGuide either infers the missing fact from evidence in the note, asks the doctor a short question, or abstains. It may ask at most three questions per patient and picks the one whose answer could most change the top-10 trials. An inference that would make a patient look eligible is accepted only under conformal risk control~\cite{crc}. Halfway through, most of the system exists: data loading, the frozen split, masking, the rule checker, the policy, the question selector, the simulated doctor, the tools and the evaluation code are written and tested (236 tests), and are either merged or waiting for review. TrialGPT runs end to end on Qwen3-8B, a probe found no sign that the model has memorised the public notes, and after one fix the simulated doctor gave no wrong ``sure'' answer in our check. We have run four baselines on a five-patient development sample. The main comparison (TrialGuide against all baselines) and the ablations are still to come, and compute is what limits us: we have a single 12\,GB GPU.}}
 \end{center}
 \vspace{4pt}
 }]
 
 % =====================================================================
 \section{Progress}
-Table~\ref{tab:progress} lists every component in the proposal with its state. ``Merged'' means reviewed by a teammate, passing the automatic test run, and on the \texttt{main} branch.
+Table~\ref{tab:progress} gives the state of each component planned in the proposal. A component counts as merged once a teammate has reviewed it, the automatic tests pass, and it is on the \texttt{main} branch.
 
 \begin{table}[H]
 \centering\footnotesize
@@ -85,26 +85,27 @@ Rule checker (T12) & Per-rule check with category (stated / inferred / assumptio
 Policy (T19) & Infer / ask / abstain with risk threshold; B2, B5, B6, B7, A1, A6 as settings & Merged\\
 TrialGPT baseline (T4) & Matching, aggregation, ranking, evaluation on an open model & Merged\\
 Tools (T13) & eGFR (CKD-EPI 2021), BMI, drug class (RxClass) & Merged\\
-LLM client & One cached, logged entry point; 8-bit loading for one GPU & In review\\
-Question selector (T20) & Eq.~1 of the proposal, budget 3, fact merging; fixed / uncertainty / ask-all strategies & In review\\
-Simulated doctor (T11) & Llama-3.1-8B answers only from hidden facts, quote enforced in code & In review\\
+LLM client & One cached, logged entry point; 8-bit loading; token probabilities & Merged\\
+Question selector (T20) & Eq.~1 of the proposal, budget 3, fact merging; fixed / uncertainty / ask-all strategies & Merged\\
+Simulated doctor (T11) & Llama-3.1-8B answers only from hidden facts, quote enforced in code & Merged\\
 Memorisation probe (T14) & Three tests on the 37 dev patients & Done\\
 B6 runner (T16) & TrialGPT and our checker on full vs.\ masked notes; B2, B5 & Done (5 pts)\\
-End-to-end runner & Checker \(\rightarrow\) policy \(\rightarrow\) question \(\rightarrow\) doctor \(\rightarrow\) re-check \(\rightarrow\) score & In review\\
+End-to-end runner & Checker \(\rightarrow\) policy \(\rightarrow\) question \(\rightarrow\) doctor \(\rightarrow\) re-check \(\rightarrow\) score & Merged\\
+Round runner (T22, T27) & Checker and doctor take turns on one GPU; B7, A2, A3 & Pilot run done\\
 E2 data (T24) & Indian-affiliated oncology case reports and trials recruiting in India & Merged\\
 \bottomrule
 \end{tabularx}
-\caption{Implementation status, 30 October.}
+\caption{Implementation status on 30 October.}
 \label{tab:progress}
 \end{table}
 
-\textbf{Changes since the proposal.} (1) \emph{Backbone:} Qwen3-8B instead of Qwen3-32B, which does not fit our GPUs; RQ3 becomes tuned vs.\ untuned 8B. (2) \emph{Precision:} 8-bit weights (bitsandbytes) on one 12\,GB GPU, because only one GPU is available to us; every system uses the same setting. (3) \emph{Serving:} transformers instead of vLLM, which could not be installed on the cluster. (4) \emph{Simulated doctor:} a ``sure'' answer must quote a record sentence that mentions the question's topic, otherwise it is capped at ``probably'' (Section~\ref{sec:doctor}).
+Four things changed since the proposal. Qwen3-32B does not fit on our GPUs, so the backbone is Qwen3-8B, and RQ3 now compares a fine-tuned 8B model with the untuned one. Because only one GPU is free to us, we load the weights in 8-bit (bitsandbytes); every system uses this same setting. We generate with Hugging Face transformers, since vLLM would not install on the cluster. Finally, the simulated doctor now has to quote a sentence that mentions the topic of the question before it may answer ``sure'' (Section~\ref{sec:doctor}).
 
 % =====================================================================
 \section{Datasets}
-\textbf{Patients and trials.} SIGIR 2016 (59 notes), TREC Clinical Trials 2021 (75) and 2022 (50), with the candidate trials and graded patient--trial labels (0 not relevant, 1 excluded or potential, 2 eligible) distributed with TrialGPT~\cite{trialgpt}; 183 patients have trial labels. \textbf{Rule-level gold labels:} the TrialGPT criterion annotations~\cite{trialgptann}, 1{,}015 rows on 53 patients, all SIGIR.
+We use the patients of SIGIR 2016 (59 notes) and of TREC Clinical Trials 2021 (75) and 2022 (50), together with their candidate trials and the graded patient--trial labels released with TrialGPT~\cite{trialgpt} (0 not relevant, 1 excluded or potential, 2 eligible). 183 patients have trial labels. For individual rules we have the TrialGPT criterion annotations~\cite{trialgptann}: 1{,}015 expert labels on 53 patients, all from SIGIR.
 
-\textbf{Frozen split.} One seeded split (Table~\ref{tab:split}). Patients with expert rule labels go only to calibration and test, so harmful inferences are measured against expert labels and nothing is tuned on them. The test split is sealed in code until the single test run.
+The patients are split once, with a fixed seed (Table~\ref{tab:split}). Patients with expert rule labels go only to calibration and test. That way harmful inferences are measured against expert labels, and no design choice is tuned on those patients. The code refuses to load the test split until the single final test run.
 
 \begin{table}[H]
 \centering\footnotesize
@@ -121,13 +122,13 @@ Test (sealed) & 73 & 28 & 27 & 18 & 496\\
 \label{tab:split}
 \end{table}
 
-\textbf{Label audit.} Experts marked 293 of 1{,}015 rules (28.9\%) as ``not enough information''. In 34 rules GPT-4 said ``not enough information'' but the expert gave a definite label (21 of them citing note sentences): these are the \emph{recoverable} gaps our method targets, 26.4\% of the 129 GPT-4/expert disagreements (TrialGPT reports 30.7\% of 26 errors~\cite{trialgpt}).
+An audit of the expert labels shows how often information is missing. Experts marked 293 of the 1{,}015 rules (28.9\%) as ``not enough information''. In 34 rules, GPT-4 gave that answer while the expert gave a definite label, in 21 cases citing sentences from the note. These recoverable gaps are what our method is meant to close. They make up 26.4\% of the 129 rules where GPT-4 and the experts disagree; TrialGPT reports a similar 30.7\% from a manual look at 26 errors~\cite{trialgpt}.
 
-\textbf{Masking.} Facts are note sentences. \emph{Random} hides 20/40/60\% of sentences; \emph{rule-targeted} hides those the candidate trials' rules ask about most (TF-IDF similarity); \emph{evidence-targeted} hides exactly the sentences experts cited. Hidden sentences go only to the simulated doctor. \textbf{E2:} Indian-affiliated oncology case reports and trials recruiting in India are prepared as a separate set.
+To create gaps with a known answer we mask notes, treating each sentence as one fact. Random masking hides 20, 40 or 60\% of the sentences. Rule-targeted masking hides the sentences that the candidate trials' rules ask about most, measured by TF-IDF similarity. Evidence-targeted masking hides exactly the sentences the experts cited. Only the simulated doctor ever sees the hidden sentences. For the optional extension E2 we have also prepared a separate set of Indian-affiliated oncology case reports and trials recruiting in India.
 
 % =====================================================================
 \section{Baseline experiments}
-All baselines share the backbone, patients, masks, trials, visibility rules and scoring code. Table~\ref{tab:baselines} shows where each stands.
+All baselines use the same backbone, patients, masks, trials, visibility rules and scoring code. Table~\ref{tab:baselines} shows how far each has got.
 
 \begin{table}[H]
 \centering\footnotesize
@@ -137,20 +138,20 @@ All baselines share the backbone, patients, masks, trials, visibility rules and 
 \midrule
 B1 & Full-note oracle & TrialGPT version run (5 pts)\\
 B2 & Inference, no risk control, no questions & Run (5 pts)\\
-B3 & Ask every candidate fact & Code ready, needs doctor\\
-B4 & Fixed-order questions, budget 3 & Code ready, needs doctor\\
+B3 & Ask every candidate fact & Code ready, not run\\
+B4 & Fixed-order questions, budget 3 & Same run as A2\\
 B5 & Confidence threshold 0.9 & Run (5 pts)\\
 B6 & Abstention (TrialGPT-style) & Run (5 pts), 2 versions\\
-B7 & TrialGuide & Needs doctor, \(\hat\lambda\)\\
+B7 & TrialGuide & Pilot (5 pts), \(\lambda=0.9\) stand-in\\
 \bottomrule
 \end{tabularx}
-\caption{Baselines. ``Code ready'': the policy and runner support it; not yet run on data.}
+\caption{Baselines. ``Code ready'' means the policy and the runner support the system, but it has not been run on data. B7 uses \(\lambda=0.9\) until the threshold is calibrated (T30).}
 \label{tab:baselines}
 \end{table}
 
-\textbf{TrialGPT reproduction.} We ported TrialGPT~\cite{trialgpt} to an open model and our client. Smoke test on three SIGIR patients (selected before the split was frozen; nothing was tuned on them), at most five trials per label, 43 pairs, Qwen3-8B in bf16: NDCG@10 0.773 and P@10 0.517, against 0.620 for a random ordering of the same trials; 0 of 86 outputs unparsable; ``not enough information'' on 29.0\% of inclusion and 12.9\% of exclusion rules. This shows the pipeline works with an 8B model; it is not comparable with the paper's full-cohort numbers.
+\paragraph{TrialGPT reproduction.} We ported TrialGPT~\cite{trialgpt} to an open model and to our client, and tested it on three SIGIR patients with at most five trials per label (43 pairs) using Qwen3-8B in bf16. We picked these patients before the split was frozen and tuned nothing on them. TrialGPT reached an NDCG@10 of 0.773 and a P@10 of 0.517; ordering the same trials at random gives an NDCG@10 of 0.620. All 86 model outputs could be parsed, and the model said ``not enough information'' for 29.0\% of inclusion and 12.9\% of exclusion rules. So the pipeline works with an 8B model, although three patients say little about how it compares with the paper's full-cohort results.
 
-\textbf{B6, first run.} Five development patients (seeded, proportional to cohort size: three TREC 2021, two TREC 2022), the first two trials per gold label (29 pairs), TrialGPT on the full note (B1-style reference) and on notes with 40\% of sentences hidden by rule-targeted masking (B6). Same pairs in both conditions.
+\paragraph{B6 with TrialGPT.} Next we took five development patients, drawn with a fixed seed in proportion to cohort size (three from TREC 2021 and two from TREC 2022), and the first two trials of each gold label, 29 pairs in all. TrialGPT ranked the same pairs twice: once from the full note, as a B1-style reference, and once from notes with 40\% of the sentences hidden by rule-targeted masking, which is B6.
 
 \begin{table}[H]
 \centering\footnotesize
@@ -163,13 +164,13 @@ Masked, rule 40\% (B6) & 0.817 & 0.290 & 44.1\% & 13.4\%\\
 Random order of the same trials & 0.785 & 0.290 & n/a & n/a\\
 \bottomrule
 \end{tabular}
-\caption{B6 on five development patients, Qwen3-8B 8-bit. NDCG@10 and P@10 averaged over patients; NEI = share of well-formed rule predictions labelled ``not enough information''.}
+\caption{B6 on five development patients, Qwen3-8B 8-bit. NDCG@10 and P@10 are averaged over patients; NEI is the share of well-formed rule predictions labelled ``not enough information''.}
 \label{tab:b6}
 \end{table}
 
-Masking removes information as intended: ``not enough information'' on inclusion rules rises from 29.7\% to 44.1\%. The ranking, however, scores \emph{higher} on the masked notes (0.817 vs.\ 0.779), driven mostly by one patient (0.72 to 0.97). ``Random order'' ranks the same trials by chance (NDCG@10 averaged over 100 shuffles). With at most six trials per patient a random order already scores about 0.79, and P@10 cannot differ between orderings at all, because every trial is in the top 10; five patients cannot separate TrialGPT from random, so this run checks that B6 works end to end, not ranking quality. In both conditions one trial produced 41 malformed exclusion predictions (nested objects instead of TrialGPT's three-field list); the scorer skips and counts them. Section~\ref{sec:plan} enlarges the sample.
+Masking had the intended effect on the rule checks: ``not enough information'' on inclusion rules went up from 29.7\% to 44.1\%. Surprisingly, the ranking scored higher on the masked notes (0.817 against 0.779), and most of that gain comes from a single patient whose score rose from 0.72 to 0.97. The random-order row averages NDCG@10 over 100 shuffles of the same trials. With at most six trials per patient, random order already reaches about 0.79, and every trial lands in the top 10 whatever the order, so P@10 is identical across orderings. Five patients are therefore too few to tell TrialGPT apart from chance. What this run does show is that B6 works end to end. One trial gave 41 malformed exclusion predictions in both conditions, with nested objects in place of TrialGPT's three-field list; the scorer skips them and reports the count. Section~\ref{sec:plan} describes how we will enlarge the sample.
 
-\textbf{B6, B2 and B5 with our checker and policy.} Same patients, trials and masks; the rule checker (T12) runs once per rule and the three policies are applied to the same checks. Confidence is the model's probability of the status it wrote (one greedy call): with greedy decoding the checker's original vote share is always 1.0, so no threshold could act (Section~\ref{sec:challenges}).
+\paragraph{B6, B2 and B5 with our checker.} We repeated the run with our own rule checker (T12) and policy (T19) on the same patients, trials and masks. The checker looks at each rule once, and the three policies are applied to the same checks. As confidence we use the probability the model gives to the status it wrote, read from a single greedy call. The checker originally used the share of five samples that agree, but under greedy decoding all five samples are the same, so that share was always 1.0 and no threshold could have any effect (Section~\ref{sec:challenges}).
 
 \begin{table}[H]
 \centering\footnotesize
@@ -185,15 +186,15 @@ B5 (\(\ge\)0.9) & full & 0.845 & 7.1\% & 19.3\%\\
 B5 (\(\ge\)0.9) & masked & 0.902 & 1.8\% & 39.0\%\\
 \bottomrule
 \end{tabular}
-\caption{Our checker (Qwen3-8B 8-bit), 5 dev patients, 336 rules per condition. Inferred: share of rules settled by an accepted inference; unresolved: share left as ``not enough information''.}
+\caption{Our checker (Qwen3-8B 8-bit) on five development patients, 336 rules per condition. Inferred is the share of rules settled by an accepted inference; unresolved is the share left as ``not enough information''.}
 \label{tab:systems}
 \end{table}
 
-Masking raises unresolved rules from 26.5\% to 40.8\%. The checker infers rarely (27 of 336 rules on full notes: 15 toward exclusion, 12 toward eligibility; B5 rejects the 3 eligibility-favouring ones below 0.9), so B2 and B5 differ from B6 only slightly, and as with TrialGPT the masked notes score higher, which on this sample is noise. Confidences now spread from 0.42 to 1.0 (median 0.92 for inferences), so thresholds and risk control have a signal to act on.
+Masking raised the share of unresolved rules from 26.5\% to 40.8\%. The checker infers rarely: on the full notes it inferred 27 of 336 rules, 15 of them toward exclusion and 12 toward eligibility. B5 rejected three of the eligibility-favouring inferences because their confidence was below 0.9. With so few inferences, B2 and B5 end up close to B6, and the masked notes again score higher than the full ones, which we put down to the small sample. The confidences now range from 0.42 to 1.0, with a median of 0.92 for inferences, so a threshold or risk control finally has something to work with.
 
 % =====================================================================
 \section{Ablations}
-Each ablation removes one part of B7 and runs through B7's code path. A1, A2, A3 and A6 already exist as settings of the policy or the selector; A4, A5 and A7 need small changes to the checker or the runner. None has been run: all need B7, which needs the simulated doctor and the calibrated threshold \(\hat\lambda\).
+Each ablation takes one part out of B7 and otherwise runs through the same code. Because the checker (Qwen) and the simulated doctor (Llama) do not fit on our GPU together, B7 and the ablations that ask questions run in rounds: one round loads the checker, the next the doctor, and every conversation is replayed from the cache of earlier calls until it finishes. A2 and A3 have been run in this way together with B7 on the five pilot patients (results below). A1 and A6 already exist as policy settings. A4, A5 and A7 still need small additions; for A5 the tools first have to be connected to the checker, which does not call them yet.
 
 \begin{table}[H]
 \centering\footnotesize
@@ -202,22 +203,24 @@ Each ablation removes one part of B7 and runs through B7's code path. A1, A2, A3
 \textbf{ID} & \textbf{Removes} & \textbf{Switch}\\
 \midrule
 A1 & Inference (ask or abstain only) & Policy setting \yes\\
-A2 & Adaptive selection (fixed order) & Selector strategy \yes\\
-A3 & Ranking term (least-confident fact first) & Selector strategy \yes\\
+A2 & Adaptive selection (fixed order) & Pilot run \yes{}\\
+A3 & Ranking term (least-confident fact first) & Pilot run \yes{}\\
 A4 & Evidence retrieval & Checker input (to add)\\
-A5 & Tools (eGFR, BMI, drug class) & Checker option (to add)\\
+A5 & Tools (eGFR, BMI, drug class) & Tools into checker (to add)\\
 A6 & Risk control (raw confidence) & Policy setting \yes\\
 A7 & One question per turn (all at once) & Runner option (to add)\\
 \bottomrule
 \end{tabularx}
-\caption{Ablations, all planned on development patients. \yes{} = the switch exists in the code.}
+\caption{Ablations, all planned on development patients. \yes{} marks a switch that already exists in the code.}
 \label{tab:ablations}
 \end{table}
+
+\paragraph{B7, A2 and A3 pilot.} On the same five patients and masked notes, with at most three questions per patient, B7 reached an NDCG@10 of 0.862, A2 0.862 and A3 0.902 (B6 on the same masked notes: 0.908). The run took four rounds and about three minutes once both models were on disk. The doctor answered ``not documented'' to 13 of B7's 14 questions. That answer was correct: in a keyword check, only about 3 of the 28 distinct facts asked across the three systems appear anywhere in the full notes. The selector asked about facts that many trials need (prior chemotherapy came first for four patients), but most of these facts are missing from the original note, not just hidden by the mask, so no answer could change a check. The next step is to make the selector prefer facts that a note of this kind is likely to record, and to run on more patients, since with at most six trials per patient these NDCG differences are within noise.
 
 % =====================================================================
 \section{Results of component experiments}
 \subsection{Memorisation probe}
-The notes are public, so the backbone might reproduce a hidden fact from memory rather than infer it. On all 37 development patients, Qwen3-8B (8-bit, greedy) was tested three ways, each against a control (the same output scored against another patient's sentence), with the decision rule fixed before the run (Table~\ref{tab:mem}).
+The TREC and SIGIR notes are public, so the model may have seen them during training and could recall a hidden fact instead of inferring it. We tested Qwen3-8B (8-bit, greedy) on all 37 development patients in three ways. Each test has a control in which the same output is scored against a sentence from a different patient, and we fixed the decision rule before running anything (Table~\ref{tab:mem}).
 
 \begin{table}[H]
 \centering\footnotesize
@@ -233,17 +236,17 @@ C. Age edited in the note: model follows the edit & 34/34 & --\\
 \quad model gives the original age & 0/34 & --\\
 \bottomrule
 \end{tabularx}
-\caption{Memorisation probe. ``Memorised'' would require a verbatim rate above 5\% and 3\(\times\) the control, number recall more than 10 points above the control, or following the edited age in under 90\% of notes.}
+\caption{Memorisation probe. We would call the notes memorised if the verbatim rate exceeded 5\% and three times the control, if number recall beat the control by more than 10 points, or if the model followed the edited age in fewer than 90\% of notes.}
 \label{tab:mem}
 \end{table}
 
-No test meets its threshold. The single verbatim gap fill had wrong content, and the number matches in B are ages that can be guessed from the presentation. We still rely on evidence-targeted masking, as planned.
+None of the tests reached its threshold. The one gap fill that counted as verbatim had the wrong content, and the numbers matched in test B were ages that one can guess from the presentation. We will still rely on evidence-targeted masking, as planned.
 
 \subsection{Simulated doctor}\label{sec:doctor}
-Llama-3.1-8B-Instruct (8-bit) held one patient's eight note sentences and answered 20 questions, 11 answerable from the record and 9 not. In the first run it answered two unanswerable questions ``sure'' with a real but unrelated quote (``pregnant? no''; ``prior myocardial infarction? no'', the latter a harmful error). We enforce faithfulness in code: a quote not found in the record becomes ``not documented'', and a ``sure'' answer whose quote does not mention the question's topic is capped at ``probably'' and passes through risk control. After the fix: 11/11 answerable questions answered with an exact quote (10 ``sure'', one inference capped at ``probably''), 7/9 unanswerable ones ``not documented'', two capped at ``probably'', and \textbf{no wrong ``sure'' answer}. One patient and our own questions; the planned 150-answer faithfulness check follows on masked notes.
+The doctor is Llama-3.1-8B-Instruct (8-bit) with a prompt adapted from MediQ~\cite{mediq}. In our check it held the eight sentences of one patient's note and answered 20 questions, 11 of which the record answers. In the first run it answered two of the other nine with ``sure'' and a quote that was real but unrelated: ``pregnant? no'' and ``prior myocardial infarction? no''. The second would be a harmful error. We now enforce faithfulness in code. A quote that does not appear in the record turns the answer into ``not documented'', and a ``sure'' answer whose quote never mentions the topic of the question is lowered to ``probably'', so it goes through risk control like any inference. With these checks the doctor answered all 11 answerable questions with an exact quote (ten ``sure'' and one inference lowered to ``probably''). Of the nine unanswerable questions, it marked seven ``not documented'' and two ``probably'', and it gave no wrong ``sure'' answer. This is one patient and questions we wrote ourselves; the planned check of 150 answers on masked notes comes next.
 
 \subsection{Tools}
-On the Eka medical-calculator set~\cite{ekacalc} (1{,}066 items, 15 covering our tools): BMI 12/12 and eGFR 3/3 correct (Eka grades eGFR with CKD-EPI 2009, so those items check our 2009 reference function). CKD-EPI 2021~\cite{ckdepi} and drug-class lookup~\cite{rxnav} are verified by unit tests.
+The Eka medical-calculator set~\cite{ekacalc} has 1{,}066 items, 15 of which cover our tools. Our BMI tool got 12 of 12 right and our eGFR function 3 of 3. Eka grades eGFR with the 2009 CKD-EPI equation, so those three items test our 2009 reference function; the 2021 equation~\cite{ckdepi} and the drug-class lookup~\cite{rxnav} are covered by unit tests.
 
 % =====================================================================
 \section{Challenges and mitigation}\label{sec:challenges}
@@ -254,23 +257,23 @@ On the Eka medical-calculator set~\cite{ekacalc} (1{,}066 items, 15 covering our
 \textbf{Challenge} & \textbf{Mitigation}\\
 \midrule
 32B model does not fit; nodes busy & Qwen3-8B, 8-bit, one GPU; same setting for every system\\
-vLLM not installable; generation \(\approx\)9 tokens/s, so all 20{,}529 dev pairs would take weeks & Seeded samples of patients and trials; enlarge as time allows; cache every model call so reruns cost nothing\\
-Only one GPU; B7 needs checker and doctor at once (\(\approx\)18\,GB) & Alternate the two models in rounds on one GPU (all patients' checks, then all answers, \dots); separate doctor job if a GPU frees up\\
+vLLM not installable; generation \(\approx\)9 tokens/s, so all 20{,}529 dev pairs would take weeks & Seeded samples of patients and trials, enlarged as time allows; every model call is cached, so reruns cost nothing\\
+Only one GPU, while B7 needs the checker and the doctor at once (\(\approx\)18\,GB) & Load the two models in turn on one GPU (checks for all patients, then all answers, and so on); a separate doctor job if another GPU frees up\\
 Doctor gave unsupported ``sure'' answers & Quote and topic checks in code (Sec.~\ref{sec:doctor})\\
-Public notes may be memorised & Probe on dev: no signal; evidence-targeted masking\\
-Leakage: checker prompt held patient and trial ids; one smoke-test patient is in test & Ids to be removed from prompts; smoke test documented, nothing tuned on it\\
+Public notes may be memorised & Probe on dev found no signal; evidence-targeted masking\\
+Patient and trial ids in the checker prompt; one smoke-test patient is in test & Ids removed from the prompt, with a test that guards it; smoke test documented, nothing tuned on it\\
 Malformed model outputs & Parsers skip and count them; counts reported\\
-Checker confidence was a vote share of 5 samples, always 1.0 under greedy decoding & One greedy call per rule (5\(\times\) cheaper); confidence = model's probability of its status, calibrated by risk control\\
-Small B6 sample cannot separate systems & More patients and trials per patient before conclusions\\
+Checker confidence was the vote share of 5 samples, always 1.0 under greedy decoding & One greedy call per rule, five times cheaper; confidence is the model's probability of its status, to be calibrated by risk control\\
+Five patients cannot separate systems & More patients, and more than ten trials per patient, before drawing conclusions\\
 \bottomrule
 \end{tabularx}
-\caption{Challenges met so far and how we handle them.}
+\caption{Problems we have met so far and how we deal with them.}
 \label{tab:challenges}
 \end{table}
 
 % =====================================================================
 \section{Timeline to the final submission}\label{sec:plan}
-Final submission 15 November; internal finish 10 November.
+The final submission is due on 15 November, and we aim to finish internally by 10 November.
 
 \begin{table}[H]
 \centering\footnotesize
@@ -278,12 +281,12 @@ Final submission 15 November; internal finish 10 November.
 \toprule
 \textbf{Dates} & \textbf{Work}\\
 \midrule
-Oct 31--Nov 1 & Finish B6; B6 with our checker and policy, B2, B5 on the dev sample; merge open pull requests; remove ids from prompts\\
-Nov 1--2 & Round-based runner for checker + doctor on one GPU; first B7, B3, B4 runs on dev; failure analysis\\
-Nov 2--4 & Ablations A1--A7 on dev; enlarge the dev sample; doctor faithfulness check (150 answers); freeze models and prompts\\
+Oct 31--Nov 1 & Merge open pull requests; larger dev sample (about 10 patients, 15 trials each) for B6, B2, B5\\
+Nov 1--2 & Selector change toward facts notes usually record; B7, B3, B4 on more dev patients; failure analysis\\
+Nov 2--4 & Ablations A1--A7 on dev; doctor faithfulness check (150 answers); freeze models and prompts\\
 Nov 4--5 & Risk control: fit \(\hat\lambda\) on the calibration split (T30)\\
 Nov 5--7 & Open the test split once; run B1--B7\\
-Nov 7--9 & Bootstrap CIs, McNemar, error breakdown by rule type, case studies; E1/E2 if time allows\\
+Nov 7--9 & Bootstrap CIs, McNemar, errors by rule type, case studies; E1/E2 if time allows\\
 Nov 9--10 & Report, demo, code release\\
 \bottomrule
 \end{tabularx}
@@ -291,22 +294,22 @@ Nov 9--10 & Report, demo, code release\\
 \label{tab:plan}
 \end{table}
 
-\textbf{Risk to the plan.} Compute is the critical path: if B7 cannot run on enough development patients by 4 November, we will run the test comparison on a smaller fixed subset of the test split and report the confidence intervals that subset supports, rather than drop systems.
+Compute is the main risk to this plan. If B7 has not run on enough development patients by 4 November, we will run the test comparison on a smaller fixed subset of the test split and report the confidence intervals that subset allows. We prefer that to dropping systems from the comparison.
 
 % =====================================================================
 \section{Code}
-All code is in the repository above (private; course staff can be given access). \texttt{src/trialguide/} has one folder per component (data, llm, checker, tools, simulator, selector, policy, baselines, eval) with its owner named in the code. Every pull request is reviewed by a teammate and must pass the automatic test run; 227 tests pass. Every model call is cached and logged with model, revision, date and seed, and every result file records its settings.
+All code is in the repository linked above. It is private for now, and we can give course staff access. Under \texttt{src/trialguide/} each component (data, llm, checker, tools, simulator, selector, policy, baselines, eval) has its own folder, and the code names its owner. A teammate reviews every pull request, and it can only be merged once the automatic tests pass; 236 tests pass at present. Every model call is cached and logged with the model, revision, date and seed, and every result file records the settings that produced it.
 
 % ---------------- references ----------------
 {\footnotesize\raggedright
 \begin{thebibliography}{9}\setlength{\itemsep}{0.3pt}
 \bibitem{trialgpt} Q.~Jin et al. Matching patients to clinical trials with large language models. \emph{Nature Communications}, 2024.
 \bibitem{trialgptann} TrialGPT criterion-level annotations. \url{https://huggingface.co/datasets/ncbi/TrialGPT-Criterion-Annotations}
+\bibitem{crc} A.~N.~Angelopoulos et al. Conformal risk control. ICLR 2024.
+\bibitem{mediq} S.~S.~Li et al. MediQ: question-asking LLMs and a benchmark for reliable interactive clinical reasoning. NeurIPS 2024.
 \bibitem{ekacalc} Eka Care. Medical calculator evaluation set. \url{https://huggingface.co/datasets/ekacare/medical_calculator_eval}
 \bibitem{ckdepi} L.~A.~Inker et al. New creatinine- and cystatin C-based equations to estimate GFR without race. \emph{NEJM}, 2021.
 \bibitem{rxnav} US National Library of Medicine. RxNav and RxClass APIs. \url{https://lhncbc.nlm.nih.gov/RxNav/APIs/}
-\bibitem{crc} A.~N.~Angelopoulos et al. Conformal risk control. ICLR 2024.
-\bibitem{mediq} S.~S.~Li et al. MediQ: question-asking LLMs and a benchmark for reliable interactive clinical reasoning. NeurIPS 2024.
 \end{thebibliography}}
 
 \end{document}

@@ -76,3 +76,47 @@ def test_rules_of_trial_numbers_inclusion_and_exclusion_separately():
     assert [(r.rule_id, r.kind, r.text) for r in rules] == [
         ("inc_0", RuleKind.INCLUSION, "Age >= 18"), ("inc_1", RuleKind.INCLUSION, "Lung cancer"),
         ("exc_0", RuleKind.EXCLUSION, "Pregnancy")]
+
+
+def test_a_paused_conversation_replays_to_the_same_result():
+    """Rounds on one GPU: the doctor is 'not loaded' in the first pass, so the run stops at the
+    first question; the second pass (doctor loaded, earlier calls cached) finishes it. The result
+    must equal an uninterrupted run."""
+    from trialguide.llm.client import ModelNotLoaded
+    cfg = PolicyConfig("test", allow_inference=True, allow_asking=True, threshold=0.5)
+    straight = run_patient(NOTE, RULES, cfg, fake_check, doctor=FakeDoctor(), strategy="fixed")
+
+    class AbsentDoctor:
+        def answer(self, patient_id, question):
+            raise ModelNotLoaded("doctor")
+
+    try:
+        run_patient(NOTE, RULES, cfg, fake_check, doctor=AbsentDoctor(), strategy="fixed")
+        raise AssertionError("the first pass should have stopped at the doctor")
+    except ModelNotLoaded:
+        pass
+    replayed = run_patient(NOTE, RULES, cfg, fake_check, doctor=FakeDoctor(), strategy="fixed")
+    assert replayed.scores == straight.scores and len(replayed.turns) == len(straight.turns) == 1
+
+
+def test_model_not_loaded_is_not_swallowed_by_the_checker(monkeypatch):
+    import pytest
+    from trialguide.checker import rule_checker
+    from trialguide.llm.client import ModelNotLoaded
+
+    def absent(*args, **kwargs):
+        raise ModelNotLoaded("Qwen")
+
+    monkeypatch.setattr(rule_checker, "chat", absent)
+    with pytest.raises(ModelNotLoaded):
+        rule_checker.check_rule(NOTE, RULES[0], "Qwen", n_samples=1, confidence="logprob")
+
+
+def test_client_serves_only_the_loaded_model(monkeypatch, tmp_path):
+    import pytest
+    from trialguide.llm import client
+    monkeypatch.setattr(client, "ONLY_MODEL", "Qwen")
+    monkeypatch.setattr(client, "_cache", {})
+    monkeypatch.setattr(client, "CACHE_PATH", str(tmp_path / "c.jsonl"))
+    with pytest.raises(client.ModelNotLoaded):
+        client.chat([{"role": "user", "content": "hi"}], "Llama")

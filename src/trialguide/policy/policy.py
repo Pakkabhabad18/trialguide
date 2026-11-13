@@ -30,6 +30,7 @@ only in policy (see SYSTEMS at the bottom), so they all share the same code path
 
 from __future__ import annotations
 
+import math
 from collections import defaultdict
 from dataclasses import dataclass, replace
 from typing import Iterable, Optional
@@ -56,9 +57,11 @@ class PolicyConfig:
     threshold: float = 0.0
 
     def __post_init__(self) -> None:
-        # A threshold outside [0, 1] can't be compared with a confidence
-        if not 0.0 <= self.threshold <= 1.0:
-            raise ValueError(f"threshold must be in [0, 1], got {self.threshold}")
+        # A threshold outside [0, 1] can't be compared with a confidence. The one exception is
+        # infinity: risk control (T30) returns it when no threshold meets the target, and it
+        # means "accept no inference toward eligibility".
+        if not (0.0 <= self.threshold <= 1.0 or self.threshold == math.inf):
+            raise ValueError(f"threshold must be in [0, 1] or inf, got {self.threshold}")
 
 
 # ---------------------------------------------------------------------------

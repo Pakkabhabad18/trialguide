@@ -1,0 +1,96 @@
+{
+ "split": "test",
+ "checker": "Qwen/Qwen3-8B",
+ "tools": true,
+ "mask": "rule",
+ "fraction": 0.4,
+ "reference": "expert labels",
+ "patients": 26,
+ "rules": 496,
+ "at_threshold": {
+  "B2": {
+   "threshold": "0",
+   "n_patients": 26,
+   "unsettled_rules": 386,
+   "accepted_inferences": 50,
+   "harmful_inferences": 12,
+   "harmful_rate": {
+    "estimate": 0.041134532293141485,
+    "low": 0.013663087081609357,
+    "high": 0.07625331548066126,
+    "n_boot": 10000,
+    "n_undefined": 0
+   },
+   "inference_coverage": {
+    "estimate": 0.12953367875647667,
+    "low": 0.08205128205128205,
+    "high": 0.18351303627485172,
+    "n_boot": 10000,
+    "n_undefined": 0
+   },
+   "useful_coverage": {
+    "estimate": 0.054404145077720206,
+    "low": 0.02947679071628653,
+    "high": 0.08418380442526086,
+    "n_boot": 10000,
+    "n_undefined": 0
+   }
+  },
+  "B5": {
+   "threshold": "0.9",
+   "n_patients": 26,
+   "unsettled_rules": 386,
+   "accepted_inferences": 44,
+   "harmful_inferences": 10,
+   "harmful_rate": {
+    "estimate": 0.029687645846255033,
+    "low": 0.008097165991902834,
+    "high": 0.060399017906757835,
+    "n_boot": 10000,
+    "n_undefined": 0
+   },
+   "inference_coverage": {
+    "estimate": 0.11398963730569948,
+    "low": 0.0728643216080402,
+    "high": 0.16129032258064516,
+    "n_boot": 10000,
+    "n_undefined": 0
+   },
+   "useful_coverage": {
+    "estimate": 0.04404145077720207,
+    "low": 0.022613065326633167,
+    "high": 0.07167480444829102,
+    "n_boot": 10000,
+    "n_undefined": 0
+   }
+  },
+  "B7": {
+   "threshold": "0.7660011405599875",
+   "n_patients": 26,
+   "unsettled_rules": 386,
+   "accepted_inferences": 46,
+   "harmful_inferences": 11,
+   "harmful_rate": {
+    "estimate": 0.039303030461639646,
+    "low": 0.012465411265720873,
+    "high": 0.074069348231351,
+    "n_boot": 10000,
+    "n_undefined": 0
+   },
+   "inference_coverage": {
+    "estimate": 0.11917098445595854,
+    "low": 0.07537268515278345,
+    "high": 0.16918545201022542,
+    "n_boot": 10000,
+    "n_undefined": 0
+   },
+   "useful_coverage": {
+    "estimate": 0.046632124352331605,
+    "low": 0.023529411764705882,
+    "high": 0.07512953367875648,
+    "n_boot": 10000,
+    "n_undefined": 0
+   }
+  }
+ }
+}
