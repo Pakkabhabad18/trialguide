@@ -40,4 +40,5 @@ Reading:
 
 Files: `systems_B6_B2_B5.json` (full and masked), `asking_lambda_hat.json` (B7, A2, A3, A5, B4),
 `asking_B3_lambda_hat.json`, `asking_lambda_0.9_with_A1_A6.json`, `calibration.json`,
-`turns_lambda_hat.jsonl` (every question and answer), `manifest.json` (patients and trials).
+`turns_lambda_hat.jsonl` (every question and answer), `manifest.json` (patients and trials),
+`checks_full.jsonl` (the checker on every rule of the full notes: status, category, evidence, confidence).
