@@ -121,6 +121,20 @@ pytest
 
 Patient data and model weights are not stored in this repository. They are downloaded by scripts in `scripts/`.
 
+## Demo
+
+A small web page where you play the doctor: pick a development patient, see what TrialGuide can and cannot see, answer its questions one at a time, and watch the trial ranking change next to plain abstention (B6).
+
+```bash
+pip install -r requirements-demo.txt
+# record a bundle once on a GPU (development patients only)
+python -m trialguide.demo.build_bundle --manifest results/dev_run/manifest.json --threshold 0.766 --out demo/demo_bundle.json
+# then run it anywhere, no GPU needed
+python -m trialguide.demo.app --bundle demo/demo_bundle.json
+```
+
+Add `--live` on a GPU machine to allow answer paths that were not recorded, and `--share` for a public link (for example on Kaggle).
+
 ## Status (30 October 2026)
 
 **Built and tested:** data download, expert-label audit, frozen patient split, masking, evaluation harness, E2 data, TrialGPT baseline, tools, rule checker, infer / ask / abstain policy, question selector, simulated doctor and the end-to-end runner.
