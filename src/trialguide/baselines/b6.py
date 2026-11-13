@@ -113,7 +113,10 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--raw", type=Path, default=Path("data/raw"), help="folder holding trialgpt/{cohort}/")
     ap.add_argument("--out", type=Path, default=Path("outputs/b6/data"))
-    ap.add_argument("--n", type=int, default=5, help="development patients")
+    ap.add_argument("--n", type=int, default=5, help="patients")
+    ap.add_argument("--split", choices=["dev", "cal", "test"], default="dev")
+    ap.add_argument("--allow-test", action="store_true",
+                    help="the test split is opened once, after the system is frozen")
     ap.add_argument("--per-label", type=int, default=2, help="trials per expert label (0/1/2)")
     ap.add_argument("--fraction", type=float, default=0.4, help="share of sentences rule-targeted masking hides")
     ap.add_argument("--summarise", type=Path, default=None, metavar="OUT",
@@ -124,12 +127,14 @@ def main():
         print(json.dumps(summarise(args.summarise, args.model), indent=2))
         return
 
-    patients = load_patients(args.raw, Split.DEV)              # never the test split
+    if args.split == "test" and not args.allow_test:
+        raise SystemExit("the test split is opened once, after the system is frozen: pass --allow-test")
+    patients = load_patients(args.raw, Split(args.split), allow_test=args.allow_test)
     chosen = choose_patients({p: pt.cohort for p, pt in patients.items()}, args.n)
     masked_name = f"rule{round(args.fraction * 100)}"
 
     entries, notes = {}, {"full": {}, masked_name: {}}
-    manifest = {"seed": SEED, "split": "dev", "mask": "rule", "fraction": args.fraction,
+    manifest = {"seed": SEED, "split": args.split, "mask": "rule", "fraction": args.fraction,
                 "per_label": args.per_label, "patients": {}}
     for p in chosen:
         pt = patients[p]

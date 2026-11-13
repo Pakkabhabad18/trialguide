@@ -1,0 +1,980 @@
+{
+ "overall": 0.32781456953642385,
+ "m": 2.0,
+ "pairs": 302,
+ "facts": {
+  "18_age_older_or": {
+   "asked": 1,
+   "answered": 1
+  },
+  "1_diabetes_family_type": {
+   "asked": 1,
+   "answered": 1
+  },
+  "3_abdominal_imaging_months_within": {
+   "asked": 1,
+   "answered": 1
+  },
+  "3_discharge_follow_loss_months_up_within": {
+   "asked": 1,
+   "answered": 0
+  },
+  "abdominal_acute_characteristic_pain_pancreatitis": {
+   "asked": 1,
+   "answered": 1
+  },
+  "abdominal_diaphragm_esophagus_stomach_surgery_thoracic": {
+   "asked": 1,
+   "answered": 0
+  },
+  "abdominal_imaging": {
+   "asked": 1,
+   "answered": 1
+  },
+  "abdominal_open_surgeries_upper": {
+   "asked": 1,
+   "answered": 0
+  },
+  "abdominal_or_pain_surgery_traumatic": {
+   "asked": 1,
+   "answered": 0
+  },
+  "ability_follow_procedures_study_to": {
+   "asked": 1,
+   "answered": 0
+  },
+  "ability_participate_to": {
+   "asked": 1,
+   "answered": 0
+  },
+  "abnormal_bleeding_causes_other": {
+   "asked": 1,
+   "answered": 0
+  },
+  "accessory_procedures": {
+   "asked": 1,
+   "answered": 0
+  },
+  "activities_and_experiences_log_to_willing": {
+   "asked": 1,
+   "answered": 0
+  },
+  "acute_duration_onset_symptoms": {
+   "asked": 1,
+   "answered": 1
+  },
+  "acute_pancreatitis": {
+   "asked": 1,
+   "answered": 1
+  },
+  "admission_onset_relative_symptom_time_to": {
+   "asked": 1,
+   "answered": 1
+  },
+  "adult_age": {
+   "asked": 1,
+   "answered": 0
+  },
+  "age": {
+   "asked": 22,
+   "answered": 22
+  },
+  "age_and_areas_child_endemic_parents": {
+   "asked": 1,
+   "answered": 0
+  },
+  "age_and_capacity_consent_informed": {
+   "asked": 1,
+   "answered": 1
+  },
+  "age_and_weight": {
+   "asked": 1,
+   "answered": 1
+  },
+  "age_at_diagnosis": {
+   "asked": 1,
+   "answered": 1
+  },
+  "age_at_screening": {
+   "asked": 1,
+   "answered": 1
+  },
+  "age_at_surgery": {
+   "asked": 1,
+   "answered": 0
+  },
+  "age_bone": {
+   "asked": 1,
+   "answered": 0
+  },
+  "age_diabetes_onset": {
+   "asked": 1,
+   "answered": 1
+  },
+  "age_in_years": {
+   "asked": 1,
+   "answered": 1
+  },
+  "alkaline_level_phosphatase": {
+   "asked": 1,
+   "answered": 0
+  },
+  "allergy_gelatin": {
+   "asked": 1,
+   "answered": 0
+  },
+  "altering_function_liver_other_pathology": {
+   "asked": 1,
+   "answered": 0
+  },
+  "anaesthesia_contra_for_general_indication_or_surgery": {
+   "asked": 1,
+   "answered": 0
+  },
+  "and_baseline_dose_mri_steroid_timing": {
+   "asked": 1,
+   "answered": 0
+  },
+  "and_epicondylitis_lateral_pain_tests": {
+   "asked": 1,
+   "answered": 1
+  },
+  "and_height_percentile_velocity": {
+   "asked": 1,
+   "answered": 0
+  },
+  "and_necrosis_proliferation_vascular": {
+   "asked": 1,
+   "answered": 0
+  },
+  "anemia_hemolytic": {
+   "asked": 1,
+   "answered": 0
+  },
+  "anesthesia_contraindications_general_to": {
+   "asked": 1,
+   "answered": 0
+  },
+  "anesthesia_for_general_unfit": {
+   "asked": 1,
+   "answered": 0
+  },
+  "anomalies_cleft_craniofacial_lip_or_palate": {
+   "asked": 1,
+   "answered": 0
+  },
+  "anti_drug_hyperlipidemic": {
+   "asked": 1,
+   "answered": 0
+  },
+  "antibiotic_infection_requiring_treatment": {
+   "asked": 1,
+   "answered": 0
+  },
+  "antibiotics_contraindication_other": {
+   "asked": 1,
+   "answered": 0
+  },
+  "antibiotics_contraindications_other_to": {
+   "asked": 1,
+   "answered": 1
+  },
+  "antireflux_disorders_esophageal_motility_redo_surgery": {
+   "asked": 1,
+   "answered": 0
+  },
+  "aortic_mitral_or_regurgitation_severe": {
+   "asked": 1,
+   "answered": 1
+  },
+  "aortic_regurgitation_valve": {
+   "asked": 1,
+   "answered": 1
+  },
+  "artery_carotid_degree_stenosis": {
+   "asked": 1,
+   "answered": 1
+  },
+  "asa_classification": {
+   "asked": 1,
+   "answered": 0
+  },
+  "asa_clopidogrel_contraindications_heparin": {
+   "asked": 1,
+   "answered": 0
+  },
+  "ascites_edema_overload_peripheral_volume": {
+   "asked": 1,
+   "answered": 0
+  },
+  "assessment_bleeding_isth_score_tool": {
+   "asked": 1,
+   "answered": 0
+  },
+  "assessment_dementia": {
+   "asked": 1,
+   "answered": 1
+  },
+  "asthma": {
+   "asked": 1,
+   "answered": 0
+  },
+  "bilateral_fold_immobility_vocal": {
+   "asked": 1,
+   "answered": 0
+  },
+  "biopsy_contraindication_skin_to": {
+   "asked": 1,
+   "answered": 0
+  },
+  "biopsy_needed_spinal": {
+   "asked": 1,
+   "answered": 0
+  },
+  "bite_tick": {
+   "asked": 1,
+   "answered": 0
+  },
+  "bladder_neurogenic": {
+   "asked": 1,
+   "answered": 0
+  },
+  "bleeding_gastrointestinal_recent": {
+   "asked": 1,
+   "answered": 0
+  },
+  "bmi": {
+   "asked": 1,
+   "answered": 0
+  },
+  "body_index_mass": {
+   "asked": 1,
+   "answered": 0
+  },
+  "bone_marrow_transplantation": {
+   "asked": 1,
+   "answered": 0
+  },
+  "borderline_disease_resectable": {
+   "asked": 1,
+   "answered": 0
+  },
+  "borreliosis_chronic_compatible_lyme_radiculitis_table_with": {
+   "asked": 1,
+   "answered": 0
+  },
+  "c2p_for_profile_suitable_urodynamic": {
+   "asked": 1,
+   "answered": 0
+  },
+  "calcific_chronic_pancreatitis": {
+   "asked": 1,
+   "answered": 0
+  },
+  "cardiac_hypertrophy": {
+   "asked": 1,
+   "answered": 1
+  },
+  "cardiomyopathy_hypertrophic": {
+   "asked": 1,
+   "answered": 1
+  },
+  "cardiomyopathy_infiltrative": {
+   "asked": 1,
+   "answered": 0
+  },
+  "cardiorespiratory_condition": {
+   "asked": 1,
+   "answered": 1
+  },
+  "cause_lower_obstruction_tract_urinary": {
+   "asked": 1,
+   "answered": 0
+  },
+  "cause_obstruction": {
+   "asked": 1,
+   "answered": 0
+  },
+  "cca_ica_psv_ratio": {
+   "asked": 1,
+   "answered": 0
+  },
+  "cell_or_rescue_stem_transplantation": {
+   "asked": 1,
+   "answered": 0
+  },
+  "cerebral_contraindication_rmi_to": {
+   "asked": 1,
+   "answered": 0
+  },
+  "cervical_cytology": {
+   "asked": 1,
+   "answered": 0
+  },
+  "chemotherapy": {
+   "asked": 37,
+   "answered": 2
+  },
+  "chest_copd_diagnostic_disease_other_significant_than_xray": {
+   "asked": 1,
+   "answered": 0
+  },
+  "chest_disease_significant_xray": {
+   "asked": 1,
+   "answered": 0
+  },
+  "childbearing_potential": {
+   "asked": 1,
+   "answered": 1
+  },
+  "cholangitis_due_sepsis_to": {
+   "asked": 1,
+   "answered": 0
+  },
+  "chronic_disease_inflammatory": {
+   "asked": 1,
+   "answered": 0
+  },
+  "chronic_disease_kidney": {
+   "asked": 1,
+   "answered": 0
+  },
+  "chronic_illness_medical": {
+   "asked": 1,
+   "answered": 1
+  },
+  "clearance_function_gfr_kidney_or_radioisotope": {
+   "asked": 1,
+   "answered": 0
+  },
+  "clearance_function_kidney": {
+   "asked": 1,
+   "answered": 0
+  },
+  "clinical_study": {
+   "asked": 1,
+   "answered": 0
+  },
+  "clinically_disease_gerd_other_significant_than": {
+   "asked": 1,
+   "answered": 1
+  },
+  "clinically_instability_significant": {
+   "asked": 1,
+   "answered": 0
+  },
+  "cognitive_dysfunction_gross": {
+   "asked": 1,
+   "answered": 0
+  },
+  "cognitive_hearing_impairment_visual": {
+   "asked": 1,
+   "answered": 0
+  },
+  "cognitive_impairment": {
+   "asked": 1,
+   "answered": 0
+  },
+  "cognitive_impairment_motor_neurological_sequelae": {
+   "asked": 1,
+   "answered": 0
+  },
+  "colony_factors_stimulating": {
+   "asked": 1,
+   "answered": 0
+  },
+  "comorbidities_hospitalization_requiring": {
+   "asked": 1,
+   "answered": 0
+  },
+  "compatible_findings_hus_laboratory_with": {
+   "asked": 1,
+   "answered": 0
+  },
+  "competence_consent_for_informed_mental": {
+   "asked": 1,
+   "answered": 0
+  },
+  "complaints_for_medical_non_physician_private_protocol": {
+   "asked": 1,
+   "answered": 0
+  },
+  "compliance_consent_informed": {
+   "asked": 1,
+   "answered": 0
+  },
+  "comply_to_willingness": {
+   "asked": 1,
+   "answered": 0
+  },
+  "concomitant_disease_significant": {
+   "asked": 1,
+   "answered": 1
+  },
+  "concomitant_disorders_systemic": {
+   "asked": 1,
+   "answered": 0
+  },
+  "condition_neurological": {
+   "asked": 1,
+   "answered": 1
+  },
+  "conditions_medical_preventing_surgery": {
+   "asked": 1,
+   "answered": 1
+  },
+  "congenital_defect_esophagus": {
+   "asked": 1,
+   "answered": 0
+  },
+  "consent_informed": {
+   "asked": 1,
+   "answered": 0
+  },
+  "consent_informed_voluntary": {
+   "asked": 1,
+   "answered": 0
+  },
+  "consent_informed_written": {
+   "asked": 1,
+   "answered": 0
+  },
+  "contraindication_secretin_to": {
+   "asked": 1,
+   "answered": 1
+  },
+  "contraindications_lmwheparin_to": {
+   "asked": 1,
+   "answered": 0
+  },
+  "control_quality_sample": {
+   "asked": 1,
+   "answered": 0
+  },
+  "cooperation_lack_severe": {
+   "asked": 1,
+   "answered": 0
+  },
+  "copd_exacerbation": {
+   "asked": 1,
+   "answered": 0
+  },
+  "core_endogenomorphic_scale_score_thase": {
+   "asked": 1,
+   "answered": 1
+  },
+  "cryptorchidism": {
+   "asked": 1,
+   "answered": 0
+  },
+  "d_ham_score": {
+   "asked": 1,
+   "answered": 1
+  },
+  "debut_from_inclusion_symptoms_time_to": {
+   "asked": 1,
+   "answered": 1
+  },
+  "deficiency_immune": {
+   "asked": 1,
+   "answered": 0
+  },
+  "deficits_neurological": {
+   "asked": 1,
+   "answered": 0
+  },
+  "definable_junction_zone": {
+   "asked": 1,
+   "answered": 0
+  },
+  "deliver_intent_to": {
+   "asked": 1,
+   "answered": 0
+  },
+  "delivery": {
+   "asked": 1,
+   "answered": 1
+  },
+  "delivery_hospitals_outside_participating_planning": {
+   "asked": 1,
+   "answered": 0
+  },
+  "depression_for_hamilton_rating_scale_score": {
+   "asked": 1,
+   "answered": 1
+  },
+  "dermocorticoids_hypersensitivity_to": {
+   "asked": 1,
+   "answered": 0
+  },
+  "diabetes_irregular_management": {
+   "asked": 1,
+   "answered": 0
+  },
+  "diagnosis_dsm_iv": {
+   "asked": 1,
+   "answered": 1
+  },
+  "diagnosis_hba1c_months_post_three_value": {
+   "asked": 1,
+   "answered": 1
+  },
+  "diagnosis_since_time": {
+   "asked": 1,
+   "answered": 0
+  },
+  "diameter_diastolic_end_left_ventricular": {
+   "asked": 1,
+   "answered": 0
+  },
+  "diameter_measures_vessel": {
+   "asked": 1,
+   "answered": 1
+  },
+  "diary_voiding": {
+   "asked": 1,
+   "answered": 0
+  },
+  "digestive_endoscopy_upper": {
+   "asked": 1,
+   "answered": 0
+  },
+  "disease_erosive": {
+   "asked": 1,
+   "answered": 0
+  },
+  "disease_gonococcal_meningococcal_pneumococcal": {
+   "asked": 1,
+   "answered": 0
+  },
+  "disease_inflammatory_joint": {
+   "asked": 1,
+   "answered": 0
+  },
+  "disease_interfering_serious_study_with": {
+   "asked": 1,
+   "answered": 0
+  },
+  "disease_kawasaki": {
+   "asked": 1,
+   "answered": 0
+  },
+  "disease_liver": {
+   "asked": 1,
+   "answered": 1
+  },
+  "disease_major_organ_other_systems": {
+   "asked": 1,
+   "answered": 1
+  },
+  "disease_or_rectal_surgery": {
+   "asked": 1,
+   "answered": 0
+  },
+  "disease_or_significant_surgery": {
+   "asked": 1,
+   "answered": 0
+  },
+  "disease_severe_systemic": {
+   "asked": 2,
+   "answered": 1
+  },
+  "disease_systemic": {
+   "asked": 1,
+   "answered": 1
+  },
+  "disease_von_willebrand": {
+   "asked": 1,
+   "answered": 0
+  },
+  "diseases_neurological_other": {
+   "asked": 1,
+   "answered": 0
+  },
+  "disorder_esophageal_motility_severe": {
+   "asked": 1,
+   "answered": 0
+  },
+  "disorder_neurological_or_other_psychological": {
+   "asked": 1,
+   "answered": 0
+  },
+  "disorder_seizure": {
+   "asked": 1,
+   "answered": 0
+  },
+  "disorders_genetic": {
+   "asked": 1,
+   "answered": 0
+  },
+  "disorders_major_motility": {
+   "asked": 1,
+   "answered": 0
+  },
+  "disorders_nail": {
+   "asked": 1,
+   "answered": 0
+  },
+  "distance_minute_six_walk": {
+   "asked": 2,
+   "answered": 0
+  },
+  "distant_metastasis": {
+   "asked": 1,
+   "answered": 0
+  },
+  "diverticulum_epiphrenic_gerd": {
+   "asked": 1,
+   "answered": 0
+  },
+  "duration_elbow_tennis": {
+   "asked": 1,
+   "answered": 1
+  },
+  "duration_symptom": {
+   "asked": 1,
+   "answered": 1
+  },
+  "duration_symptoms": {
+   "asked": 1,
+   "answered": 1
+  },
+  "dye_radiopaque_reaction": {
+   "asked": 1,
+   "answered": 0
+  },
+  "elbow_joint_motion_range": {
+   "asked": 1,
+   "answered": 0
+  },
+  "elbow_lateral_pain": {
+   "asked": 1,
+   "answered": 1
+  },
+  "endoscopy_for_medically_unfit_upper": {
+   "asked": 1,
+   "answered": 1
+  },
+  "enzymes_liver": {
+   "asked": 1,
+   "answered": 0
+  },
+  "eoe_gerd_or": {
+   "asked": 1,
+   "answered": 1
+  },
+  "ero_measurement": {
+   "asked": 1,
+   "answered": 0
+  },
+  "esophageal_gastroesophageal_junction_or_surgery": {
+   "asked": 1,
+   "answered": 0
+  },
+  "esophageal_perforation": {
+   "asked": 1,
+   "answered": 0
+  },
+  "esophagus_stomach_surgery": {
+   "asked": 1,
+   "answered": 0
+  },
+  "expectancy_life": {
+   "asked": 1,
+   "answered": 0
+  },
+  "exposure_toxin": {
+   "asked": 1,
+   "answered": 0
+  },
+  "factor_growth_i_insulin_level_like": {
+   "asked": 1,
+   "answered": 0
+  },
+  "factor_ix_levels_viii_xi": {
+   "asked": 1,
+   "answered": 1
+  },
+  "fev1_fvc_percent": {
+   "asked": 1,
+   "answered": 0
+  },
+  "fev1_fvc_percentage": {
+   "asked": 1,
+   "answered": 0
+  },
+  "flow_peak_rate_urine": {
+   "asked": 1,
+   "answered": 1
+  },
+  "flow_urinary_volume": {
+   "asked": 1,
+   "answered": 0
+  },
+  "follow_long_term_up": {
+   "asked": 1,
+   "answered": 0
+  },
+  "frequency_micturition": {
+   "asked": 1,
+   "answered": 0
+  },
+  "frequency_urinary": {
+   "asked": 1,
+   "answered": 1
+  },
+  "function_impairment_liver": {
+   "asked": 1,
+   "answered": 0
+  },
+  "function_organ": {
+   "asked": 1,
+   "answered": 1
+  },
+  "gap_hearing_loss": {
+   "asked": 1,
+   "answered": 1
+  },
+  "gastroesophageal_malignancy": {
+   "asked": 1,
+   "answered": 0
+  },
+  "gastroparesis": {
+   "asked": 1,
+   "answered": 0
+  },
+  "gender": {
+   "asked": 1,
+   "answered": 1
+  },
+  "gi_major_surgery_upper": {
+   "asked": 1,
+   "answered": 0
+  },
+  "gynecological_problems": {
+   "asked": 1,
+   "answered": 1
+  },
+  "hdrs_score": {
+   "asked": 1,
+   "answered": 1
+  },
+  "health_insurance": {
+   "asked": 1,
+   "answered": 0
+  },
+  "hemoglobin_level": {
+   "asked": 1,
+   "answered": 0
+  },
+  "heparin_induced_thrombocytopenia": {
+   "asked": 1,
+   "answered": 0
+  },
+  "hernia_inguinal_recurrent": {
+   "asked": 1,
+   "answered": 0
+  },
+  "hernia_inguinal_symptomatic": {
+   "asked": 1,
+   "answered": 1
+  },
+  "hip_ratio_to_waist": {
+   "asked": 1,
+   "answered": 0
+  },
+  "hoehn_stage_yahr": {
+   "asked": 1,
+   "answered": 0
+  },
+  "hypercortisolism": {
+   "asked": 1,
+   "answered": 1
+  },
+  "hypertension_pulmonary_type": {
+   "asked": 1,
+   "answered": 0
+  },
+  "hypokalemia": {
+   "asked": 1,
+   "answered": 0
+  },
+  "hyponatremia": {
+   "asked": 1,
+   "answered": 0
+  },
+  "identifiable_junctional_zone": {
+   "asked": 1,
+   "answered": 0
+  },
+  "illness_intercurrent_uncontrolled": {
+   "asked": 1,
+   "answered": 0
+  },
+  "implants_metal": {
+   "asked": 1,
+   "answered": 0
+  },
+  "infected_joints_prosthetic": {
+   "asked": 1,
+   "answered": 0
+  },
+  "infection_tract_urinary": {
+   "asked": 1,
+   "answered": 0
+  },
+  "ipss_score": {
+   "asked": 1,
+   "answered": 1
+  },
+  "irregular_pattern_voiding": {
+   "asked": 1,
+   "answered": 1
+  },
+  "karnofsky_performance": {
+   "asked": 1,
+   "answered": 0
+  },
+  "knee_major_to_trauma": {
+   "asked": 1,
+   "answered": 1
+  },
+  "lab_results": {
+   "asked": 1,
+   "answered": 0
+  },
+  "large_scars_thick": {
+   "asked": 1,
+   "answered": 0
+  },
+  "lesion_osteolytic": {
+   "asked": 1,
+   "answered": 1
+  },
+  "lower_symptoms_tract_urinary": {
+   "asked": 1,
+   "answered": 1
+  },
+  "malignancy": {
+   "asked": 1,
+   "answered": 0
+  },
+  "malignancy_prostatic_suspicion": {
+   "asked": 1,
+   "answered": 0
+  },
+  "mbrs_score": {
+   "asked": 1,
+   "answered": 0
+  },
+  "mitral_regurgitation_valve": {
+   "asked": 1,
+   "answered": 1
+  },
+  "mitral_severity_stenosis": {
+   "asked": 1,
+   "answered": 1
+  },
+  "motion_sensor_to_wear_willing": {
+   "asked": 1,
+   "answered": 0
+  },
+  "mri_scan": {
+   "asked": 1,
+   "answered": 1
+  },
+  "muscle_proximal_symmetric_weakness": {
+   "asked": 1,
+   "answered": 1
+  },
+  "neurological_symptoms": {
+   "asked": 1,
+   "answered": 1
+  },
+  "nonvascularized_zone": {
+   "asked": 1,
+   "answered": 0
+  },
+  "osteomyelitis": {
+   "asked": 1,
+   "answered": 0
+  },
+  "other_rehabilitative_treatment": {
+   "asked": 1,
+   "answered": 0
+  },
+  "pacemaker_permanent": {
+   "asked": 1,
+   "answered": 0
+  },
+  "papm": {
+   "asked": 1,
+   "answered": 0
+  },
+  "parent_participation_study": {
+   "asked": 1,
+   "answered": 0
+  },
+  "performance": {
+   "asked": 1,
+   "answered": 0
+  },
+  "post_residual_void": {
+   "asked": 1,
+   "answered": 1
+  },
+  "pregnancy_test": {
+   "asked": 1,
+   "answered": 0
+  },
+  "progression_radiotherapy_therapy": {
+   "asked": 1,
+   "answered": 1
+  },
+  "propensities_suicidal": {
+   "asked": 1,
+   "answered": 0
+  },
+  "prostate_volume": {
+   "asked": 1,
+   "answered": 1
+  },
+  "prostatic_volume": {
+   "asked": 1,
+   "answered": 1
+  },
+  "radiotherapy": {
+   "asked": 1,
+   "answered": 1
+  },
+  "radiotherapy_therapy": {
+   "asked": 1,
+   "answered": 0
+  },
+  "revision_surgical": {
+   "asked": 1,
+   "answered": 0
+  },
+  "score_tweak": {
+   "asked": 1,
+   "answered": 0
+  },
+  "score_vas": {
+   "asked": 1,
+   "answered": 0
+  },
+  "severe_tortuosity_vascular": {
+   "asked": 1,
+   "answered": 0
+  },
+  "symptoms_unilateral": {
+   "asked": 1,
+   "answered": 1
+  },
+  "tumor_type": {
+   "asked": 1,
+   "answered": 1
+  }
+ },
+ "source": "development turns only (37 dev patients), runs of 12 Nov 2026: asking, asking_b3, asking_lam, asking_lam_b3"
+}

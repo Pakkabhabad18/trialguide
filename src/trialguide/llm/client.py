@@ -30,6 +30,15 @@ MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "8192"))
 CACHE_PATH = os.getenv("LLM_CACHE", "outputs/llm_cache.jsonl")
 LOG_PATH = os.getenv("LLM_LOG", "outputs/llm_calls.jsonl")
 HF_BATCH = int(os.getenv("LLM_HF_BATCH", "4"))
+# Set to one model name when two models must take turns on one GPU: calls to any other model
+# are served from the cache only, and a cache miss raises ModelNotLoaded (see pipeline_rounds)
+ONLY_MODEL = os.getenv("LLM_ONLY_MODEL", "")
+
+
+class ModelNotLoaded(BaseException):
+	"""A call needs a model this process does not serve. A BaseException on purpose: callers that
+	catch Exception to treat a failed call as "unresolved" (the rule checker does) must not
+	swallow it, or a run would record a wrong answer instead of waiting for the model."""
 
 if BACKEND == "azure":
 	from openai import AzureOpenAI
@@ -270,6 +279,9 @@ def chat(messages, model, temperature=0, logprobs=False):
 		cache = _load_cache()
 		if key in cache:
 			return cache[key]
+
+	if ONLY_MODEL and model != ONLY_MODEL:
+		raise ModelNotLoaded(model)
 
 	complete = _complete_hf if BACKEND == "hf" else _complete_api
 	output, meta = complete(messages, model, temperature, logprobs)

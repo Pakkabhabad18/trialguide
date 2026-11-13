@@ -245,11 +245,13 @@ def question_text(label: str) -> str:
 
 def select_question(candidates: list[Candidate], checks: list[RuleCheck], state: ConversationState,
                     strategy: str = "ranking", p_met: Optional[PMet] = None,
-                    k: int = TOP_K) -> Optional[Question]:
+                    k: int = TOP_K, p_answer: Optional[Callable[[str], float]] = None) -> Optional[Question]:
     """The next question to ask, or None to stop.
 
     strategy:
-      ranking     - Eq. 1 (B7, our system); stops when no candidate can change the top k
+      ranking     - Eq. 1 (B7, our system); stops when no candidate can change the top k.
+                    With p_answer, Eq. 1 is weighted by the chance the doctor can answer
+                    (selector/answerability.py)
       fixed       - fixed order: the fact of the best-ranked affected trial first (B4, A2)
       uncertainty - the fact whose rules the checker is least sure about (A3)
       all         - every fact in fixed order, until the budget runs out (B3: give it
@@ -271,7 +273,8 @@ def select_question(candidates: list[Candidate], checks: list[RuleCheck], state:
         if not pool:
             return None
         # highest score first; ties go to the alphabetically first fact, so runs are repeatable
-        scored = sorted(((score_candidate(c, checks, p_met), c) for c in pool),
+        weight = p_answer or (lambda fact_key: 1.0)
+        scored = sorted(((weight(c.fact_key) * score_candidate(c, checks, p_met), c) for c in pool),
                         key=lambda item: (-item[0], item[1].fact_key))
         score, best = scored[0]
     elif strategy in ("fixed", "all"):
