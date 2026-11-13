@@ -155,9 +155,7 @@ def _status_probability(tokens):
     if match is None:
         return 0.0
     return math.exp(span_logprob(tokens, *match.span(1)))
-
-
-   def check_rule(note, rule, model, n_samples=5, confidence="votes", tools=False, temperature=0, seed=None):
+def check_rule(note, rule, model, n_samples=5, confidence="votes", tools=False, temperature=0, seed=None):
     """Check a trial rule against only the visible note.
 
     confidence="votes": the modal-status vote fraction over requested samples;
