@@ -34,6 +34,8 @@ HF_BATCH = int(os.getenv("LLM_HF_BATCH", "4"))
 # Set to one model name when two models must take turns on one GPU: calls to any other model
 # are served from the cache only, and a cache miss raises ModelNotLoaded (see pipeline_rounds)
 ONLY_MODEL = os.getenv("LLM_ONLY_MODEL", "")
+# E1: a LoRA adapter folder to load on top of the hf model (empty = the untuned model)
+ADAPTER = os.getenv("LLM_HF_ADAPTER", "")
 
 
 class ModelNotLoaded(BaseException):
@@ -123,14 +125,27 @@ class _HFBatcher:
 			max_memory = {i: os.getenv("LLM_HF_MAX_MEMORY") for i in range(torch.cuda.device_count())}
 		# LLM_HF_8BIT=1 loads 8-bit weights (bitsandbytes, ~9 GB for an 8B model), so the
 		# model fits on one 12 GB GPU; bf16 (the default) needs two
-		quant = None
+		quant, dtype = None, torch.bfloat16
 		if os.getenv("LLM_HF_8BIT") == "1":
 			from transformers import BitsAndBytesConfig
 			quant = BitsAndBytesConfig(load_in_8bit=True)
+		# LLM_HF_4BIT=1 loads 4-bit NF4 weights, as QLoRA trains them (E1). fp16 compute, because
+		# the Kaggle T4 has no bfloat16 support
+		if os.getenv("LLM_HF_4BIT") == "1":
+			from transformers import BitsAndBytesConfig
+			dtype = torch.float16
+			quant = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
+				bnb_4bit_compute_dtype=torch.float16, bnb_4bit_use_double_quant=True)
 		self.model = AutoModelForCausalLM.from_pretrained(
-			model_name, dtype=torch.bfloat16, device_map="auto", max_memory=max_memory,
+			model_name, dtype=dtype, device_map="auto", max_memory=max_memory,
 			quantization_config=quant,
-		).eval()
+		)
+		# LLM_HF_ADAPTER=<folder> puts a LoRA adapter (finetune/train_qlora.py) on top of the
+		# base model: the E1 tuned checker. The model name stays the base model's
+		if ADAPTER:
+			from peft import PeftModel
+			self.model = PeftModel.from_pretrained(self.model, ADAPTER)
+		self.model = self.model.eval()
 		# no hf_device_map when the whole model sits on one device
 		devices = getattr(self.model, "hf_device_map", {"": self.model.device}).values()
 		print("hf device map:", sorted(set(devices), key=str), flush=True)
@@ -232,7 +247,9 @@ class _HFBatcher:
 			slot["meta"] = {
 				"served_model": self.model_name,
 				"model_revision": self.revision,
-				"weights": "8bit" if os.getenv("LLM_HF_8BIT") == "1" else "bf16",
+				"weights": ("8bit" if os.getenv("LLM_HF_8BIT") == "1" else
+					"4bit" if os.getenv("LLM_HF_4BIT") == "1" else "bf16"),
+				"adapter": ADAPTER or None,
 				"finish_reason": "length" if n_out >= MAX_TOKENS else "stop",
 				"prompt_tokens": int(mask.sum()),
 				"completion_tokens": n_out,
@@ -291,6 +308,11 @@ def chat(messages, model, temperature=0, logprobs=False, seed=None, top_p=1.0):
 		params["logprobs"] = True
 	if BACKEND == "hf" and os.getenv("LLM_HF_8BIT") == "1":
 		params["weights"] = "8bit"  # separate cache entries; bf16 keys stay unchanged
+	if BACKEND == "hf" and os.getenv("LLM_HF_4BIT") == "1":
+		params["weights"] = "4bit"
+	if BACKEND == "hf" and ADAPTER:
+		# the tuned and untuned checker must never share cache entries
+		params["adapter"] = os.path.basename(os.path.normpath(ADAPTER))
 	key = hashlib.sha256(
 		json.dumps([BACKEND, model, messages, params], sort_keys=True).encode()
 	).hexdigest()
