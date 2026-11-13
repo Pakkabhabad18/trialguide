@@ -1,0 +1,2 @@
+# Only for the interactive demo (python -m trialguide.demo.app); not needed for the experiments
+gradio==5.49.1
