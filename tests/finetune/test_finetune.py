@@ -158,3 +158,21 @@ def test_paired_difference_has_the_right_sign():
     assert d["agree"]["tuned_minus_untuned"] == pytest.approx(1.0)
     assert d["unsafe"]["tuned_minus_untuned"] == pytest.approx(-1.0)
     assert d["mcnemar_agreement"]["tuned_only_right"] == 6
+
+
+# ---- teacher clean-up ----
+
+def test_copied_prompt_example_key_is_removed_on_unrelated_rules():
+    t = teacher(evidence=(3,), fact_key="prior_chemotherapy")
+    kind, target = data.target_for(t, {0, 1}, "1", rule_text="Age 18 years or older")
+    assert kind == "hidden"
+    assert json.loads(target)["fact_key"] is None
+    assert "prior chemotherapy" not in json.loads(target)["explanation"]
+    # kept when the rule really is about chemotherapy
+    _, target = data.target_for(t, {0, 1}, "1", rule_text="Prior chemotherapy within 4 weeks")
+    assert json.loads(target)["fact_key"] == "prior_chemotherapy"
+
+
+def test_empty_rules_are_detected():
+    assert data.is_empty_rule(":") and data.is_empty_rule(" - ")
+    assert not data.is_empty_rule("Fever > 38°C")
