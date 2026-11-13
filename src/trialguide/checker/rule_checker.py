@@ -20,6 +20,68 @@ _VALID_CATEGORIES = {item.value for item in InfoCategory}
 _VALID_STATUSES = {item.value for item in RuleStatus}
 
 
+# The checker's system prompt. Module-level so the E1 fine-tuning data (finetune/data.py) uses
+# exactly the text the checker sends; changing it changes every cached call.
+SYSTEM_PROMPT = """
+You are a conservative clinical-trial rule checker.
+Use ONLY the supplied visible patient note. Never invent facts or assume
+an undocumented fact is false.
+
+Interpret status as whether the rule's condition is true for this patient:
+- inclusion rule: met means the patient satisfies the criterion;
+- exclusion rule: met means the patient has the disqualifying condition.
+
+Use category:
+- stated: directly supported by a visible sentence;
+- inferred: follows from visible evidence through a clear, defensible inference;
+- assumption: plausible but not established by the note;
+- missing: the note contains no relevant evidence.
+
+Only stated or inferred results may have a decisive status, and they must
+cite valid visible-note sentence IDs. Assumption or missing means
+not_enough_info. Do not treat absence of a statement as proof of absence.
+
+Return ONLY a JSON object with these keys:
+{
+  "status": "met | not_met | not_enough_info | not_applicable",
+  "category": "stated | inferred | assumption | missing",
+  "evidence_ids": [0],
+  "explanation": "brief explanation",
+  "fact_key": "prior_chemotherapy or null"
+}
+The evidence_ids must be integer IDs copied from the visible note.
+
+For every result, provide fact_key as a concise snake_case name
+for the relevant clinical fact.
+
+Use null only when status is not_applicable or when no single
+clinical fact applies.
+
+For stated and inferred results, identify the clinical fact
+supported by the evidence. For unresolved results, identify
+the missing clinical fact when one is identifiable.
+
+Use the same key for the same clinical fact across rules/trials.
+Do not use patient, trial, or rule IDs, or generic keys like "unknown".
+"""
+
+
+def user_prompt(rule, note_text, tool_text="", sample_index=0, n_samples=1):
+    """The checker's user message for one rule and one visible note (shared with finetune/data.py)."""
+    return f"""
+Independent assessment sample: {sample_index + 1} of {n_samples}.
+Assess this rule independently from the other samples.
+
+Rule kind: {rule.kind.value}
+Rule text: {rule.text}
+
+Visible patient note:
+{note_text}
+{tool_text}
+Return the required JSON object only.
+"""
+
+
 def _normalise_fact_key(value):
     """Normalize a missing clinical fact into a safe snake_case key."""
     if not isinstance(value, str):
@@ -191,48 +253,6 @@ def check_rule(note, rule, model, n_samples=5, confidence="votes", tools=False, 
     note_text = note.text()
     samples = []
 
-    system_prompt = """
-You are a conservative clinical-trial rule checker.
-Use ONLY the supplied visible patient note. Never invent facts or assume
-an undocumented fact is false.
-
-Interpret status as whether the rule's condition is true for this patient:
-- inclusion rule: met means the patient satisfies the criterion;
-- exclusion rule: met means the patient has the disqualifying condition.
-
-Use category:
-- stated: directly supported by a visible sentence;
-- inferred: follows from visible evidence through a clear, defensible inference;
-- assumption: plausible but not established by the note;
-- missing: the note contains no relevant evidence.
-
-Only stated or inferred results may have a decisive status, and they must
-cite valid visible-note sentence IDs. Assumption or missing means
-not_enough_info. Do not treat absence of a statement as proof of absence.
-
-Return ONLY a JSON object with these keys:
-{
-  "status": "met | not_met | not_enough_info | not_applicable",
-  "category": "stated | inferred | assumption | missing",
-  "evidence_ids": [0],
-  "explanation": "brief explanation",
-  "fact_key": "prior_chemotherapy or null"
-}
-The evidence_ids must be integer IDs copied from the visible note.
-
-For every result, provide fact_key as a concise snake_case name
-for the relevant clinical fact.
-
-Use null only when status is not_applicable or when no single
-clinical fact applies.
-
-For stated and inferred results, identify the clinical fact
-supported by the evidence. For unresolved results, identify
-the missing clinical fact when one is identifiable.
-
-Use the same key for the same clinical fact across rules/trials.
-Do not use patient, trial, or rule IDs, or generic keys like "unknown".
-"""
 
     # No patient or trial id in the prompt: the notes and trials are public, and an id would
     # let the model recall a patient instead of reading the visible note (leakage checklist)
@@ -243,23 +263,12 @@ Do not use patient, trial, or rule IDs, or generic keys like "unknown".
         tool_text = f"\n{block}\n" if block else ""
 
     for sample_index in range(n_samples):
-        user_prompt = f"""
-Independent assessment sample: {sample_index + 1} of {n_samples}.
-Assess this rule independently from the other samples.
-
-Rule kind: {rule.kind.value}
-Rule text: {rule.text}
-
-Visible patient note:
-{note_text}
-{tool_text}
-Return the required JSON object only.
-"""
+        prompt = user_prompt(rule, note_text, tool_text, sample_index, n_samples)
         try:
             raw = chat(
                 [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": prompt},
                 ],
                 model,
                 temperature=temperature,
