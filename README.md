@@ -39,10 +39,10 @@ An inference that would make a patient look eligible is accepted only if it pass
 
 | Component | Where in TrialGuide |
 | --- | --- |
-| RAG | Trials are retrieved from the visible note (BM25 + MedCPT), and every inference is grounded in cited sentences |
+| RAG | Trials are retrieved from the visible note (BM25 and MedCPT, evaluated in `results/retrieval/`), and every inference is grounded in cited sentences of the note |
 | Reasoning / agent | The infer / ask / abstain policy and ranking-aware question selection over a multi-turn conversation |
 | Fine-tuning | QLoRA on Qwen3-8B, trained on rule checks that include the evidence and a short reasoning |
-| Tools | eGFR (CKD-EPI 2021), BMI and drug-class lookup, for values the model shouldn't guess |
+| Tools | eGFR (CKD-EPI 2021), BMI and drug-class lookup, for values the model shouldn't guess; a safety test plants instructions in notes and counts unsafe actions |
 
 ## Models and data
 
@@ -66,7 +66,7 @@ An inference that would make a patient look eligible is accepted only if it pass
   - B5: confidence threshold;
   - B6: TrialGPT-style abstention;
   - B7: TrialGuide.
-- **Ablations:** A1–A7. These remove one part at a time: inference, adaptive selection, the ranking term, evidence retrieval, tools, risk control, and one-question-per-turn asking.
+- **Ablations:** A1 (no inference), A2 (no adaptive selection), A3 (no ranking term), A5 (no tools) and A6 (no risk control). A4 (no evidence retrieval) and A7 (one questionnaire instead of one question per turn) were planned but not run, for lack of GPU time.
 - **Metrics:**
   - NDCG@10 and recovery of the full-information ranking;
   - false-eligible and false-exclusion rates;
@@ -78,30 +78,35 @@ An inference that would make a patient look eligible is accepted only if it pass
 ## Changes since the proposal
 
 - **Main model:** Qwen3-8B instead of Qwen3-32B. The 32B model doesn't fit in the memory of the GPUs we have (2 × 12 GB). RQ3 was redefined to match: tuned vs untuned 8B, instead of 8B vs 32B.
-- **Simulated doctor:** following TA feedback, its answers must quote the record and carry a certainty level. The plan is for it to read the full record. The current code still gives it only the facts hidden from the system; the switch to the full record is in progress.
+- **Simulated doctor:** following TA feedback, it reads the full original record, must quote it, and gives a certainty level.
 - **Checker confidence:** the model's own probability of the status it chose, from one greedy call, instead of agreement across 5 samples. With greedy decoding the 5 samples always agreed, so the vote share was always 1.0 and no threshold could act. Risk control calibrates this probability.
-- **Label count:** the expert label file has 1,015 rule-level rows, not the 1,020 stated in the proposal.
+- **Label count:** the expert label file has 1,015 rule-level rows, not the 1,020 stated in the proposal. They cover 52 SIGIR patients, 26 in calibration and 26 in test, so risk control is calibrated and tested on those.
+- **Question choice:** Eq. 1 is weighted by the chance that the doctor can answer a question about that fact, estimated on development data (`results/answerability_prior.json`). B7-eq1 keeps the plain Eq. 1.
+- **Candidate trials:** the ranking runs use each patient's labelled candidate trials, as TrialGPT's ranking stage does. Retrieval from the visible note is evaluated separately (`results/retrieval/`).
+- **Not run:** ablations A4 and A7, and the E2 evaluation (the E2 data is built; see `docs/e2_limits.md`).
 
 ## Repository layout
 
 ```
 src/trialguide/
   data/        loading, patient splits, masking          (Murthy)
-  eval/        metrics and statistics                    (Murthy)
+  eval/        metrics, statistics, RAG check, safety test, error analysis (Murthy, Prakash, Prateek)
   llm/         shared model client                       (Prateek, Vidur)
   retrieval/   BM25 + MedCPT trial retrieval             (Vidur)
   checker/     rule checker with evidence and confidence (Vidur)
-  finetune/    QLoRA fine-tuning                         (Vidur)
+  finetune/    QLoRA fine-tuning (E1)                    (Prakash, Vidur)
   simulator/   simulated doctor                          (Prateek)
   selector/    question selection                        (Prateek)
   tools/       eGFR, BMI, drug class                     (Prateek)
   policy/      infer / ask / abstain and risk control    (Prakash)
   baselines/   B1-B7 and ablations                       (Prakash, Prateek)
+  demo/        interactive demo: you play the doctor      (Prakash)
   pipeline.py  one patient end to end: check, decide, ask, re-check, score
 configs/       one file per experiment run
 scripts/       data download and cluster job scripts
 splits/        the frozen patient splits (with checksums)
-results/       result files used in the reports
+results/       result files and their READMEs (dev_run, dev60_run, test_run, retrieval)
+demo/          recorded demo bundle (3 development patients)
 tests/         unit tests (run automatically on every pull request)
 docs/          proposal, mid-submission report, leakage checklist, E2 limits
 ```
@@ -119,28 +124,36 @@ pip install -e .
 pytest
 ```
 
-Patient data and model weights are not stored in this repository. They are downloaded by scripts in `scripts/`.
+Patient data and model weights are not stored in this repository. Download the data (about 0.4 GB) with:
+
+```bash
+python -m trialguide.data.download
+```
 
 ## Demo
 
 A small web page where you play the doctor: pick a development patient, see what TrialGuide can and cannot see, answer its questions one at a time, and watch the trial ranking change next to plain abstention (B6).
 
+A recorded bundle for 3 development patients is included (`demo/demo_bundle.json`: real Qwen3-8B checks at λ̂ = 0.766, every answer path recorded), so the demo runs on a laptop without a GPU:
+
 ```bash
 pip install -r requirements-demo.txt
-# record a bundle once on a GPU (development patients only)
-python -m trialguide.demo.build_bundle --manifest results/dev_run/manifest.json --threshold 0.766 --out demo/demo_bundle.json
-# then run it anywhere, no GPU needed
 python -m trialguide.demo.app --bundle demo/demo_bundle.json
 ```
 
-Add `--live` on a GPU machine to allow answer paths that were not recorded, and `--share` for a public link (for example on Kaggle).
+To record a new bundle on a GPU: `python -m trialguide.demo.build_bundle --manifest results/dev_run/manifest.json --threshold 0.766 --out demo/demo_bundle.json`. Add `--live` to the app on a GPU machine to allow answer paths that were not recorded, and `--share` for a public link.
 
-## Status (30 October 2026)
+## Results (test split, frozen system)
 
-**Built and tested:** data download, expert-label audit, frozen patient split, masking, evaluation harness, E2 data, TrialGPT baseline, tools, rule checker, infer / ask / abstain policy, question selector, simulated doctor and the end-to-end runner.
+All 73 test patients, rule-targeted masking hiding 40% of each note, checker Qwen3-8B, simulated doctor Llama-3.1-8B-Instruct, at most 3 questions. The test split was opened once, after the system and λ̂ = 0.766 were frozen on development and calibration data. Full tables, CIs and reading notes: [`results/test_run/README.md`](results/test_run/README.md).
 
-**First runs (5 development patients, too few to compare systems):** TrialGPT reproduction, B6, B2 and B5, and a memorisation probe on all 37 development patients (no memorisation found). Numbers and caveats: [`results/mid_submission_results.txt`](results/mid_submission_results.txt).
+- **Ranking (RQ1).** Masking costs NDCG@10 0.053 (B1 0.784, B6 0.731; CI excludes 0). No system recovers it: B7 0.735, +0.004 over B6 [−0.020, +0.028]; every system with inference or questions is within noise of B6.
+- **Rule recovery.** Of 3,728 rules the checker settles on the full note but B6 leaves open, B7 recovers 22.6% [18.8, 26.7], with 6.4% wrong and 1.9% wrong toward eligibility. Questions alone (A1) recover 0.8%.
+- **Harmful inferences (RQ2), against expert rule labels** (26 test patients, 496 rules): B7 3.9% [1.3, 7.4] at λ̂, below the 5% target, though the CI's upper end is above it. B2 (no risk control) 4.1%, B5 (threshold 0.9) 3.0%.
+- **Questions.** 2.66 per patient; 70% of answers are "not documented". Error analysis: a third of B7's questions were one question about "prior chemotherapy", because the checker copies that example `fact_key` from its prompt onto unrelated rules. Details and five case studies: [`results/test_run/error_analysis.md`](results/test_run/error_analysis.md). A fix (`B7-keyfix`) was added after the test run.
+- **Retrieval (RAG).** Masking costs retrieval far more than ranking: BM25 recall@1000 of eligible trials falls from 0.481 to 0.311 on test, MedCPT from 0.515 to 0.273 on development. [`results/retrieval/README.md`](results/retrieval/README.md).
+- **Other checks.** Tools: 15 of 15 matching Eka calculator items correct (`results/tools_eka_check.json`). No memorisation of the public patient notes found (`results/memorisation_probe_dev_qwen3-8b_8bit.json`). Expert-label audit: `results/label_audit.md`.
 
-**Next:** trial retrieval from the visible note and the RAG check, the checker calling the tools, risk-control calibration, B7 and the other baselines on a larger development sample, the ablations, QLoRA fine-tuning (E1) and E2.
+**To be added before submission:** E1 (tuned vs untuned Qwen3-8B, RQ3), the safety test with planted instructions, the 60-question blind check of the simulated doctor, and B7-keyfix on test.
 
-Final submission: 15 November 2026.
+Development results: [`results/dev_run/README.md`](results/dev_run/README.md) (40% masking) and [`results/dev60_run/README.md`](results/dev60_run/README.md) (60% masking).
