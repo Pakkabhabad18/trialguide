@@ -75,7 +75,7 @@ An inference that would make a patient look eligible is accepted only if it pass
   - harmful-inference rate, coverage and abstention;
   - questions asked per patient.
 - **Statistics:** patient-level bootstrap confidence intervals and McNemar's test.
-- **Checks on the simulated doctor and on retrieval:** quotes must exist in the record, answers are compared with a teammate answering blind, and cited evidence is compared with expert evidence.
+- **Checks on the simulated doctor and on retrieval:** quotes must exist in the record; 60 of the doctor's answers are compared with an independent reading of the same record, drafted by a different model (Claude) without seeing the doctor's answers and reviewed by a teammate (`results/doctor_check/`); cited evidence is compared with expert evidence.
 
 ## Changes since the proposal
 
@@ -85,7 +85,7 @@ An inference that would make a patient look eligible is accepted only if it pass
 - **Label count:** the expert label file has 1,015 rule-level rows, not the 1,020 stated in the proposal. They cover 52 SIGIR patients, 26 in calibration and 26 in test, so risk control is calibrated and tested on those.
 - **Question choice:** Eq. 1 is weighted by the chance that the doctor can answer a question about that fact, estimated on development data (`results/answerability_prior.json`). B7-eq1 keeps the plain Eq. 1.
 - **Candidate trials:** the ranking runs use each patient's labelled candidate trials, as TrialGPT's ranking stage does. Retrieval from the visible note is evaluated separately (`results/retrieval/`).
-- **Not run:** ablations A4 and A7, and the E2 evaluation (the E2 data is built; see `docs/e2_limits.md`).
+- **Not run:** ablations A4 and A7; the E2 evaluation (the E2 data is built; see `docs/e2_limits.md`); the 20% and 60% masking runs on the test split for B4 and B7 (60% was run on development only, `results/dev60_run/`); the exploratory resplits of the calibration/test split; and the planned human annotation: information categories and evidence sufficiency on calibration and test items, the hand check of 50 cited inferences in the RAG check, and the 200-rule audit of the model-derived full-note reference.
 
 ## Repository layout
 
