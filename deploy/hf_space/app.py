@@ -20,4 +20,16 @@ for name in FILES:
 
 from trialguide.demo.app import build  # noqa: E402  (after the files exist)
 
+# Free Hugging Face accounts get ZeroGPU hardware for Gradio Spaces, and a ZeroGPU Space refuses to
+# start unless the app declares at least one @spaces.GPU function. The demo replays recorded outputs
+# and needs no GPU, so this placeholder is declared but never called (it uses no GPU quota).
+try:
+    import spaces
+
+    @spaces.GPU
+    def _gpu_placeholder():
+        return None
+except ImportError:          # running outside Hugging Face: nothing to declare
+    pass
+
 build(Path("demo/demo_bundle.json")).launch()
