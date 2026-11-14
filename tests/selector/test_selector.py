@@ -212,3 +212,28 @@ def test_only_one_follow_up():
     follow = follow_up_question(first, state)
     assert follow.is_followup and follow.turn == 2 and follow.fact_key == first.fact_key
     assert follow_up_question(follow, state) is None
+
+
+# ---- copied fact_key (found after the test run) ----
+
+def test_copied_prompt_key_is_dropped_only_on_unrelated_rules():
+    from trialguide.schemas import InfoCategory, RuleCheck, RuleKind, RuleStatus, TrialRule
+    from trialguide.selector.selector import drop_copied_key, without_copied_keys
+
+    def check(rule):
+        return RuleCheck(patient_id="p", trial_id=rule.trial_id, rule_id=rule.rule_id, kind=rule.kind,
+                         status=RuleStatus.NOT_ENOUGH_INFO, category=InfoCategory.MISSING, evidence_ids=[],
+                         confidence=0.9, n_samples=1, explanation="", fact_key="prior_chemotherapy")
+
+    age = TrialRule("T", "inc_0", RuleKind.INCLUSION, "Age > 18 years")
+    chemo = TrialRule("T", "exc_0", RuleKind.EXCLUSION, "Prior chemotherapy within 4 weeks")
+    assert drop_copied_key(check(age), age).fact_key is None
+    assert drop_copied_key(check(chemo), chemo).fact_key == "prior_chemotherapy"
+    # status, category and confidence are untouched, so risk control is unaffected
+    fixed = without_copied_keys(lambda note, rule: check(rule))(None, age)
+    assert (fixed.status, fixed.category, fixed.confidence) == (RuleStatus.NOT_ENOUGH_INFO, InfoCategory.MISSING, 0.9)
+
+
+def test_keyfix_system_is_b7_plus_the_fix():
+    from trialguide.baselines.run_asking import SYSTEMS
+    assert SYSTEMS["B7-keyfix"][:5] == SYSTEMS["B7"] and SYSTEMS["B7-keyfix"][5] is True

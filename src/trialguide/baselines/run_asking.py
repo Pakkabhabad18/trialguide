@@ -36,6 +36,9 @@ SYSTEMS = {
     "A6": ("A6", "ranking", 3, True, True),        # no risk control: every inference accepted
     "B4": ("B4", "fixed", 3, True, False),         # fixed-order questions (same strategy as A2 here)
     "B3": ("B3", "all", 50, True, False),          # ask every candidate fact
+    # B7 with the copied "prior_chemotherapy" fact_key dropped on unrelated rules
+    # (selector.drop_copied_key). Added after the test run, so its test result is post hoc.
+    "B7-keyfix": ("B7", "ranking", 3, True, True, True),
 }
 LABELS = ("0", "1", "2")
 
@@ -112,9 +115,13 @@ def main():
 
     def run(job):
         system, pid = job
-        policy, strategy, budget, tools, weighted = SYSTEMS[system]
+        policy, strategy, budget, tools, weighted, *keyfix = SYSTEMS[system]
         config = system_config(policy, args.threshold)
-        return run_patient(notes[pid], rules[pid], config, checks[tools], doctor=doctor,
+        check = checks[tools]
+        if keyfix and keyfix[0]:                     # B7-keyfix only
+            from trialguide.selector.selector import without_copied_keys
+            check = without_copied_keys(check)
+        return run_patient(notes[pid], rules[pid], config, check, doctor=doctor,
                            strategy=strategy, budget=budget, p_answer=p_answer if weighted else None)
 
     jobs = [(s, pid) for s in args.systems for pid in notes]

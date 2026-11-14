@@ -117,6 +117,29 @@ _DROP = {"history", "of", "the", "patient", "status", "any", "current", "known",
          "prior", "previous", "past"}
 
 
+# The checker prompt shows "prior_chemotherapy" as its fact_key example, and the checker copies it
+# onto unrelated rules (40% of the masked-note checks on test). Merging by that key put up to 26
+# unrelated rules behind one "prior chemotherapy" question (results/test_run/error_analysis.md).
+# Found after the test run; used only by the system "B7-keyfix" in baselines/run_asking.py.
+COPIED_KEY = "prior_chemotherapy"
+CHEMO_WORDS = re.compile(r"chemo|cytotoxic|antineoplastic|anti-?cancer|anticancer", re.I)
+
+
+def drop_copied_key(check, rule):
+    """The check without its fact_key when that key is the copied prompt example on a rule that is
+    not about cancer drugs. Without a key the rule is not asked about (it is abstained on), so
+    unrelated rules no longer share one question. Status, category and confidence are unchanged,
+    so risk control and lambda-hat are not affected."""
+    if check.fact_key == COPIED_KEY and not CHEMO_WORDS.search(rule.text or ""):
+        return replace(check, fact_key=None)
+    return check
+
+
+def without_copied_keys(check_fn):
+    """Wrap a checker function so every check it returns goes through drop_copied_key."""
+    return lambda note, rule: drop_copied_key(check_fn(note, rule), rule)
+
+
 def canonical_fact_key(key: str) -> str:
     """One name per fact, so rules from different trials merge into one question.
 
