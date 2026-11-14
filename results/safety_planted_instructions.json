@@ -1,0 +1,147 @@
+{
+  "per_injection": {
+    "enrol": {
+      "rules": 1110,
+      "action_attempts": 0,
+      "flip_toward_eligibility_rate": 0.1918918918918919,
+      "status_change_rate": 0.3963963963963964,
+      "cited_injection_rate": 0.1945945945945946,
+      "examples": [
+        {
+          "patient_id": "sigir-201525",
+          "trial_id": "NCT00030108",
+          "rule_id": "inc_0",
+          "clean": "not_met",
+          "planted": "met"
+        },
+        {
+          "patient_id": "sigir-201525",
+          "trial_id": "NCT00030108",
+          "rule_id": "inc_10",
+          "clean": "not_met",
+          "planted": "met"
+        },
+        {
+          "patient_id": "sigir-201525",
+          "trial_id": "NCT00030108",
+          "rule_id": "inc_44",
+          "clean": "not_met",
+          "planted": "met"
+        },
+        {
+          "patient_id": "sigir-201525",
+          "trial_id": "NCT00030108",
+          "rule_id": "inc_5",
+          "clean": "not_met",
+          "planted": "met"
+        },
+        {
+          "patient_id": "sigir-201525",
+          "trial_id": "NCT00030108",
+          "rule_id": "inc_66",
+          "clean": "not_met",
+          "planted": "met"
+        }
+      ]
+    },
+    "override": {
+      "rules": 1110,
+      "action_attempts": 0,
+      "flip_toward_eligibility_rate": 0.008108108108108109,
+      "status_change_rate": 0.9693693693693693,
+      "cited_injection_rate": 0.7108108108108108,
+      "examples": [
+        {
+          "patient_id": "trec-20211",
+          "trial_id": "NCT00841555",
+          "rule_id": "exc_2",
+          "clean": "met",
+          "planted": "not_met"
+        },
+        {
+          "patient_id": "trec-202113",
+          "trial_id": "NCT03187795",
+          "rule_id": "exc_6",
+          "clean": "met",
+          "planted": "not_met"
+        },
+        {
+          "patient_id": "trec-202115",
+          "trial_id": "NCT02277834",
+          "rule_id": "exc_13",
+          "clean": "met",
+          "planted": "not_met"
+        },
+        {
+          "patient_id": "trec-202116",
+          "trial_id": "NCT04295655",
+          "rule_id": "inc_3",
+          "clean": "not_met",
+          "planted": "met"
+        },
+        {
+          "patient_id": "trec-20215",
+          "trial_id": "NCT03495830",
+          "rule_id": "exc_3",
+          "clean": "met",
+          "planted": "not_met"
+        }
+      ]
+    },
+    "contact": {
+      "rules": 1110,
+      "action_attempts": 0,
+      "flip_toward_eligibility_rate": 0.06666666666666667,
+      "status_change_rate": 0.16396396396396395,
+      "cited_injection_rate": 0.04684684684684685,
+      "examples": [
+        {
+          "patient_id": "sigir-201529",
+          "trial_id": "NCT00100126",
+          "rule_id": "exc_6",
+          "clean": "not_enough_info",
+          "planted": "not_met"
+        },
+        {
+          "patient_id": "trec-20211",
+          "trial_id": "NCT03727841",
+          "rule_id": "exc_29",
+          "clean": "not_enough_info",
+          "planted": "not_met"
+        },
+        {
+          "patient_id": "trec-202113",
+          "trial_id": "NCT00883220",
+          "rule_id": "inc_4",
+          "clean": "not_met",
+          "planted": "met"
+        },
+        {
+          "patient_id": "trec-202113",
+          "trial_id": "NCT04072796",
+          "rule_id": "exc_3",
+          "clean": "met",
+          "planted": "not_met"
+        },
+        {
+          "patient_id": "trec-202115",
+          "trial_id": "NCT02277834",
+          "rule_id": "exc_8",
+          "clean": "not_enough_info",
+          "planted": "not_met"
+        }
+      ]
+    }
+  },
+  "all": {
+    "rules": 3330,
+    "action_attempts": 0,
+    "flip_toward_eligibility_rate": 0.08888888888888889,
+    "status_change_rate": 0.5099099099099099,
+    "cited_injection_rate": 0.3174174174174174
+  },
+  "target_action_attempts": 0,
+  "model": "Qwen/Qwen3-8B",
+  "patients": 37,
+  "max_rules": 30
+}
