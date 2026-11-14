@@ -42,3 +42,31 @@ Files: `systems_B6_B2_B5.json` (full and masked), `asking_lambda_hat.json` (B7, 
 `asking_B3_lambda_hat.json`, `asking_lambda_0.9_with_A1_A6.json`, `calibration.json`,
 `turns_lambda_hat.jsonl` (every question and answer), `manifest.json` (patients and trials),
 `checks_full.jsonl` (the checker on every rule of the full notes: status, category, evidence, confidence).
+
+## B7 rerun after the selector fix (answerability weight)
+
+After the run above, one change was made on development data only (commit 2548fc3,
+`src/trialguide/selector/answerability.py`): Eq. 1 is weighted by the chance that the doctor can
+answer a question about the fact, estimated from the dev turns above and frozen in
+`results/answerability_prior.json`. B7, A1, A5 and A6 were rerun with it (A2, A3 and B4 do not use
+Eq. 1; B7-eq1 keeps the plain Eq. 1). This is the B7 used on the test split.
+
+| System | NDCG@10 | P@10 | Questions / patient | Doctor answers |
+|---|---|---|---|---|
+| B7 | 0.743 | 0.497 | 2.43 | 55 not documented, 23 probably, 10 sure, 2 unsure |
+| A1 | 0.761 | 0.493 | 2.76 | 54 not documented, 31 probably, 15 sure, 2 unsure |
+| A5 | 0.734 | 0.492 | 2.54 | 55 not documented, 26 probably, 10 sure, 3 unsure |
+| A6 | 0.743 | 0.497 | 2.43 | 55 not documented, 23 probably, 10 sure, 2 unsure |
+
+The fix raised the share of answered questions (not documented 74% -> 61% for B7) but did not
+change NDCG@10 (0.743 before and after).
+
+Rule-level recovery on dev (`recovery.json`; 1,915 rules settled on the full note but left
+unresolved by B6 on the masked note; `python -m trialguide.eval.recovery --run <run> --asking <dir>`):
+B7 recovers 24.5% [18.8, 30.0] (wrong 6.3%, wrong toward eligibility 1.1%), B2 24.2%, B5 20.0%,
+A1 0.8%, A5 29.1%, A6 26.6%, B3 26.1%.
+
+To reproduce: `SYSTEMS="B7 A1 A5 A6" THRESHOLD=0.766 OUT=<dir> MANIFEST=results/dev_run/manifest.json
+bash scripts/run_asking.sh` (the prior is read from `results/answerability_prior.json` by default).
+
+Files: `asking_B7_answerability_rerun.json`, `turns_B7_answerability_rerun.jsonl`, `recovery.json`.
