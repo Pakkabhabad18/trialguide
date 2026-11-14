@@ -1,0 +1,738 @@
+item,patient_id,question,record,answer,sentence_id
+1,trec-20228,What does the patient's record say about age?,"0. A 7-month-old boy is brought to emergency by his parents due to irritability and inability to defecate for the past 3 days.
+1. The patient has had constipation and discomfort with bowel movements since birth.
+2. His symptoms worsened after eating semi-solid foods.
+3. Vital signs are normal.
+4. Abdominal examination shows distension and tenderness to palpation with presence of bowel sounds.
+5. Xray with barium shows a narrow rectum and rectosigmoid area.
+6. The rest of the colon proximal to this segment is dilated.
+7. Digital rectal exam revealed burst of feces out of the anus.
+8. The biopsy showed absence of submucosal ganglia in the last segment of the large intestine.",7 months old,0
+2,trec-202121,What does the patient's record say about prior abdominal imaging?,"0. The patient is a 57-year-old man with abdominal pain and vomiting.
+1. The pain started gradually about 20 hours ago in the epigastric and periumbilical regions, radiating to his back.
+2. He drinks around 60 units of alcohol per week and smokes 22 cigarettes per day.
+3. He is healthy with no history of allergies or using any medications.
+4. His family history is positive for type 2 diabetes (his father and sister).
+5. He lives alone and has no children.
+6. The abdomen is tender and soft.
+7. His bowel sounds are normal.
+8. His heart rate is 115/min and blood pressure 110/75 mmHg.
+9. The lab results are remarkable for leukocytosis (19.5), urea of 8.5, high CRP (145), high amylase (1200) and Glc level of 15.
+10. Cross-sectional imaging was negative for obstructive pancreatitis.",Cross-sectional imaging was negative for obstructive pancreatitis,10
+3,trec-202227,What does the patient's record say about history of excessive bleeding?,"0. A 31-year-old woman comes to the office due to 3 days of rash on her left arm.
+1. The lesion is mildly pruritic but not painful.
+2. She is otherwise healthy and occasionally takes ibuprofen during the first few days of her menstrual period.
+3. Temperature is 37 C, blood pressure is 110/75 mm Hg, and pulse is 95/min.
+4. The lesion is like a target sign known as erythema migrans.
+5. She recently went for an adventure trip in New Hampshire.
+6. The patient is diagnosed with Lyme disease.",None stated; she is otherwise healthy,2
+4,trec-202218,What does the patient's record say about prior allergic disease?,"0. A 2-year-old boy is brought to the office by his parents due to a rash that started 1 week ago.
+1. A similar red, itchy rash on the cheeks, trunk, and arms has occurred intermittently since infancy.
+2. The patient has had a few upper respiratory infections but no major illnesses.
+3. Vaccinations are up to date, and he takes no medications.
+4. He is on a balanced diet, and he is healthy in appearance.
+5. Vital signs and milestone examination are within normal limits.
+6. Similar findings are observed on the cheeks and proximal upper extremities.
+7. The diaper area is clear, and no mucosal lesions are present.","Red, itchy rash on cheeks, trunk and arms recurring since infancy; no allergy diagnosis stated",1
+5,trec-202134,What does the patient's record say about age?,"0. The patient is a 47-year-old Asian woman complaining of persistent feelings of sadness.
+1. She lost interest in activities she used to enjoy.
+2. She states that her mood is mostly depressed for the past 3 weeks.
+3. She also lost her appetite , which led to about 5kg weight loss.
+4. She complains of loss of energy and feelings of worthlessness nearly every day.
+5. She is not using any drugs and she does not smoke.
+6. She doesn't drink alcohol.
+7. She used to exercise every day for at least 30 min.
+8. But she doesn't have enough energy to do so for the past 3 weeks.
+9. She also has some digestive issues recently.
+10. She is married and has 4 children.
+11. She is menopausal.
+12. Her husband was recently diagnosed with colon cancer and he is starting his chemotherapy.
+13. There is nothing remarkable in her past medical history and her drug history is only positive for Vit D3 1000 units daily.
+14. Her family history is negative for any psychologic problems.
+15. Her HAM-D score is 20.",47 years old,0
+6,trec-20228,What does the patient's record say about prior chemotherapy?,"0. A 7-month-old boy is brought to emergency by his parents due to irritability and inability to defecate for the past 3 days.
+1. The patient has had constipation and discomfort with bowel movements since birth.
+2. His symptoms worsened after eating semi-solid foods.
+3. Vital signs are normal.
+4. Abdominal examination shows distension and tenderness to palpation with presence of bowel sounds.
+5. Xray with barium shows a narrow rectum and rectosigmoid area.
+6. The rest of the colon proximal to this segment is dilated.
+7. Digital rectal exam revealed burst of feces out of the anus.
+8. The biopsy showed absence of submucosal ganglia in the last segment of the large intestine.",,
+7,trec-202142,What does the patient's record say about prior diabetes?,"0. 19 yo Hispanic female G1P1 at 32+ 6 weeks of gestational age presented to the OB clinic for routine follow up complaining of mild headache and leg swelling.
+1. Primary evaluation revealed BP of 146/99 and urine dipstick with 3+ proteins.
+2. Her BP and U/A were normal in previous visit.
+3. Repeat BP a few hours later is 150/100 mmHg.
+4. Laboratory studies showed a normal hematocrit, platelet count, and liver transaminase levels.
+5. She is complaining of fatigue but no fever or chills.
+6. She is also suffering of headaches with no vision changes.
+7. No shortness of breath, cough, chest pain, orthopnea and palpitations or skin rash were observed.
+8. Her physical exam was negative for abdominal pain, change in bowel habits, nausea, vomiting, dysuria, frequency, hematuria or frothy urine.
+9. Leg swelling was observed with no arthralgia or back pain.
+10. She has no specific past medical issues and only uses prenatal vitamins.
+11. Her family history is positive for DM type 2 and HTN.
+12. She is a social alcohol consumer with the negative history of smoking or drug use.
+13. She is only have one partner in past 2 years and didn't have any contraceptive methods since 2 years ago.
+14. Her BMI was 24 at the first visit when she was at 6 weeks of gestational age.
+15. She is getting weight normally during her pregnancies.",No personal history (no specific past medical issues); family history of type 2 diabetes,10
+8,trec-20213,What does the patient's record say about age?,"0. A 32 yo woman who presents following a severe 'exploding' headache.
+1. She and her husband report that yesterday she was in the kitchen and stood up and hit her head on the corner of a cabinet.
+2. The next morning she developed a sudden 'exploding' headache.
+3. She came to the hospital where head CT showed a significant amount of blood in her right ventricle.
+4. NSGY evaluated her for spontaneous intraventricular hemorrhage with a concern for an underlying vascular malformation.
+5. Cerebral angiogram was done which showed abnormal vasculature with a draining vein from L temporal lobe penetrating deep white matter consistent with AVM.
+6. The patient did continue to have a headaches but they were improving with pain medication.
+7. The patient refused PT evaluation but was ambulating independently without difficulty.
+8. She was discharged to home with her husband on [**2155-12-6**].",32 years old,0
+9,trec-20211,What does the patient's record say about surgical contraindications?,"0. Patient is a 45-year-old man with a history of anaplastic astrocytoma of the spine complicated by severe lower extremity weakness and urinary retention s/p Foley catheter, high-dose steroids, hypertension, and chronic pain.
+1. The tumor is located in the T-L spine, unresectable anaplastic astrocytoma s/p radiation.
+2. Complicated by progressive lower extremity weakness and urinary retention.
+3. Patient initially presented with RLE weakness where his right knee gave out with difficulty walking and right anterior thigh numbness.
+4. MRI showed a spinal cord conus mass which was biopsied and found to be anaplastic astrocytoma.
+5. Therapy included field radiation t10-l1 followed by 11 cycles of temozolomide 7 days on and 7 days off.
+6. This was followed by CPT-11 Weekly x4 with Avastin Q2 weeks/ 2 weeks rest and repeat cycle.",Tumour is unresectable,1
+10,trec-20212,What does the patient's record say about nyha functional class?,"0. 48 M with a h/o HTN hyperlipidemia, bicuspid aortic valve, and tobacco abuse who presented to his cardiologist on [**2148-10-1**] with progressive SOB and LE edema.
+1. TTE revealed severe aortic stenosis with worsening LV function.
+2. EF was 25%.
+3. RV pressure was 41 and had biatrial enlargement.
+4. Noted to have 2+ aortic insufficiency with mild MR.
+5. He was sent home from cardiology clinic with Lasix and BB (which he did not tolerate), continued to have worsening SOB and LE edema and finally presented here for evaluation.
+6. During this admission repeat echo confirmed critical aortic stenosis showing left ventricular hypertrophy with cavity dilation and severe global hypokinesis, severe aortic valve stenosis with underlying bicuspid aortic valve, dilated ascending aorta, mild pulmonary artery systolic hypertension.
+7. The patient underwent a preop workup for valvular replacement with preop chest CT scan and carotid US (showing moderate heterogeneous plaque with bilateral 1-39% ICA stenosis).
+8. He also underwent a cardiac cath with right heart cath to evaluate his pulm art pressures which showed no angiographically apparent flow-limiting coronary artery disease.",,
+11,trec-202115,What does the patient's record say about organ function?,"0. 70 year-old woman with a history of CAD recently noted abdominal mass who presents with fevers/rigors and bandemia.
+1. Over the last few weeks leading up to admission, she has been experiencing mid-abdominal pain, radiating to the left flank.
+2. It lasts throughout the day is not increased by eating though there is associated vomiting and is worsened with coughing.
+3. CT abdomen without contrast was then performed on [**4-20**] showing a large 9.5 x 7.5 x 6.0-cm heterogeneous left upper abdominal mass.
+4. Patient underwent a EUS with biopsy.
+5. The results of the biopsy were consistent with pancreatic adenocarcinoma at the head of pancreas.
+6. Splenic flecture/pancreatic tail mass was also seen on CT, likely diverticular abscess given the patients recent likely history of diverticulitis this was thought to be an infected fluid collection or abscess.
+7. She was treated with IV antibiotics (Zosyn, then ceftriaxone and flagyl) and will continue on them until seen by ID as an outpatient.
+8. Past Medical History:
+1.
+9. Coronary artery disease with history of angioplasty in [**State 108**] one year ago
+2.
+10. Mitral valve prolapse
+3.
+11. Atrial fibrillation
+4.
+12. Hyperlipemia
+5.
+13. Hypertension
+6.
+14. Chronic kidney disease (SCr 2.1 in [**3-17**])
+7.
+15. Hypothyroidism?
+16. (TSH 10 in [**3-17**])
+8.
+17. Anemia (HCT 30.7 in [**3-17**])","Chronic kidney disease, creatinine 2.1",14
+12,trec-202228,What does the patient's record say about clinically significant disease?,"0. A 23-year-old woman comes to the emergency department with a history of nosebleeds lasting for 1 hour.
+1. She has a history of heavy menses as well as occasional gum bleeding following dental procedures.
+2. Her mother also has a history of menorrhagia.
+3. Laboratory tests reveal increased bleeding time and slightly increased partial thromboplastin time.
+4. She has no other medical conditions and is otherwise healthy.
+5. Her coagulation study shows CB = 0.30 IU/mL and FVIII:C = 0.37 IU/mL.
+6. She is not smoking or using any kind of illicit drugs.
+7. She uses alcohol occasionally and is in ra elationship with her boyfriend for the past 2 years.",No other medical conditions; otherwise healthy (apart from the current bleeding problem),4
+13,trec-20212,What does the patient's record say about fev1 fvc ratio?,"0. 48 M with a h/o HTN hyperlipidemia, bicuspid aortic valve, and tobacco abuse who presented to his cardiologist on [**2148-10-1**] with progressive SOB and LE edema.
+1. TTE revealed severe aortic stenosis with worsening LV function.
+2. EF was 25%.
+3. RV pressure was 41 and had biatrial enlargement.
+4. Noted to have 2+ aortic insufficiency with mild MR.
+5. He was sent home from cardiology clinic with Lasix and BB (which he did not tolerate), continued to have worsening SOB and LE edema and finally presented here for evaluation.
+6. During this admission repeat echo confirmed critical aortic stenosis showing left ventricular hypertrophy with cavity dilation and severe global hypokinesis, severe aortic valve stenosis with underlying bicuspid aortic valve, dilated ascending aorta, mild pulmonary artery systolic hypertension.
+7. The patient underwent a preop workup for valvular replacement with preop chest CT scan and carotid US (showing moderate heterogeneous plaque with bilateral 1-39% ICA stenosis).
+8. He also underwent a cardiac cath with right heart cath to evaluate his pulm art pressures which showed no angiographically apparent flow-limiting coronary artery disease.",,
+14,trec-202149,What does the patient's record say about tanner stage?,"0. A 12 year old girl came to the clinic with her mother, complaining of short stature, delayed in puberty and developmental delay.
+1. Her karyotype study revealed 45X and confirmed the diagnosis of Turner syndrome.
+2. She is treating with GH since 6 months ago without estrogen therapy to avoid menarche and reach the ideal height.
+3. She is an obese, mentally retarded girl in the physical exam.
+4. Her breast bulb were in stage 1 with no course hair in the pubic or axillary.
+5. Her TSH was 3 and FBS was 75 in the latest lab study.","Breast stage 1, no pubic or axillary hair (Tanner stage 1)",4
+15,trec-202237,What does the patient's record say about symmetric proximal muscle weakness?,"0. A 47-year-old man comes to the office due to weight gain and fatigue.
+1. He is not able to lift heavy objects or climb stairs.
+2. Family history is positive for DM type 2 and HTN in his father.
+3. Blood pressure is 165/90 mm Hg and pulse is 85/min.
+4. On physical examination, there is symmetric proximal muscle weakness of the upper and lower extremities.
+5. Fasting plasma glucose level is 138 mg/dL and 24-hour urinary cortisol is twice the upper normal limit.
+6. Further evaluation reveals that high-dose, but not low-dose, dexamethasone suppresses serum cortisol levels.
+7. Serum ACTH levels are high-normal.
+8. This patient's findings are consistent with endogenous Cushing Syndrome.","Present, in the upper and lower extremities",4
+16,trec-20212,What does the patient's record say about age?,"0. 48 M with a h/o HTN hyperlipidemia, bicuspid aortic valve, and tobacco abuse who presented to his cardiologist on [**2148-10-1**] with progressive SOB and LE edema.
+1. TTE revealed severe aortic stenosis with worsening LV function.
+2. EF was 25%.
+3. RV pressure was 41 and had biatrial enlargement.
+4. Noted to have 2+ aortic insufficiency with mild MR.
+5. He was sent home from cardiology clinic with Lasix and BB (which he did not tolerate), continued to have worsening SOB and LE edema and finally presented here for evaluation.
+6. During this admission repeat echo confirmed critical aortic stenosis showing left ventricular hypertrophy with cavity dilation and severe global hypokinesis, severe aortic valve stenosis with underlying bicuspid aortic valve, dilated ascending aorta, mild pulmonary artery systolic hypertension.
+7. The patient underwent a preop workup for valvular replacement with preop chest CT scan and carotid US (showing moderate heterogeneous plaque with bilateral 1-39% ICA stenosis).
+8. He also underwent a cardiac cath with right heart cath to evaluate his pulm art pressures which showed no angiographically apparent flow-limiting coronary artery disease.",48 years old,0
+17,trec-202220,What does the patient's record say about other contraindications?,"0. A 49-year-old man comes to the office because of the bulging in his groin.
+1. Physical examination shows a swelling above the inguinal ligament.
+2. When the patient is asked to cough, the size of the bulge increases.
+3. His medical history is significant for mild dyslipidemia, which is under control by lifestyle modifications.
+4. He does not smoke, but drinks alcohol occasionally.
+5. His vital signs and other physical examinations are unremarkable.
+6. He is referred to a surgeon and scheduled to undergo elective laparoscopic hernia repair.",,
+18,trec-202116,What does the patient's record say about clinical instability exacerbation?,"0. 79 yo F with multifactorial chronic hypoxemia and dyspnea thought due to diastolic CHF, pulmonary hypertension thought secondary to a chronic ASD and COPD on 5L home oxygen admitted with complaints of worsening shortness of breath.
+1. Cardiology consult recommended a right heart cath for evaluation of response to sildenafil but the patient refused.
+2. Pulmonary consult recommended an empiric, compassionate sildenafil trial due to severe dyspneic symptomology preventing outpatient living, and the patient tolerated an inpatient trial without hypotension.
+3. Patient to f/u with pulmonology to start sildenifil chronically as outpatient as prior authorization is obtained.
+4. Past Medical History:
+- Atrial septal defect repair [**6-17**] complicated by sinus arrest with PPM placement.
+5. - Diastolic CHF, estimated dry weight of 94kg
+- Pulm HTN (RSVP 75 in [**11-24**]) thought secondary to longstanding ASD
+- COPD on home O2 (5L NC) with baseline saturation high 80's to low 90's on this therapy.
+6. - OSA, not CPAP compliant
+- Mild mitral regurgitation
+- Microcytic anemia
+- Hypothyroidism
+- S/p APPY, s/p CCY ('[**33**])
+- Gallstone pancreatitis s/p ERCP, sphincterotomy
+- Elevated alk phos secondary to amiodarone",Admitted with worsening shortness of breath,0
+19,trec-202114,What does the patient's record say about acute copd exacerbation?,"0. 70 y/o with COPD on 2.5-3.5L O2 at baseline, OSA and obesity hypoventilation syndrome, dCHF, discharged [**2132-8-24**] now presents with agitation and altered mental status with hypoxia and O2 sats 70s on BipAp with 5L.
+1. Pt agitated then somnolent at initial presentation.
+2. Daughter reported increased agitation and altered mental status x 2-3 days with O2 sats 60s-70s at home.
+3. Daughter has also noted increased LE edema and weight gain which prompted a phone call to her PCP and increased lasix dose from 80daily to 100mg daily with some mild improvement in edema.
+4. She has had decreased appetite, PO intake, energy level at home with difficulty with ADLs.
+5. No recent history of fever, cough, chills, sputum production, CP, abd pain, or other complaints other than chronic right thigh pain last 1-2 months.
+6. Daughter also reports med compliance and compliance with BiPap at night.
+7. Past Medical History:
+- CAD; s/p 4 vessel CABG in [**2119**]
+- CHF; EF 55%, mild AS
+- obesity hypoventilation syndrome
+- obstructive sleep apnea
+- DM2
+- ventricular tachycardia; s/p ICD in [**2127**]
+- hypothyroidism
+- schizophrenia
+- COPD
+- Pneumona treated in [**4-7**] at [**Hospital1 **]",Presents with hypoxia (O2 sats 70s) and altered mental status; not called a COPD exacerbation,0
+20,trec-202132,What does the patient's record say about family history complement regulatory mutation?,"0. A 17 year old boy  complains of vomiting, non-bloody diarrhea, abdominal pain, fever, chills and loss of appetite for the past 3 days.
+1. He ate a salad at a restaurant prior to his diarrhea onset.
+2. Physical exam was remarkable for pallor, jaundice, and diffuse abdominal tenderness.
+3. Lab results were as follows:
+Hemoglobin: 9.7 g/dL
+Platelet: 110,000 /cu.mm
+Creatinine: 3.6 mg/dL
+blood urea nitrogen (BUN): 73 mg/dL
+direct bilirubin: 2.4 mg/dL
+lactate dehydrogenase (LDH): 881 IU/L (normal: 110-265 IU/L)
+Peripheral blood smear showed a moderate number of schistocytes and helmet cells.
+4. Shiga-like toxin-producing E. coli (STEC) stx1/stx2 were found in stools.
+5. He has no other underlying disease and he is not on any medications.",,
+21,trec-20212,What does the patient's record say about acute valvular heart disease?,"0. 48 M with a h/o HTN hyperlipidemia, bicuspid aortic valve, and tobacco abuse who presented to his cardiologist on [**2148-10-1**] with progressive SOB and LE edema.
+1. TTE revealed severe aortic stenosis with worsening LV function.
+2. EF was 25%.
+3. RV pressure was 41 and had biatrial enlargement.
+4. Noted to have 2+ aortic insufficiency with mild MR.
+5. He was sent home from cardiology clinic with Lasix and BB (which he did not tolerate), continued to have worsening SOB and LE edema and finally presented here for evaluation.
+6. During this admission repeat echo confirmed critical aortic stenosis showing left ventricular hypertrophy with cavity dilation and severe global hypokinesis, severe aortic valve stenosis with underlying bicuspid aortic valve, dilated ascending aorta, mild pulmonary artery systolic hypertension.
+7. The patient underwent a preop workup for valvular replacement with preop chest CT scan and carotid US (showing moderate heterogeneous plaque with bilateral 1-39% ICA stenosis).
+8. He also underwent a cardiac cath with right heart cath to evaluate his pulm art pressures which showed no angiographically apparent flow-limiting coronary artery disease.",Critical aortic stenosis with bicuspid aortic valve,6
+22,trec-202124,What does the patient's record say about urinary tract function?,"0. The patient is a 55 year old man visiting his primary care physician for lower urinary tract symptoms including frequency, urgency, weak stream, incomplete emptying and intermittent flow for the past 9 months.
+1. Further evaluation revealed:
+IPSS score : 15
+Post-void residual: 70 mL
+Prostate volume (TRUS): 60 mL
+Prostate-specific antigen (PSA) level: 3.2 ng/mL
+10 mL/sec of maximum flow rate when urine volume was 130 mL
+He is otherwise healthy only using Vit D 1000 units daily.
+2. His recent blood chemistry (3 days ago) was normal: 
+Hgb: 13.5 g/dl
+WBC: 135000 /mm3
+Plt: 350000 /ml
+PT: 11 second
+PTT: 35 second
+INR: 0.9
+Creatinine: 0.5 mg/dl
+BUN: 10 mg/dl
+U/A:
+Color: yellow
+Appearance: cloudy
+PH: 5.3
+Specific gravity: 1.010
+Glc: 100
+Nitrite: negative
+Ketone: none
+Leukocyte esterase: negative
+RBC: negative
+WBC: 2 WBCs/hpf
+U/C: negative","IPSS 15, post-void residual 70 mL, maximum flow 10 mL/s",1
+23,trec-202113,What does the patient's record say about physical or cognitive impairments?,"0. 62 yo male with hx of CVA, neurogenic bladder with indwelling suprapubic catheter with multiple prior admissions for UTIs, altered mental status, and urosepsis presents to the hospital in urosepsis now resolved after treatment with vanc/meropenem.
+1. Per CT there is a non-obstructing stone in the L ureter, no evidence of urethral strictures.
+2. Significant leaking around suprapubic cath site.
+3. Started on ditropan changed over to detrol.
+4. Urologist not concerned with leaking and will f/u with pt next week.
+5. s/p CVA
+Neurogenic bladder s/p suprapubic cath
+Recurrent UTIs with Klebsiella/Pseudomonas
+Non-hodgkins Marginal Zone Lymphoma of the left orbit Dx in 03
+(s/p R-CHOP x 6 cycles)
+Bells Palsy
+BPH
+Hypertension
+Partial Bowel obstruction s/p colostomy
+Hepatitis C
+Cryoglobulinemia
+SLE with transverse myelitis, anti-dsDNA Ab+
+Insulin Dependant Diabetic
+Fungal Esophagitis Stage IV?
+6. Urinary Tract Infections-pseudomonas & enterococcus",History of CVA; altered mental status on prior admissions,0
+24,trec-202116,What does the patient's record say about age?,"0. 79 yo F with multifactorial chronic hypoxemia and dyspnea thought due to diastolic CHF, pulmonary hypertension thought secondary to a chronic ASD and COPD on 5L home oxygen admitted with complaints of worsening shortness of breath.
+1. Cardiology consult recommended a right heart cath for evaluation of response to sildenafil but the patient refused.
+2. Pulmonary consult recommended an empiric, compassionate sildenafil trial due to severe dyspneic symptomology preventing outpatient living, and the patient tolerated an inpatient trial without hypotension.
+3. Patient to f/u with pulmonology to start sildenifil chronically as outpatient as prior authorization is obtained.
+4. Past Medical History:
+- Atrial septal defect repair [**6-17**] complicated by sinus arrest with PPM placement.
+5. - Diastolic CHF, estimated dry weight of 94kg
+- Pulm HTN (RSVP 75 in [**11-24**]) thought secondary to longstanding ASD
+- COPD on home O2 (5L NC) with baseline saturation high 80's to low 90's on this therapy.
+6. - OSA, not CPAP compliant
+- Mild mitral regurgitation
+- Microcytic anemia
+- Hypothyroidism
+- S/p APPY, s/p CCY ('[**33**])
+- Gallstone pancreatitis s/p ERCP, sphincterotomy
+- Elevated alk phos secondary to amiodarone",79 years old,0
+25,trec-202121,What does the patient's record say about questionnaire survey follow up?,"0. The patient is a 57-year-old man with abdominal pain and vomiting.
+1. The pain started gradually about 20 hours ago in the epigastric and periumbilical regions, radiating to his back.
+2. He drinks around 60 units of alcohol per week and smokes 22 cigarettes per day.
+3. He is healthy with no history of allergies or using any medications.
+4. His family history is positive for type 2 diabetes (his father and sister).
+5. He lives alone and has no children.
+6. The abdomen is tender and soft.
+7. His bowel sounds are normal.
+8. His heart rate is 115/min and blood pressure 110/75 mmHg.
+9. The lab results are remarkable for leukocytosis (19.5), urea of 8.5, high CRP (145), high amylase (1200) and Glc level of 15.
+10. Cross-sectional imaging was negative for obstructive pancreatitis.",,
+26,trec-202132,What does the patient's record say about prior chemotherapy?,"0. A 17 year old boy  complains of vomiting, non-bloody diarrhea, abdominal pain, fever, chills and loss of appetite for the past 3 days.
+1. He ate a salad at a restaurant prior to his diarrhea onset.
+2. Physical exam was remarkable for pallor, jaundice, and diffuse abdominal tenderness.
+3. Lab results were as follows:
+Hemoglobin: 9.7 g/dL
+Platelet: 110,000 /cu.mm
+Creatinine: 3.6 mg/dL
+blood urea nitrogen (BUN): 73 mg/dL
+direct bilirubin: 2.4 mg/dL
+lactate dehydrogenase (LDH): 881 IU/L (normal: 110-265 IU/L)
+Peripheral blood smear showed a moderate number of schistocytes and helmet cells.
+4. Shiga-like toxin-producing E. coli (STEC) stx1/stx2 were found in stools.
+5. He has no other underlying disease and he is not on any medications.",,
+27,trec-202225,What does the patient's record say about chronic medical illness?,"0. A 50-year-old woman comes to the clinic with intermittent ear discharge and sense of hearing loss on her left ear.
+1. Past medical history is significant for obesity, hyperlipidemia, and diabetes mellitus.
+2. Her medications include Metformin, Atorvastatin and Vit D supplement.
+3. Vital signs are normal.
+4. BMI is 37.
+5. Otoscopy shows a small perforation in the left tympanic membrane and a pearly mass behind the membrane.
+6. Conduction hearing loss is noted in the left ear.
+7. The remainder of the ear, nose, and throat examination is normal.","Obesity, hyperlipidaemia and diabetes mellitus",1
+28,trec-202165,What does the patient's record say about age?,"0. The patient is a 25-year-old man with type 1 diabetes confirmed with molecular analysis 7 years ago.
+1. He presents to the clinic with shortness of breath and fatigue during activities.
+2. He claims mild dyspnea after climbing 3 floors, no dyspnea at rest and no angina (New York Heart Association class 2).
+3. He is diagnosed with cardiomyopathy that will be treated with ACE inhibitors and Beta blockers.
+4. His takes 70/30 Insulin and vitamin D supplements.
+5. His past medical history is not significant for any other medical issues.
+6. His family history is positive for DM type 1 in his uncle and his grandfather.
+7. His lab study is as bellow:
+FBS: 100 mg/dl
+HbA1c: 6.5%
+Cholesterol: 190 mg/dl
+TG: 140 mg/dl
+LDL: 125 mg/dl
+HDL: 40 mg/dl",25 years old,0
+29,trec-202149,What does the patient's record say about age?,"0. A 12 year old girl came to the clinic with her mother, complaining of short stature, delayed in puberty and developmental delay.
+1. Her karyotype study revealed 45X and confirmed the diagnosis of Turner syndrome.
+2. She is treating with GH since 6 months ago without estrogen therapy to avoid menarche and reach the ideal height.
+3. She is an obese, mentally retarded girl in the physical exam.
+4. Her breast bulb were in stage 1 with no course hair in the pubic or axillary.
+5. Her TSH was 3 and FBS was 75 in the latest lab study.",12 years old,0
+30,sigir-201525,What does the patient's record say about prior clinical trial drugs?,"0. A 10-year-old boy comes to the emergency department for evaluation of right knee pain.
+1. The child's guardians stated that he had been complaining of knee pain for the past 4 days and it had been getting progressively worse.
+2. There was no history of trauma.
+3. The day before the visit the boy developed a fever, and over the past day he has become increasingly lethargic.
+4. On physical examination blood pressure was 117/75 mm Hg,  HR 138 bpm, temperature 38.1 C (100.5 F), respiration 28 bpm, oxygen saturation 97%.
+5. There was edema and tenderness of the right thigh and knee, as well as effusion and extremely limited range of motion.
+6. Sensation and motor tone were normal.
+7. Plain radiography and CT showed an osteolytic lesion.
+8. The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",,
+31,trec-202148,What does the patient's record say about prior nail disorders?,"0. Fernandez is a 41 year man who is a professional soccer player.
+1. He came to the clinic with itchy foot.
+2. Physical exam revealed localized scaling and maceration between the third and fourth of his right toe.
+3. It became inflamed and sore, with mild fissuring.
+4. The dorsum and sole of the foot was unaffected.
+5. There is no pus or tearing in the affected area.
+6. He didn't use ant topical ointment on the lesion and has no positive history for any underlying disease such as DM.
+7. He smokes 15 cigarettes per day and drinks a beer per day.
+8. His family history is positive for hyperlipidemia in her mother and MI in her father.
+9. He is in relation with several partners and use condom during the intercourse.
+10. His physical exam and lab studies were normal otherwise.
+11. Tinea pedis infection confirmed as his diagnosis by the observation of segmented fungal hyphae during a microscopic KOH wet mount examination.",None; no history of any underlying disease,6
+32,trec-202244,What does the patient's record say about clinically significant disease other than gerd?,"0. A 48-year-old man comes to the office complaining of heartburn and acid reflux.
+1. He has taken over-the-counter antacids but sees no relief.
+2. Other medical history is unremarkable.
+3. The patient does not use tobacco, alcohol, or illicit drugs.
+4. Vital signs are within normal limits.
+5. BMI is 31 kg/m2.
+6. Physical examination is  positive for mild tenderness in upper stomach.
+7. Chest x-ray shows an air-fluid opacity behind the heart.
+8. A barium swallow study reveals approximately 1/3 of the stomach herniating through the esophageal hiatus.",None; other medical history is unremarkable,2
+33,trec-20225,What does the patient's record say about valvular coronary myocardial conductive abnormality?,"0. A 23-year-old man comes to the emergency department following an episode of syncope.
+1. He was working out when he felt dizzy and passed out without head injury.
+2. He has had 3 other episodes of light-headedness over the last year, all happening during physical activity.
+3. He never had this experience while resting.
+4. He has no other medical conditions.
+5. The patient does not use tobacco, alcohol, or illicit drugs.
+6. His father died suddenly at age 35.
+7. Vital signs are within normal limits.
+8. On physical examination, the patient has a harsh systolic murmur.
+9. The lungs are clear with no peripheral edema.
+10. Echocardiography shows asymmetric interventricular septal hypertrophy.",Asymmetric interventricular septal hypertrophy,10
+34,trec-202121,What does the patient's record say about time from debut of symptoms to inclusion?,"0. The patient is a 57-year-old man with abdominal pain and vomiting.
+1. The pain started gradually about 20 hours ago in the epigastric and periumbilical regions, radiating to his back.
+2. He drinks around 60 units of alcohol per week and smokes 22 cigarettes per day.
+3. He is healthy with no history of allergies or using any medications.
+4. His family history is positive for type 2 diabetes (his father and sister).
+5. He lives alone and has no children.
+6. The abdomen is tender and soft.
+7. His bowel sounds are normal.
+8. His heart rate is 115/min and blood pressure 110/75 mmHg.
+9. The lab results are remarkable for leukocytosis (19.5), urea of 8.5, high CRP (145), high amylase (1200) and Glc level of 15.
+10. Cross-sectional imaging was negative for obstructive pancreatitis.",Pain started about 20 hours ago,1
+35,sigir-201525,What does the patient's record say about creatinine clearance?,"0. A 10-year-old boy comes to the emergency department for evaluation of right knee pain.
+1. The child's guardians stated that he had been complaining of knee pain for the past 4 days and it had been getting progressively worse.
+2. There was no history of trauma.
+3. The day before the visit the boy developed a fever, and over the past day he has become increasingly lethargic.
+4. On physical examination blood pressure was 117/75 mm Hg,  HR 138 bpm, temperature 38.1 C (100.5 F), respiration 28 bpm, oxygen saturation 97%.
+5. There was edema and tenderness of the right thigh and knee, as well as effusion and extremely limited range of motion.
+6. Sensation and motor tone were normal.
+7. Plain radiography and CT showed an osteolytic lesion.
+8. The patient will provide informed consent, and will comply with the trial protocol without any practical issues.",,
+36,trec-202149,What does the patient's record say about karyotype result?,"0. A 12 year old girl came to the clinic with her mother, complaining of short stature, delayed in puberty and developmental delay.
+1. Her karyotype study revealed 45X and confirmed the diagnosis of Turner syndrome.
+2. She is treating with GH since 6 months ago without estrogen therapy to avoid menarche and reach the ideal height.
+3. She is an obese, mentally retarded girl in the physical exam.
+4. Her breast bulb were in stage 1 with no course hair in the pubic or axillary.
+5. Her TSH was 3 and FBS was 75 in the latest lab study.",45X (Turner syndrome),1
+37,trec-202116,What does the patient's record say about physical or mental disability preventing participation?,"0. 79 yo F with multifactorial chronic hypoxemia and dyspnea thought due to diastolic CHF, pulmonary hypertension thought secondary to a chronic ASD and COPD on 5L home oxygen admitted with complaints of worsening shortness of breath.
+1. Cardiology consult recommended a right heart cath for evaluation of response to sildenafil but the patient refused.
+2. Pulmonary consult recommended an empiric, compassionate sildenafil trial due to severe dyspneic symptomology preventing outpatient living, and the patient tolerated an inpatient trial without hypotension.
+3. Patient to f/u with pulmonology to start sildenifil chronically as outpatient as prior authorization is obtained.
+4. Past Medical History:
+- Atrial septal defect repair [**6-17**] complicated by sinus arrest with PPM placement.
+5. - Diastolic CHF, estimated dry weight of 94kg
+- Pulm HTN (RSVP 75 in [**11-24**]) thought secondary to longstanding ASD
+- COPD on home O2 (5L NC) with baseline saturation high 80's to low 90's on this therapy.
+6. - OSA, not CPAP compliant
+- Mild mitral regurgitation
+- Microcytic anemia
+- Hypothyroidism
+- S/p APPY, s/p CCY ('[**33**])
+- Gallstone pancreatitis s/p ERCP, sphincterotomy
+- Elevated alk phos secondary to amiodarone",Severe shortness of breath preventing outpatient living,2
+38,trec-202220,What does the patient's record say about inguinal hernia?,"0. A 49-year-old man comes to the office because of the bulging in his groin.
+1. Physical examination shows a swelling above the inguinal ligament.
+2. When the patient is asked to cough, the size of the bulge increases.
+3. His medical history is significant for mild dyslipidemia, which is under control by lifestyle modifications.
+4. He does not smoke, but drinks alcohol occasionally.
+5. His vital signs and other physical examinations are unremarkable.
+6. He is referred to a surgeon and scheduled to undergo elective laparoscopic hernia repair.",Groin bulge above the inguinal ligament that grows with coughing; scheduled for laparoscopic hernia repair,1
+39,trec-20211,What does the patient's record say about prior chemotherapy?,"0. Patient is a 45-year-old man with a history of anaplastic astrocytoma of the spine complicated by severe lower extremity weakness and urinary retention s/p Foley catheter, high-dose steroids, hypertension, and chronic pain.
+1. The tumor is located in the T-L spine, unresectable anaplastic astrocytoma s/p radiation.
+2. Complicated by progressive lower extremity weakness and urinary retention.
+3. Patient initially presented with RLE weakness where his right knee gave out with difficulty walking and right anterior thigh numbness.
+4. MRI showed a spinal cord conus mass which was biopsied and found to be anaplastic astrocytoma.
+5. Therapy included field radiation t10-l1 followed by 11 cycles of temozolomide 7 days on and 7 days off.
+6. This was followed by CPT-11 Weekly x4 with Avastin Q2 weeks/ 2 weeks rest and repeat cycle.","11 cycles of temozolomide, then CPT-11 with Avastin",5
+40,trec-202121,What does the patient's record say about clinical signs symptoms sepsis? Is there anything more definite in the record?,"0. The patient is a 57-year-old man with abdominal pain and vomiting.
+1. The pain started gradually about 20 hours ago in the epigastric and periumbilical regions, radiating to his back.
+2. He drinks around 60 units of alcohol per week and smokes 22 cigarettes per day.
+3. He is healthy with no history of allergies or using any medications.
+4. His family history is positive for type 2 diabetes (his father and sister).
+5. He lives alone and has no children.
+6. The abdomen is tender and soft.
+7. His bowel sounds are normal.
+8. His heart rate is 115/min and blood pressure 110/75 mmHg.
+9. The lab results are remarkable for leukocytosis (19.5), urea of 8.5, high CRP (145), high amylase (1200) and Glc level of 15.
+10. Cross-sectional imaging was negative for obstructive pancreatitis.",Heart rate 115/min and leukocytosis; sepsis not stated,8
+41,trec-202132,What does the patient's record say about prior ibd diagnosis?,"0. A 17 year old boy  complains of vomiting, non-bloody diarrhea, abdominal pain, fever, chills and loss of appetite for the past 3 days.
+1. He ate a salad at a restaurant prior to his diarrhea onset.
+2. Physical exam was remarkable for pallor, jaundice, and diffuse abdominal tenderness.
+3. Lab results were as follows:
+Hemoglobin: 9.7 g/dL
+Platelet: 110,000 /cu.mm
+Creatinine: 3.6 mg/dL
+blood urea nitrogen (BUN): 73 mg/dL
+direct bilirubin: 2.4 mg/dL
+lactate dehydrogenase (LDH): 881 IU/L (normal: 110-265 IU/L)
+Peripheral blood smear showed a moderate number of schistocytes and helmet cells.
+4. Shiga-like toxin-producing E. coli (STEC) stx1/stx2 were found in stools.
+5. He has no other underlying disease and he is not on any medications.",None; no other underlying disease,5
+42,trec-202141,What does the patient's record say about neurodegenerative disease?,"0. A 57-year old farmer was diagnosed with Parkinson's disease a year ago.
+1. He experiences slowness of movement and tremors.
+2. His past medical history is significant for hypertension and hypercholesterolemia.
+3. He lives with his wife.
+4. They have three children.
+5. He used to be active with planting and taking care of their farm animals before his diagnosis.
+6. The patient complains of shaking and slow movement.
+7. He had difficulty entering through a door, as he was frozen and needed guidance to step in.
+8. His handwriting is getting smaller.
+9. He is on Levodopa and Trihexyphenidyl.
+10. He stated his medications help with shaking and slow movement.
+11. But he still has difficulty initiating movements, stiffness and slowness in general.
+12. He is an alert and cooperative man who doesn't have any signs of dementia.
+13. He doesn't smoke or use any illicit drugs.","Parkinson's disease, diagnosed a year ago",0
+43,trec-20212,What does the patient's record say about pulmonary hypertension type?,"0. 48 M with a h/o HTN hyperlipidemia, bicuspid aortic valve, and tobacco abuse who presented to his cardiologist on [**2148-10-1**] with progressive SOB and LE edema.
+1. TTE revealed severe aortic stenosis with worsening LV function.
+2. EF was 25%.
+3. RV pressure was 41 and had biatrial enlargement.
+4. Noted to have 2+ aortic insufficiency with mild MR.
+5. He was sent home from cardiology clinic with Lasix and BB (which he did not tolerate), continued to have worsening SOB and LE edema and finally presented here for evaluation.
+6. During this admission repeat echo confirmed critical aortic stenosis showing left ventricular hypertrophy with cavity dilation and severe global hypokinesis, severe aortic valve stenosis with underlying bicuspid aortic valve, dilated ascending aorta, mild pulmonary artery systolic hypertension.
+7. The patient underwent a preop workup for valvular replacement with preop chest CT scan and carotid US (showing moderate heterogeneous plaque with bilateral 1-39% ICA stenosis).
+8. He also underwent a cardiac cath with right heart cath to evaluate his pulm art pressures which showed no angiographically apparent flow-limiting coronary artery disease.",Mild pulmonary artery systolic hypertension; type not stated,6
+44,trec-202124,What does the patient's record say about cause of lower urinary tract obstruction?,"0. The patient is a 55 year old man visiting his primary care physician for lower urinary tract symptoms including frequency, urgency, weak stream, incomplete emptying and intermittent flow for the past 9 months.
+1. Further evaluation revealed:
+IPSS score : 15
+Post-void residual: 70 mL
+Prostate volume (TRUS): 60 mL
+Prostate-specific antigen (PSA) level: 3.2 ng/mL
+10 mL/sec of maximum flow rate when urine volume was 130 mL
+He is otherwise healthy only using Vit D 1000 units daily.
+2. His recent blood chemistry (3 days ago) was normal: 
+Hgb: 13.5 g/dl
+WBC: 135000 /mm3
+Plt: 350000 /ml
+PT: 11 second
+PTT: 35 second
+INR: 0.9
+Creatinine: 0.5 mg/dl
+BUN: 10 mg/dl
+U/A:
+Color: yellow
+Appearance: cloudy
+PH: 5.3
+Specific gravity: 1.010
+Glc: 100
+Nitrite: negative
+Ketone: none
+Leukocyte esterase: negative
+RBC: negative
+WBC: 2 WBCs/hpf
+U/C: negative",Cause not stated; prostate volume 60 mL,1
+45,trec-20211,What does the patient's record say about tumor type?,"0. Patient is a 45-year-old man with a history of anaplastic astrocytoma of the spine complicated by severe lower extremity weakness and urinary retention s/p Foley catheter, high-dose steroids, hypertension, and chronic pain.
+1. The tumor is located in the T-L spine, unresectable anaplastic astrocytoma s/p radiation.
+2. Complicated by progressive lower extremity weakness and urinary retention.
+3. Patient initially presented with RLE weakness where his right knee gave out with difficulty walking and right anterior thigh numbness.
+4. MRI showed a spinal cord conus mass which was biopsied and found to be anaplastic astrocytoma.
+5. Therapy included field radiation t10-l1 followed by 11 cycles of temozolomide 7 days on and 7 days off.
+6. This was followed by CPT-11 Weekly x4 with Avastin Q2 weeks/ 2 weeks rest and repeat cycle.",Anaplastic astrocytoma,4
+46,trec-202121,What does the patient's record say about follow up status?,"0. The patient is a 57-year-old man with abdominal pain and vomiting.
+1. The pain started gradually about 20 hours ago in the epigastric and periumbilical regions, radiating to his back.
+2. He drinks around 60 units of alcohol per week and smokes 22 cigarettes per day.
+3. He is healthy with no history of allergies or using any medications.
+4. His family history is positive for type 2 diabetes (his father and sister).
+5. He lives alone and has no children.
+6. The abdomen is tender and soft.
+7. His bowel sounds are normal.
+8. His heart rate is 115/min and blood pressure 110/75 mmHg.
+9. The lab results are remarkable for leukocytosis (19.5), urea of 8.5, high CRP (145), high amylase (1200) and Glc level of 15.
+10. Cross-sectional imaging was negative for obstructive pancreatitis.",,
+47,trec-202124,What does the patient's record say about urinary tract infection?,"0. The patient is a 55 year old man visiting his primary care physician for lower urinary tract symptoms including frequency, urgency, weak stream, incomplete emptying and intermittent flow for the past 9 months.
+1. Further evaluation revealed:
+IPSS score : 15
+Post-void residual: 70 mL
+Prostate volume (TRUS): 60 mL
+Prostate-specific antigen (PSA) level: 3.2 ng/mL
+10 mL/sec of maximum flow rate when urine volume was 130 mL
+He is otherwise healthy only using Vit D 1000 units daily.
+2. His recent blood chemistry (3 days ago) was normal: 
+Hgb: 13.5 g/dl
+WBC: 135000 /mm3
+Plt: 350000 /ml
+PT: 11 second
+PTT: 35 second
+INR: 0.9
+Creatinine: 0.5 mg/dl
+BUN: 10 mg/dl
+U/A:
+Color: yellow
+Appearance: cloudy
+PH: 5.3
+Specific gravity: 1.010
+Glc: 100
+Nitrite: negative
+Ketone: none
+Leukocyte esterase: negative
+RBC: negative
+WBC: 2 WBCs/hpf
+U/C: negative","No: urine culture negative, nitrite and leukocyte esterase negative",2
+48,trec-202124,What does the patient's record say about prior cancer?,"0. The patient is a 55 year old man visiting his primary care physician for lower urinary tract symptoms including frequency, urgency, weak stream, incomplete emptying and intermittent flow for the past 9 months.
+1. Further evaluation revealed:
+IPSS score : 15
+Post-void residual: 70 mL
+Prostate volume (TRUS): 60 mL
+Prostate-specific antigen (PSA) level: 3.2 ng/mL
+10 mL/sec of maximum flow rate when urine volume was 130 mL
+He is otherwise healthy only using Vit D 1000 units daily.
+2. His recent blood chemistry (3 days ago) was normal: 
+Hgb: 13.5 g/dl
+WBC: 135000 /mm3
+Plt: 350000 /ml
+PT: 11 second
+PTT: 35 second
+INR: 0.9
+Creatinine: 0.5 mg/dl
+BUN: 10 mg/dl
+U/A:
+Color: yellow
+Appearance: cloudy
+PH: 5.3
+Specific gravity: 1.010
+Glc: 100
+Nitrite: negative
+Ketone: none
+Leukocyte esterase: negative
+RBC: negative
+WBC: 2 WBCs/hpf
+U/C: negative",None stated; otherwise healthy,1
+49,trec-20215,What does the patient's record say about vessel diameter measures?,"0. 74M hx of CAD s/p CABG, EF 60% prior CVA (no residual deficits), HTN, HL, DMII, Moderate to Severe PVD was referred to cardiology for evaluation of PVD, and on examination patient was found to have carotid bruits.
+1. Upon further review of symptoms the pt reports + Occasional dizziness, no prior syncope occasional HA, Denies CP/SOB.
+2. No sensory or motor defects.
+3. He recalls that he might have had a stroke 10-15 years ago without any residual deficit.
+4. Prior to CABG he only had diaphoresis.
+5. Further review of systems is notable for absence of chest pain, dyspnea on exertion, paroxysmal nocturnal dyspnea, orthopnea, palpitations, syncope or presyncope.
+6. He underwent Carotid U/S that showed significant bilateral carotid stenosis, L>R.
+7. Angiography revealed an 80% stenosis of the R ICA and a 90% L ICA stenosis.
+8. Cerebral angiography further revealed patent right ACA and MCA and patent left ACA and left MCA.
+9. Past Medical History:
+CAD s/p CABG in [**2154**] ([**Hospital1 112**])
+Prior CVA
+Bilateral carotid artery disease
+Anemia
+PVD
+Hypertension
+Diabetes c/b retinopathy and peripheral neuropathy
+Cataracts s/p surgery
+Thyroid nodule
+Colon polyps s/p resection
+Intermittent Lower back pain
+Proteinuria
+s/p right elbow fracture as a child
+Arthritis",80% right ICA and 90% left ICA stenosis,7
+50,trec-202114,What does the patient's record say about body mass index?,"0. 70 y/o with COPD on 2.5-3.5L O2 at baseline, OSA and obesity hypoventilation syndrome, dCHF, discharged [**2132-8-24**] now presents with agitation and altered mental status with hypoxia and O2 sats 70s on BipAp with 5L.
+1. Pt agitated then somnolent at initial presentation.
+2. Daughter reported increased agitation and altered mental status x 2-3 days with O2 sats 60s-70s at home.
+3. Daughter has also noted increased LE edema and weight gain which prompted a phone call to her PCP and increased lasix dose from 80daily to 100mg daily with some mild improvement in edema.
+4. She has had decreased appetite, PO intake, energy level at home with difficulty with ADLs.
+5. No recent history of fever, cough, chills, sputum production, CP, abd pain, or other complaints other than chronic right thigh pain last 1-2 months.
+6. Daughter also reports med compliance and compliance with BiPap at night.
+7. Past Medical History:
+- CAD; s/p 4 vessel CABG in [**2119**]
+- CHF; EF 55%, mild AS
+- obesity hypoventilation syndrome
+- obstructive sleep apnea
+- DM2
+- ventricular tachycardia; s/p ICD in [**2127**]
+- hypothyroidism
+- schizophrenia
+- COPD
+- Pneumona treated in [**4-7**] at [**Hospital1 **]",,
+51,trec-202168,What does the patient's record say about age?,"0. The patient is a 23-year-old man who came to the hospital with high blood pressure (175/95 mmHg) and signs of septicemia.
+1. He developed respiratory failure requiring mechanical ventilation and renal failure requiring hemodialysis.
+2. His blood smear showed microangiopathic hemolytic anemia and thrombocytopenia.
+3. His blood tests revealed elevated lactate dehydrogenase and reduced human complement C3 levels with a normal coagulation profile.
+4. He was diagnosed with atypical hemolytic uremic syndrome.
+5. He was treated with plasma exchange and corticosteroids.
+6. He has been previously vaccinated with meningococcal group ACWY conjugate vaccine and meningococcal group B vaccine.
+7. The genetic survey revealed ADAMTS13 >10%.",23 years old,0
+52,trec-202227,What does the patient's record say about prior scar forming?,"0. A 31-year-old woman comes to the office due to 3 days of rash on her left arm.
+1. The lesion is mildly pruritic but not painful.
+2. She is otherwise healthy and occasionally takes ibuprofen during the first few days of her menstrual period.
+3. Temperature is 37 C, blood pressure is 110/75 mm Hg, and pulse is 95/min.
+4. The lesion is like a target sign known as erythema migrans.
+5. She recently went for an adventure trip in New Hampshire.
+6. The patient is diagnosed with Lyme disease.",None stated; she is otherwise healthy,2
+53,trec-202165,What does the patient's record say about significant pulmonary hepatic or renal disease?,"0. The patient is a 25-year-old man with type 1 diabetes confirmed with molecular analysis 7 years ago.
+1. He presents to the clinic with shortness of breath and fatigue during activities.
+2. He claims mild dyspnea after climbing 3 floors, no dyspnea at rest and no angina (New York Heart Association class 2).
+3. He is diagnosed with cardiomyopathy that will be treated with ACE inhibitors and Beta blockers.
+4. His takes 70/30 Insulin and vitamin D supplements.
+5. His past medical history is not significant for any other medical issues.
+6. His family history is positive for DM type 1 in his uncle and his grandfather.
+7. His lab study is as bellow:
+FBS: 100 mg/dl
+HbA1c: 6.5%
+Cholesterol: 190 mg/dl
+TG: 140 mg/dl
+LDL: 125 mg/dl
+HDL: 40 mg/dl",None; past medical history not significant for other issues,5
+54,trec-20212,What does the patient's record say about aortic valve disease requiring surgery or tavi?,"0. 48 M with a h/o HTN hyperlipidemia, bicuspid aortic valve, and tobacco abuse who presented to his cardiologist on [**2148-10-1**] with progressive SOB and LE edema.
+1. TTE revealed severe aortic stenosis with worsening LV function.
+2. EF was 25%.
+3. RV pressure was 41 and had biatrial enlargement.
+4. Noted to have 2+ aortic insufficiency with mild MR.
+5. He was sent home from cardiology clinic with Lasix and BB (which he did not tolerate), continued to have worsening SOB and LE edema and finally presented here for evaluation.
+6. During this admission repeat echo confirmed critical aortic stenosis showing left ventricular hypertrophy with cavity dilation and severe global hypokinesis, severe aortic valve stenosis with underlying bicuspid aortic valve, dilated ascending aorta, mild pulmonary artery systolic hypertension.
+7. The patient underwent a preop workup for valvular replacement with preop chest CT scan and carotid US (showing moderate heterogeneous plaque with bilateral 1-39% ICA stenosis).
+8. He also underwent a cardiac cath with right heart cath to evaluate his pulm art pressures which showed no angiographically apparent flow-limiting coronary artery disease.",Critical aortic stenosis; preoperative workup for valve replacement,7
+55,trec-202136,What does the patient's record say about waist to hip ratio?,"0. The patient is a 32-year-old obese woman who came to the clinic with weight concerns.
+1. She is 165 cm tall and her weight is 113 kg.
+2. She is complaining of sleep apnea, PCO and dissatisfaction with her body shape.
+3. She is a high-school teacher married for 5 years.
+4. She doesn't use any contraceptive methods for the past 4 months and she had no prior pregnancies.
+5. She doesn't smoke or use any drugs.
+6. She likes to try diets and exercise to lose weight.
+7. She completed the four square step test in 14 seconds.
+8. Her BP: 130/80, HR: 195/min and her BMI is: 41.54.
+9. Her labs:
+FBS: 98 mg/dl
+TG: 150 mg/dl
+Cholesterol: 180 mg/dl
+LDL: 90 mg/dl
+HDL: 35 mg/dl
+Her cardiac assessment is normal.
+10. Her joints and ROM are within  normal.",,
+56,trec-202227,What does the patient's record say about prior antibiotic therapy tick borne disease?,"0. A 31-year-old woman comes to the office due to 3 days of rash on her left arm.
+1. The lesion is mildly pruritic but not painful.
+2. She is otherwise healthy and occasionally takes ibuprofen during the first few days of her menstrual period.
+3. Temperature is 37 C, blood pressure is 110/75 mm Hg, and pulse is 95/min.
+4. The lesion is like a target sign known as erythema migrans.
+5. She recently went for an adventure trip in New Hampshire.
+6. The patient is diagnosed with Lyme disease.",,
+57,trec-202244,What does the patient's record say about prior chemotherapy?,"0. A 48-year-old man comes to the office complaining of heartburn and acid reflux.
+1. He has taken over-the-counter antacids but sees no relief.
+2. Other medical history is unremarkable.
+3. The patient does not use tobacco, alcohol, or illicit drugs.
+4. Vital signs are within normal limits.
+5. BMI is 31 kg/m2.
+6. Physical examination is  positive for mild tenderness in upper stomach.
+7. Chest x-ray shows an air-fluid opacity behind the heart.
+8. A barium swallow study reveals approximately 1/3 of the stomach herniating through the esophageal hiatus.",,
+58,trec-202235,What does the patient's record say about myoma?,"0. A 43-year-old woman, gravida 3 para 3, comes to the clinic complaining of recently painful menstrual cycles.
+1. The patient's last menstrual period was 2 weeks ago.
+2. Urine β-hCG is negative.
+3. Menarche was at age 12, and menstrual periods occur every 28 days and lasts for 5 days.
+4. She is sexually active with her husband and does not have pain with intercourse.
+5. BMI is 23 kg/m2 and Vital signs are normal.
+6. On physical examination, the uterus is uniformly enlarged and tender.
+7. She is candidate for hysterectomy with the diagnosis of adenomyosis.",,
+59,trec-202244,What does the patient's record say about duration of gerd symptoms?,"0. A 48-year-old man comes to the office complaining of heartburn and acid reflux.
+1. He has taken over-the-counter antacids but sees no relief.
+2. Other medical history is unremarkable.
+3. The patient does not use tobacco, alcohol, or illicit drugs.
+4. Vital signs are within normal limits.
+5. BMI is 31 kg/m2.
+6. Physical examination is  positive for mild tenderness in upper stomach.
+7. Chest x-ray shows an air-fluid opacity behind the heart.
+8. A barium swallow study reveals approximately 1/3 of the stomach herniating through the esophageal hiatus.",,
+60,trec-202133,What does the patient's record say about age and menstrual cycle?,"0. A 42-year-old healthy woman came to the clinic to have her flu shot in early October.
+1. She works in a rehab center and has no underlying disease.
+2. It's her first time getting the vaccine  this  year.
+3. She is married for 5 years and uses barrier methods of contraception.
+4. Her menstrual cycle is irregular.
+5. She does not smoke.
+6. She is not on any medications.
+7. She exercises regularly for 30 minutes a day at least 5 days a week.
+8. She has no history of allergies to any food or drugs.
+9. Her past surgical history is significant for tonsillectomy and she is otherwise healthy.",42 years old; menstrual cycle is irregular,0

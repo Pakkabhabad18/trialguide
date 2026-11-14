@@ -1,0 +1,542 @@
+[
+ {
+  "item": 1,
+  "patient_id": "trec-20228",
+  "question": "What does the patient's record say about age?",
+  "doctor_certainty": "probably",
+  "doctor_answer": "7 months",
+  "doctor_quote": "A 7-month-old boy is brought to emergency by his parents due to irritability and inability to defecate for the past 3 days.",
+  "doctor_sentence_id": 0
+ },
+ {
+  "item": 2,
+  "patient_id": "trec-202121",
+  "question": "What does the patient's record say about prior abdominal imaging?",
+  "doctor_certainty": "sure",
+  "doctor_answer": "negative for obstructive pancreatitis",
+  "doctor_quote": "Cross-sectional imaging was negative for obstructive pancreatitis.",
+  "doctor_sentence_id": 10
+ },
+ {
+  "item": 3,
+  "patient_id": "trec-202227",
+  "question": "What does the patient's record say about history of excessive bleeding?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 4,
+  "patient_id": "trec-202218",
+  "question": "What does the patient's record say about prior allergic disease?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 5,
+  "patient_id": "trec-202134",
+  "question": "What does the patient's record say about age?",
+  "doctor_certainty": "probably",
+  "doctor_answer": "47",
+  "doctor_quote": "The patient is a 47-year-old Asian woman complaining of persistent feelings of sadness.",
+  "doctor_sentence_id": 0
+ },
+ {
+  "item": 6,
+  "patient_id": "trec-20228",
+  "question": "What does the patient's record say about prior chemotherapy?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 7,
+  "patient_id": "trec-202142",
+  "question": "What does the patient's record say about prior diabetes?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 8,
+  "patient_id": "trec-20213",
+  "question": "What does the patient's record say about age?",
+  "doctor_certainty": "probably",
+  "doctor_answer": "32",
+  "doctor_quote": "A 32 yo woman who presents following a severe 'exploding' headache.",
+  "doctor_sentence_id": 0
+ },
+ {
+  "item": 9,
+  "patient_id": "trec-20211",
+  "question": "What does the patient's record say about surgical contraindications?",
+  "doctor_certainty": "probably",
+  "doctor_answer": "unresectable",
+  "doctor_quote": "The tumor is located in the T-L spine, unresectable anaplastic astrocytoma s/p radiation.",
+  "doctor_sentence_id": 1
+ },
+ {
+  "item": 10,
+  "patient_id": "trec-20212",
+  "question": "What does the patient's record say about nyha functional class?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 11,
+  "patient_id": "trec-202115",
+  "question": "What does the patient's record say about organ function?",
+  "doctor_certainty": "probably",
+  "doctor_answer": "Chronic kidney disease",
+  "doctor_quote": "Chronic kidney disease (SCr 2.1 in [**3-17**])\n7.",
+  "doctor_sentence_id": 14
+ },
+ {
+  "item": 12,
+  "patient_id": "trec-202228",
+  "question": "What does the patient's record say about clinically significant disease?",
+  "doctor_certainty": "unsure",
+  "doctor_answer": "unsure",
+  "doctor_quote": "She has no other medical conditions and is otherwise healthy.",
+  "doctor_sentence_id": 4
+ },
+ {
+  "item": 13,
+  "patient_id": "trec-20212",
+  "question": "What does the patient's record say about fev1 fvc ratio?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 14,
+  "patient_id": "trec-202149",
+  "question": "What does the patient's record say about tanner stage?",
+  "doctor_certainty": "sure",
+  "doctor_answer": "1",
+  "doctor_quote": "Her breast bulb were in stage 1 with no course hair in the pubic or axillary.",
+  "doctor_sentence_id": 4
+ },
+ {
+  "item": 15,
+  "patient_id": "trec-202237",
+  "question": "What does the patient's record say about symmetric proximal muscle weakness?",
+  "doctor_certainty": "sure",
+  "doctor_answer": "symmetric proximal muscle weakness of the upper and lower extremities",
+  "doctor_quote": "On physical examination, there is symmetric proximal muscle weakness of the upper and lower extremities.",
+  "doctor_sentence_id": 4
+ },
+ {
+  "item": 16,
+  "patient_id": "trec-20212",
+  "question": "What does the patient's record say about age?",
+  "doctor_certainty": "probably",
+  "doctor_answer": "48",
+  "doctor_quote": "48 M with a h/o HTN hyperlipidemia, bicuspid aortic valve, and tobacco abuse who presented to his cardiologist on [**2148-10-1**] with progressive SOB and LE edema.",
+  "doctor_sentence_id": 0
+ },
+ {
+  "item": 17,
+  "patient_id": "trec-202220",
+  "question": "What does the patient's record say about other contraindications?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 18,
+  "patient_id": "trec-202116",
+  "question": "What does the patient's record say about clinical instability exacerbation?",
+  "doctor_certainty": "probably",
+  "doctor_answer": "worsening shortness of breath",
+  "doctor_quote": "79 yo F with multifactorial chronic hypoxemia and dyspnea thought due to diastolic CHF, pulmonary hypertension thought secondary to a chronic ASD and COPD on 5L home oxygen admitted with complaints of worsening shortness of breath.",
+  "doctor_sentence_id": 0
+ },
+ {
+  "item": 19,
+  "patient_id": "trec-202114",
+  "question": "What does the patient's record say about acute copd exacerbation?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 20,
+  "patient_id": "trec-202132",
+  "question": "What does the patient's record say about family history complement regulatory mutation?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 21,
+  "patient_id": "trec-20212",
+  "question": "What does the patient's record say about acute valvular heart disease?",
+  "doctor_certainty": "probably",
+  "doctor_answer": "severe aortic stenosis",
+  "doctor_quote": "TTE revealed severe aortic stenosis with worsening LV function.",
+  "doctor_sentence_id": 1
+ },
+ {
+  "item": 22,
+  "patient_id": "trec-202124",
+  "question": "What does the patient's record say about urinary tract function?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 23,
+  "patient_id": "trec-202113",
+  "question": "What does the patient's record say about physical or cognitive impairments?",
+  "doctor_certainty": "probably",
+  "doctor_answer": "altered mental status",
+  "doctor_quote": "62 yo male with hx of CVA, neurogenic bladder with indwelling suprapubic catheter with multiple prior admissions for UTIs, altered mental status, and urosepsis presents to the hospital in urosepsis now resolved after treatment with vanc/meropenem.",
+  "doctor_sentence_id": 0
+ },
+ {
+  "item": 24,
+  "patient_id": "trec-202116",
+  "question": "What does the patient's record say about age?",
+  "doctor_certainty": "probably",
+  "doctor_answer": "79 yo",
+  "doctor_quote": "79 yo F with multifactorial chronic hypoxemia and dyspnea thought due to diastolic CHF, pulmonary hypertension thought secondary to a chronic ASD and COPD on 5L home oxygen admitted with complaints of worsening shortness of breath.",
+  "doctor_sentence_id": 0
+ },
+ {
+  "item": 25,
+  "patient_id": "trec-202121",
+  "question": "What does the patient's record say about questionnaire survey follow up?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 26,
+  "patient_id": "trec-202132",
+  "question": "What does the patient's record say about prior chemotherapy?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 27,
+  "patient_id": "trec-202225",
+  "question": "What does the patient's record say about chronic medical illness?",
+  "doctor_certainty": "sure",
+  "doctor_answer": "obesity, hyperlipidemia, diabetes mellitus",
+  "doctor_quote": "Past medical history is significant for obesity, hyperlipidemia, and diabetes mellitus.",
+  "doctor_sentence_id": 1
+ },
+ {
+  "item": 28,
+  "patient_id": "trec-202165",
+  "question": "What does the patient's record say about age?",
+  "doctor_certainty": "probably",
+  "doctor_answer": "25",
+  "doctor_quote": "The patient is a 25-year-old man with type 1 diabetes confirmed with molecular analysis 7 years ago.",
+  "doctor_sentence_id": 0
+ },
+ {
+  "item": 29,
+  "patient_id": "trec-202149",
+  "question": "What does the patient's record say about age?",
+  "doctor_certainty": "probably",
+  "doctor_answer": "12 years old",
+  "doctor_quote": "A 12 year old girl came to the clinic with her mother, complaining of short stature, delayed in puberty and developmental delay.",
+  "doctor_sentence_id": 0
+ },
+ {
+  "item": 30,
+  "patient_id": "sigir-201525",
+  "question": "What does the patient's record say about prior clinical trial drugs?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 31,
+  "patient_id": "trec-202148",
+  "question": "What does the patient's record say about prior nail disorders?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 32,
+  "patient_id": "trec-202244",
+  "question": "What does the patient's record say about clinically significant disease other than gerd?",
+  "doctor_certainty": "probably",
+  "doctor_answer": "hiatal hernia",
+  "doctor_quote": "A barium swallow study reveals approximately 1/3 of the stomach herniating through the esophageal hiatus.",
+  "doctor_sentence_id": 8
+ },
+ {
+  "item": 33,
+  "patient_id": "trec-20225",
+  "question": "What does the patient's record say about valvular coronary myocardial conductive abnormality?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 34,
+  "patient_id": "trec-202121",
+  "question": "What does the patient's record say about time from debut of symptoms to inclusion?",
+  "doctor_certainty": "probably",
+  "doctor_answer": "20 hours",
+  "doctor_quote": "The pain started gradually about 20 hours ago in the epigastric and periumbilical regions, radiating to his back.",
+  "doctor_sentence_id": 1
+ },
+ {
+  "item": 35,
+  "patient_id": "sigir-201525",
+  "question": "What does the patient's record say about creatinine clearance?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 36,
+  "patient_id": "trec-202149",
+  "question": "What does the patient's record say about karyotype result?",
+  "doctor_certainty": "sure",
+  "doctor_answer": "45X",
+  "doctor_quote": "Her karyotype study revealed 45X and confirmed the diagnosis of Turner syndrome.",
+  "doctor_sentence_id": 1
+ },
+ {
+  "item": 37,
+  "patient_id": "trec-202116",
+  "question": "What does the patient's record say about physical or mental disability preventing participation?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 38,
+  "patient_id": "trec-202220",
+  "question": "What does the patient's record say about inguinal hernia?",
+  "doctor_certainty": "sure",
+  "doctor_answer": "A swelling above the inguinal ligament",
+  "doctor_quote": "Physical examination shows a swelling above the inguinal ligament.",
+  "doctor_sentence_id": 1
+ },
+ {
+  "item": 39,
+  "patient_id": "trec-20211",
+  "question": "What does the patient's record say about prior chemotherapy?",
+  "doctor_certainty": "probably",
+  "doctor_answer": "11 cycles of temozolomide 7 days on and 7 days off",
+  "doctor_quote": "Therapy included field radiation t10-l1 followed by 11 cycles of temozolomide 7 days on and 7 days off.",
+  "doctor_sentence_id": 5
+ },
+ {
+  "item": 40,
+  "patient_id": "trec-202121",
+  "question": "What does the patient's record say about clinical signs symptoms sepsis? Is there anything more definite in the record?",
+  "doctor_certainty": "probably",
+  "doctor_answer": "tender abdomen",
+  "doctor_quote": "The abdomen is tender and soft.",
+  "doctor_sentence_id": 6
+ },
+ {
+  "item": 41,
+  "patient_id": "trec-202132",
+  "question": "What does the patient's record say about prior ibd diagnosis?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 42,
+  "patient_id": "trec-202141",
+  "question": "What does the patient's record say about neurodegenerative disease?",
+  "doctor_certainty": "sure",
+  "doctor_answer": "Parkinson's disease",
+  "doctor_quote": "A 57-year old farmer was diagnosed with Parkinson's disease a year ago.",
+  "doctor_sentence_id": 0
+ },
+ {
+  "item": 43,
+  "patient_id": "trec-20212",
+  "question": "What does the patient's record say about pulmonary hypertension type?",
+  "doctor_certainty": "sure",
+  "doctor_answer": "mild pulmonary artery systolic hypertension",
+  "doctor_quote": "During this admission repeat echo confirmed critical aortic stenosis showing left ventricular hypertrophy with cavity dilation and severe global hypokinesis, severe aortic valve stenosis with underlying bicuspid aortic valve, dilated ascending aorta, mild pulmonary artery systolic hypertension.",
+  "doctor_sentence_id": 6
+ },
+ {
+  "item": 44,
+  "patient_id": "trec-202124",
+  "question": "What does the patient's record say about cause of lower urinary tract obstruction?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 45,
+  "patient_id": "trec-20211",
+  "question": "What does the patient's record say about tumor type?",
+  "doctor_certainty": "probably",
+  "doctor_answer": "anaplastic astrocytoma",
+  "doctor_quote": "MRI showed a spinal cord conus mass which was biopsied and found to be anaplastic astrocytoma.",
+  "doctor_sentence_id": 4
+ },
+ {
+  "item": 46,
+  "patient_id": "trec-202121",
+  "question": "What does the patient's record say about follow up status?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 47,
+  "patient_id": "trec-202124",
+  "question": "What does the patient's record say about urinary tract infection?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 48,
+  "patient_id": "trec-202124",
+  "question": "What does the patient's record say about prior cancer?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 49,
+  "patient_id": "trec-20215",
+  "question": "What does the patient's record say about vessel diameter measures?",
+  "doctor_certainty": "probably",
+  "doctor_answer": "80% stenosis of the R ICA and a 90% L ICA stenosis",
+  "doctor_quote": "Angiography revealed an 80% stenosis of the R ICA and a 90% L ICA stenosis.",
+  "doctor_sentence_id": 7
+ },
+ {
+  "item": 50,
+  "patient_id": "trec-202114",
+  "question": "What does the patient's record say about body mass index?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 51,
+  "patient_id": "trec-202168",
+  "question": "What does the patient's record say about age?",
+  "doctor_certainty": "probably",
+  "doctor_answer": "23 years",
+  "doctor_quote": "The patient is a 23-year-old man who came to the hospital with high blood pressure (175/95\u2009mmHg) and signs of septicemia.",
+  "doctor_sentence_id": 0
+ },
+ {
+  "item": 52,
+  "patient_id": "trec-202227",
+  "question": "What does the patient's record say about prior scar forming?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 53,
+  "patient_id": "trec-202165",
+  "question": "What does the patient's record say about significant pulmonary hepatic or renal disease?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 54,
+  "patient_id": "trec-20212",
+  "question": "What does the patient's record say about aortic valve disease requiring surgery or tavi?",
+  "doctor_certainty": "sure",
+  "doctor_answer": "severe aortic stenosis",
+  "doctor_quote": "TTE revealed severe aortic stenosis with worsening LV function.",
+  "doctor_sentence_id": 1
+ },
+ {
+  "item": 55,
+  "patient_id": "trec-202136",
+  "question": "What does the patient's record say about waist to hip ratio?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 56,
+  "patient_id": "trec-202227",
+  "question": "What does the patient's record say about prior antibiotic therapy tick borne disease?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 57,
+  "patient_id": "trec-202244",
+  "question": "What does the patient's record say about prior chemotherapy?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 58,
+  "patient_id": "trec-202235",
+  "question": "What does the patient's record say about myoma?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 59,
+  "patient_id": "trec-202244",
+  "question": "What does the patient's record say about duration of gerd symptoms?",
+  "doctor_certainty": "not_documented",
+  "doctor_answer": "",
+  "doctor_quote": null,
+  "doctor_sentence_id": null
+ },
+ {
+  "item": 60,
+  "patient_id": "trec-202133",
+  "question": "What does the patient's record say about age and menstrual cycle?",
+  "doctor_certainty": "probably",
+  "doctor_answer": "42 years, irregular",
+  "doctor_quote": "A 42-year-old healthy woman came to the clinic to have her flu shot in early October.",
+  "doctor_sentence_id": 0
+ }
+]
