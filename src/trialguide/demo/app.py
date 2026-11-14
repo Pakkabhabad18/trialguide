@@ -32,6 +32,10 @@ from trialguide.schemas import Certainty
 
 CERTAINTY = {"Sure": Certainty.SURE, "Probably": Certainty.PROBABLY, "Unsure": Certainty.UNSURE}
 SESSIONS_DIR = Path("outputs/demo_sessions")
+# Shown first: its three questions (a Kawasaki-like disease, age, a beta-lactam allergy) each settle
+# rules plainly. Two other recorded patients open with the "prior chemotherapy" question that the
+# copied fact_key produces (results/test_run/error_analysis.md), so they come after it.
+FIRST_PATIENT = "sigir-201529"
 
 
 def build(bundle_path: Path, live: bool = False, model: str = "Qwen/Qwen3-8B"):
@@ -48,7 +52,12 @@ def build(bundle_path: Path, live: bool = False, model: str = "Qwen/Qwen3-8B"):
     if meta.get("prior") and Path(meta["prior"]).exists():
         from trialguide.selector.answerability import load
         p_answer = load(Path(meta["prior"]))
-    ids = sorted(patients)
+    ids = sorted(patients, key=lambda p: (p != FIRST_PATIENT, p))
+
+    def label(pid):
+        """Dropdown text: the patient id and the start of the visible note, so patients are recognisable."""
+        first = next(iter(patient_note(patients[pid], pid).sentences.values()), "")
+        return f"{pid} · {first[:70]}{'…' if len(first) > 70 else ''}"
 
     def gold_of(pid):
         return {t["trial_id"]: int(t.get("gold", 0)) for t in patients[pid]["trials"]}
@@ -57,7 +66,7 @@ def build(bundle_path: Path, live: bool = False, model: str = "Qwen/Qwen3-8B"):
         """Every panel of the page for the current state."""
         p = patients[pid]
         if s is None:
-            empty = '<div class="tg-card" style="color:#64748b">The ranking appears here after the check.</div>'
+            empty = render.intro_html()
             return (s, render.stepper(None), "", empty, render.question_html(None), render.timeline_html(None),
                     render.note_html(p, None, reveal), gr.update(choices=[], value=None), "",
                     gr.update(interactive=False))
@@ -80,6 +89,8 @@ def build(bundle_path: Path, live: bool = False, model: str = "Qwen/Qwen3-8B"):
     def answer(s, pid, value, certainty, reveal, trial):
         if s is None or s.question is None:
             raise gr.Error("Press 'Check this patient' first, or the conversation is over.")
+        if value is None:                              # no default answer: the doctor must choose
+            raise gr.Error("Choose Yes, No or Not documented first.")
         if value == "Not documented":
             v, c = "", Certainty.NOT_DOCUMENTED
         else:
@@ -107,17 +118,18 @@ def build(bundle_path: Path, live: bool = False, model: str = "Qwen/Qwen3-8B"):
         state = gr.State(None)
         gr.HTML(render.hero(meta, live))
         with gr.Row(equal_height=True):
-            pid = gr.Dropdown(ids, value=ids[0], label="Development patient", scale=3)
+            pid = gr.Dropdown([(label(i), i) for i in ids], value=ids[0], label="Development patient", scale=3)
             reveal = gr.Checkbox(False, label="Reveal what only the doctor knows", scale=2)
             go = gr.Button("Check this patient", variant="primary", scale=2, size="lg")
         steps = gr.HTML(render.stepper(None))
         tiles = gr.HTML("")
         with gr.Row():
             with gr.Column(scale=6):
-                trials = gr.HTML('<div class="tg-card" style="color:#64748b">The ranking appears here after the check.</div>')
+                trials = gr.HTML(render.intro_html())
             with gr.Column(scale=4):
                 question = gr.HTML(render.question_html(None))
-                value = gr.Radio(["Yes", "No", "Not documented"], value="Yes", label="Your answer as the doctor")
+                value = gr.Radio(["Yes", "No", "Not documented"], value=None, label="Your answer as the doctor",
+                                 info="Answer from the patient's full record (tick 'Reveal' to see it)")
                 certainty = gr.Radio(list(CERTAINTY), value="Sure", label="How sure are you?",
                                      info="Probably → treated like an inference; Unsure → one follow-up question")
                 send = gr.Button("Send answer", variant="primary", interactive=False)
@@ -128,9 +140,10 @@ def build(bundle_path: Path, live: bool = False, model: str = "Qwen/Qwen3-8B"):
             with gr.Column(scale=6):
                 pick = gr.Dropdown(label="Look inside a trial", choices=[])
                 rules = gr.HTML("")
-        with gr.Row():
-            save_btn = gr.Button("Save this session")
-            saved = gr.File(label="Session log (JSON)", height=90)
+        with gr.Accordion("For researchers: save this session as JSON", open=False):
+            with gr.Row():
+                save_btn = gr.Button("Save this session")
+                saved = gr.File(label="Session log (JSON)", height=90)
 
         outputs = [state, steps, tiles, trials, question, timeline, note, pick, rules, send]
         go.click(start, [pid, reveal], outputs)

@@ -1,0 +1,2 @@
+# Gradio itself is installed by the Space (sdk_version in README.md); this adds the TrialGuide code.
+trialguide @ git+https://github.com/Pakkabhabad18/trialguide.git@main

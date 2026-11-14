@@ -141,3 +141,20 @@ def test_session_record_and_page_pieces():
     page = render.trials_html(s, p) + render.kpis(s, gold) + render.timeline_html(s) + render.rules_html(s, "t1")
     assert "One" in page and "inc_1" in page and "NDCG@10" in page
     assert "finished" in render.question_html(s)
+
+
+# ---- page polish (14 Nov) ----
+
+def test_effect_summary_folds_long_lists():
+    from trialguide.demo.render import _effect_summary
+    settled = [("NCT1", f"inc_{i}", "not_enough_info", "met") for i in range(5)] + [("NCT2", "exc_0", "not_enough_info", "not_met")]
+    html = _effect_summary(settled)
+    assert "changed 6 rules in 2 trials" in html and "5 met" in html and "1 not met" in html
+    assert "<details>" in html                    # the rule-by-rule list is folded away
+    assert "no rule changed" in _effect_summary([])
+
+
+def test_empty_criteria_are_labelled():
+    from trialguide.demo.render import criterion_text
+    assert "empty criterion" in criterion_text(":")
+    assert criterion_text("Age > 18 years") == "Age &gt; 18 years"
