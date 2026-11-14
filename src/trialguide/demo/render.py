@@ -75,6 +75,21 @@ CSS = """
 .tg-rules th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#64748b;padding:0 10px}
 .tg-conf{height:6px;background:#e2e8f0;border-radius:4px;width:70px;overflow:hidden;display:inline-block;vertical-align:middle}
 .tg-conf i{display:block;height:100%}
+.tg-intro{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px}
+.tg-intro .c{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:16px;color:#0f172a}
+.tg-intro .c h4{margin:0 0 6px;font-size:15px}
+.tg-intro .c p{margin:0;font-size:13px;color:#475569;line-height:1.45}
+.tg-try{background:#fffbeb;border:1px solid #fde68a;border-radius:14px;padding:12px 16px;font-size:14px;color:#78350f}
+.tg-turn details{margin-top:6px}
+.tg-turn summary{cursor:pointer;color:#4338ca;font-weight:600;font-size:12px}
+.tg-empty{color:#94a3b8;font-style:italic}
+@media (max-width:760px){
+  .tg-hero{padding:18px}.tg-hero h1{font-size:26px}
+  .tg-intro{grid-template-columns:1fr}
+  .tg-trial{grid-template-columns:34px 1fr}.tg-trial>div:last-child{grid-column:1/-1}
+  .tg-step{min-width:0;flex:1 1 45%}
+  .tg-rules{font-size:12px}.tg-rules td{padding:6px}
+}
 """
 
 
@@ -234,11 +249,45 @@ def timeline_html(session: DemoSession | None) -> str:
         return '<div class="tg-card"><h3>Conversation</h3><div style="color:#64748b;font-size:13px">No questions yet.</div></div>'
     items = []
     for n, t in enumerate(session.turns, 1):
-        effects = "".join(f'<span class="tg-chip">{escape(tr)} {escape(r)}: {escape(a)} → {escape(b)}</span>'
-                          for tr, r, a, b in t.settled) or '<span class="tg-chip">no rule changed</span>'
         items.append(f'<div class="tg-turn"><b>Q{n}.</b> {escape(t.question)}<br><b>You:</b> {escape(t.answer)} '
-                     f'{_tag(t.certainty, COLOURS["answered"])}<br>{effects}</div>')
+                     f'{_tag(t.certainty, COLOURS["answered"])}<br>{_effect_summary(t.settled)}</div>')
     return '<div class="tg-card"><h3>Conversation</h3>' + "".join(items) + "</div>"
+
+
+def _effect_summary(settled: list) -> str:
+    """One line saying what an answer changed, with the rule-by-rule list folded away underneath."""
+    if not settled:
+        return '<span class="tg-chip">no rule changed</span>'
+    trials = len({tr for tr, _, _, _ in settled})
+    to = {}
+    for _, _, _, new in settled:
+        to[new] = to.get(new, 0) + 1
+    parts = ", ".join(f"{k} {v.replace('_', ' ')}" for v, k in sorted(to.items(), key=lambda x: -x[1]))
+    chips = "".join(f'<span class="tg-chip">{escape(tr)} {escape(r)}: {escape(a.replace("_", " "))} → '
+                    f'{escape(b.replace("_", " "))}</span>' for tr, r, a, b in settled)
+    return (f'<span class="tg-chip">changed {len(settled)} rule{"s" if len(settled) != 1 else ""} in {trials} '
+            f'trial{"s" if trials != 1 else ""}: {escape(parts)}</span>'
+            f'<details><summary>show each rule</summary>{chips}</details>')
+
+
+def criterion_text(text: str) -> str:
+    """The rule text, or a plain label when the trial text left an empty criterion (e.g. ":")."""
+    if sum(ch.isalpha() for ch in text or "") < 3:
+        return '<span class="tg-empty">(empty criterion, left over from the trial text)</span>'
+    return escape(text)
+
+
+def intro_html() -> str:
+    """Shown before the first check: what the system does, and what to try."""
+    cards = [("Infer", "If the note gives evidence, the model infers the missing fact and cites the sentence. "
+                       "Inferences that would make a patient look eligible must pass risk control (λ)."),
+             ("Ask", "Otherwise it may ask the doctor: at most 3 questions, one at a time, each chosen for how "
+                     "much its answer can change the top of the trial ranking."),
+             ("Abstain", "If neither is safe, the rule stays open and is reported as open, never guessed.")]
+    return ('<div class="tg-intro">' + "".join(f'<div class="c"><h4>{h}</h4><p>{p}</p></div>' for h, p in cards)
+            + '</div><div class="tg-try"><b>Try it:</b> pick a patient and press <b>Check this patient</b>. '
+              'Grey bars in the note are sentences the system cannot see. Answer its questions as the doctor '
+              'and watch the trials move against plain abstention (B6).</div>')
 
 
 def rules_html(session: DemoSession | None, trial_id: str | None) -> str:
@@ -252,7 +301,7 @@ def rules_html(session: DemoSession | None, trial_id: str | None) -> str:
         rows.append(
             f'<tr><td><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:{colour}"></span> '
             f'<b>{escape(row["rule"])}</b><div style="color:#64748b;font-size:11px">{escape(row["kind"])}</div></td>'
-            f'<td>{escape(row["text"])}</td><td>{escape(row["status"].replace("_", " "))}'
+            f'<td>{criterion_text(row["text"])}</td><td>{escape(row["status"].replace("_", " "))}'
             f'<div style="color:#64748b;font-size:11px">{escape(row["category"])}</div></td>'
             f'<td>{escape(row["decision"].replace("_", " "))}</td>'
             f'<td><span class="tg-conf"><i style="width:{conf * 100:.0f}%;background:{colour}"></i></span> {conf:.2f}</td>'
