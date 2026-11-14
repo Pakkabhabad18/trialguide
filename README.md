@@ -11,6 +11,8 @@ Team Zenith · Language Models and Agents (CL3410), Monsoon 2026 · IIIT Hyderab
 | Prateek Singh | 2026701041 |
 | Vidur Shah | 2026909004 |
 
+**Live demo:** [huggingface.co/spaces/Pakkabhabad18/trialguide](https://huggingface.co/spaces/Pakkabhabad18/trialguide) (play the doctor; runs in the browser, no install)
+
 Proposal: [`docs/proposal/Zenith.pdf`](docs/proposal/Zenith.pdf)
 
 ## The problem
@@ -132,7 +134,7 @@ python -m trialguide.data.download
 
 ## Demo
 
-A small web page where you play the doctor: pick a development patient, see what TrialGuide can and cannot see, answer its questions one at a time, and watch the trial ranking change next to plain abstention (B6).
+Try it online: [huggingface.co/spaces/Pakkabhabad18/trialguide](https://huggingface.co/spaces/Pakkabhabad18/trialguide). It is a small web page where you play the doctor: pick a development patient, see what TrialGuide can and cannot see, answer its questions one at a time, and watch the trial ranking change next to plain abstention (B6).
 
 A recorded bundle for 3 development patients is included (`demo/demo_bundle.json`: real Qwen3-8B checks at λ̂ = 0.766, every answer path recorded), so the demo runs on a laptop without a GPU:
 
