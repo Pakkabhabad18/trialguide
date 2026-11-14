@@ -75,4 +75,7 @@ B7's harmful rate is below alpha = 5% on test, but the upper end of its CI is ab
   (A5) and risk control (A6) make no measurable difference on test.
 
 Files: `ndcg_table.json`, `recovery.json`, `risk_test.json`, `systems_B6_B2_B5.json`,
-`asking.json`, `asking_A5.json`, `asking_B3.json`, `turns_asking.jsonl`, `manifest.json`.
+`asking.json`, `asking_A5.json`, `asking_B3.json`, `manifest.json`; for error analysis: `checks_full.jsonl`
+and `checks_rule40.jsonl` (checker on every rule, full and masked notes), `turns_asking.jsonl`,
+`turns_A5.jsonl`, `turns_B3.jsonl` (every question and answer) and `final_{system}.json` (final
+status of every rule per patient).
