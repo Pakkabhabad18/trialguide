@@ -1,0 +1,187 @@
+{
+ "run": "results/test_run",
+ "reference": "checker on the full note (model-derived)",
+ "lost_rules": 3728,
+ "outcomes": {
+  "still open": 2647,
+  "wrong toward exclusion": 167,
+  "recovered": 844,
+  "wrong toward eligibility": 70
+ },
+ "by_how_settled": {
+  "doctor answer": {
+   "rules": 97,
+   "recovered": 0.865979381443299,
+   "wrong toward eligibility": 0.010309278350515464,
+   "wrong toward exclusion": 0.12371134020618557,
+   "still open": 0.0
+  },
+  "inference": {
+   "rules": 984,
+   "recovered": 0.7723577235772358,
+   "wrong toward eligibility": 0.0701219512195122,
+   "wrong toward exclusion": 0.15752032520325204,
+   "still open": 0.0
+  }
+ },
+ "by_rule_type": {
+  "age": {
+   "rules": 332,
+   "recovered": 0.3373493975903614,
+   "wrong toward eligibility": 0.012048192771084338,
+   "wrong toward exclusion": 0.11144578313253012,
+   "still open": 0.5391566265060241
+  },
+  "condition or other": {
+   "rules": 2364,
+   "recovered": 0.2305414551607445,
+   "wrong toward eligibility": 0.02030456852791878,
+   "wrong toward exclusion": 0.04060913705583756,
+   "still open": 0.7085448392554992
+  },
+  "consent or compliance": {
+   "rules": 216,
+   "recovered": 0.06018518518518518,
+   "wrong toward eligibility": 0.004629629629629629,
+   "wrong toward exclusion": 0.023148148148148147,
+   "still open": 0.9120370370370371
+  },
+  "lab or vital value": {
+   "rules": 136,
+   "recovered": 0.25735294117647056,
+   "wrong toward eligibility": 0.029411764705882353,
+   "wrong toward exclusion": 0.04411764705882353,
+   "still open": 0.6691176470588235
+  },
+  "pregnancy": {
+   "rules": 126,
+   "recovered": 0.14285714285714285,
+   "wrong toward eligibility": 0.007936507936507936,
+   "wrong toward exclusion": 0.007936507936507936,
+   "still open": 0.8412698412698413
+  },
+  "prior treatment": {
+   "rules": 554,
+   "recovered": 0.2184115523465704,
+   "wrong toward eligibility": 0.021660649819494584,
+   "wrong toward exclusion": 0.039711191335740074,
+   "still open": 0.720216606498195
+  }
+ },
+ "by_rule_kind": {
+  "exclusion": {
+   "rules": 1978,
+   "recovered": 0.12891809908998988,
+   "wrong toward eligibility": 0.011627906976744186,
+   "wrong toward exclusion": 0.019716885743174924,
+   "still open": 0.839737108190091
+  },
+  "inclusion": {
+   "rules": 1750,
+   "recovered": 0.3365714285714286,
+   "wrong toward eligibility": 0.026857142857142857,
+   "wrong toward exclusion": 0.07314285714285715,
+   "still open": 0.5634285714285714
+  }
+ },
+ "questions_B7": {
+  "questions": 194,
+  "by_certainty": {
+   "probably": 35,
+   "not_documented": 136,
+   "unsure": 3,
+   "sure": 20
+  },
+  "settled_at_least_one_rule": 51,
+  "most_frequent_fact_key": "chemotherapy",
+  "most_frequent_count": 63,
+  "most_frequent_rules_per_question": 13.253968253968255,
+  "most_frequent_not_documented": 61,
+  "other_questions": 131,
+  "other_not_documented": 75,
+  "share_of_all_not_documented_from_most_frequent": 0.4485294117647059
+ },
+ "case_studies": {
+  "correct_inference": {
+   "patient_id": "sigir-201410",
+   "rule": "NCT00471289|exc_19",
+   "kind": "exclusion",
+   "rule_text": "Patients without (expected) distal runoff to the index site",
+   "full_note_status": "not_met",
+   "b7_status": "not_met",
+   "b7_category": "inferred",
+   "masked_explanation": "The patient has loss of distal pulses and a pulsatile mass in the right groin, which suggests occlusion or significant impairment of distal runoff to the index site.",
+   "masked_evidence": [
+    "She is now complaining of a cool right foot.",
+    "Upon examination she has a pulsatile mass in her right groin with loss of distal pulses, and auscultation reveals a bruit over the point at which the right femoral artery was entered."
+   ],
+   "full_note_evidence": [
+    "A physician is called to see a 67-year-old woman who underwent cardiac catheterization via the right femoral artery earlier in the morning.",
+    "She is now complaining of a cool right foot.",
+    "Upon examination she has a pulsatile mass in her right groin with loss of distal pulses, and auscultation reveals a bruit over the point at which the right femoral artery was entered."
+   ],
+   "full_note_evidence_hidden": false
+  },
+  "inference_wrong_toward_eligibility": {
+   "patient_id": "sigir-201410",
+   "rule": "NCT00736086|inc_15",
+   "kind": "inclusion",
+   "rule_text": "History of ipsilateral femoral arterial puncture within previous three months or history of vascular closure device deployment in ipsilateral femoral artery at any time.",
+   "full_note_status": "not_met",
+   "b7_status": "met",
+   "b7_category": "inferred",
+   "masked_explanation": "The presence of a pulsatile mass in the right groin with loss of distal pulses and a bruit over the point of femoral artery entry suggests a history of ipsilateral femoral arterial puncture.",
+   "masked_evidence": [
+    "Upon examination she has a pulsatile mass in her right groin with loss of distal pulses, and auscultation reveals a bruit over the point at which the right femoral artery was entered."
+   ],
+   "full_note_evidence": [
+    "A physician is called to see a 67-year-old woman who underwent cardiac catheterization via the right femoral artery earlier in the morning."
+   ],
+   "full_note_evidence_hidden": true
+  },
+  "left_open_evidence_hidden": {
+   "patient_id": "sigir-201410",
+   "rule": "NCT00471289|exc_11",
+   "kind": "exclusion",
+   "rule_text": "Known allergy to contrast media",
+   "full_note_status": "not_met",
+   "b7_status": "not_enough_info",
+   "b7_category": "missing",
+   "masked_explanation": "The note does not mention any known allergy to contrast media.",
+   "masked_evidence": [],
+   "full_note_evidence": [
+    "A physician is called to see a 67-year-old woman who underwent cardiac catheterization via the right femoral artery earlier in the morning."
+   ],
+   "full_note_evidence_hidden": true
+  },
+  "question_that_settled_rules": {
+   "patient_id": "sigir-201410",
+   "text": "What does the patient's record say about age?",
+   "certainty": "probably",
+   "answer": "67",
+   "quote": "A physician is called to see a 67-year-old woman who underwent cardiac catheterization via the right femoral artery earlier in the morning.",
+   "settled": 2,
+   "rules_merged": 2,
+   "rule_texts": [
+    "Patients less than 18 years of age",
+    "age 19-90 years"
+   ]
+  },
+  "wasted_question": {
+   "patient_id": "sigir-201410",
+   "text": "What does the patient's record say about prior chemotherapy?",
+   "certainty": "not_documented",
+   "answer": "",
+   "quote": null,
+   "settled": 0,
+   "rules_merged": 26,
+   "rule_texts": [
+    "Age > 18 years",
+    "Patient is willing and able to comply with the specified follow-up evaluation",
+    "Stenotic (>50% luminal loss) or occluded infrapopliteal artery, including the tibiofibular trunk, the anterior tibial artery, the posterior tibial artery and the peroneal artery, with a lesion length ≤ 60 mm",
+    "Subacute limb ischaemia which requires thrombolysis as first treatment modality",
+    "Life expectancy of less than 6 months or other factors making clinical follow-up difficult"
+   ]
+  }
+ }
+}
