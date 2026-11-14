@@ -7,7 +7,8 @@ import json
 from pathlib import Path
 from statistics import mean
 
-from trialguide.data.masking import mask_random
+import numpy as np
+
 from trialguide.data.dev_only import load_dev_gold_grades, load_dev_patients
 from trialguide.eval.ranking import per_patient_metrics
 from trialguide.retrieval import (
@@ -21,10 +22,10 @@ from trialguide.retrieval.corpus import SUPPORTED_COHORTS, load_trial_corpus
 from trialguide.retrieval.medcpt import (
     MedCPTConfig,
     build_medcpt_query,
-    get_or_build_corpus_index,
+    load_corpus_index,
     make_medcpt_scorer,
 )
-from trialguide.schemas import Split
+from trialguide.schemas import Split, VisibleNote
 
 SYSTEMS = (
     "keyword",
@@ -42,6 +43,80 @@ SYSTEM_LABELS = {
     "keyword_bm25_medcpt_rrf": "Keyword + BM25 + MedCPT RRF",
     "bm25_medcpt_rrf": "BM25 + MedCPT RRF",
 }
+KS = (10, 100, 1000)
+
+
+def load_rule_manifest(path: Path, patients: dict) -> dict:
+    """Load the DEV rule-mask manifest and validate every patient entry before masking."""
+    try:
+        manifest = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"cannot read DEV rule-mask manifest {path}: {exc}") from exc
+    if manifest.get("split") != "dev" or manifest.get("mask") != "rule" or manifest.get("fraction") != 0.4:
+        raise ValueError("DEV manifest must specify split='dev', mask='rule', fraction=0.4")
+    entries = manifest.get("patients")
+    if not isinstance(entries, dict):
+        raise ValueError("DEV manifest is missing its patients mapping")
+    for patient_id, patient in patients.items():
+        if getattr(patient.split, "value", patient.split) != "dev":
+            raise ValueError(f"DEV manifest patient {patient_id!r} is not a DEV patient")
+        entry = entries.get(patient_id)
+        if not isinstance(entry, dict):
+            raise ValueError(f"DEV manifest is missing patient {patient_id!r}")
+        if entry.get("cohort") != patient.cohort:
+            raise ValueError(f"DEV manifest cohort mismatch for patient {patient_id!r}")
+        hidden_ids = entry.get("hidden_ids")
+        if (not isinstance(hidden_ids, list)
+                or any(type(i) is not int for i in hidden_ids)
+                or len(set(hidden_ids)) != len(hidden_ids)
+                or any(i not in patient.sentences for i in hidden_ids)):
+            raise ValueError(f"DEV manifest has invalid hidden sentence IDs for patient {patient_id!r}")
+        if entry.get("sentences") != len(patient.sentences) or entry.get("hidden") != len(hidden_ids):
+            raise ValueError(f"DEV manifest sentence counts mismatch for patient {patient_id!r}")
+    extra = set(entries) - set(patients)
+    if extra:
+        raise ValueError(f"DEV manifest contains patient absent from DEV data: {sorted(extra)[0]!r}")
+    return manifest
+
+
+def visible_from_manifest(patient, hidden_ids: list[int]) -> VisibleNote:
+    """Apply exact hidden IDs while retaining IDs and the patient/split metadata."""
+    from trialguide.schemas import MaskType
+    hidden = set(hidden_ids)
+    return VisibleNote(patient.patient_id, patient.split,
+                       {i: text for i, text in patient.sentences.items() if i not in hidden},
+                       MaskType.RULE, 0.4)
+
+
+def retrieval_scores(ranking: list[RetrievalResult], eligible: set[str]) -> dict:
+    """Compute the shared retrieval_check recall@K and P@10 definitions."""
+    ids = [item.trial_id for item in ranking]
+    return {**{f"recall@{k}": len(eligible & set(ids[:k])) / len(eligible) for k in KS},
+            "P@10": len(eligible & set(ids[:10])) / 10}
+
+
+def _mean_ci(values):
+    from trialguide.eval.stats import paired_bootstrap
+    arr = np.asarray(values, dtype=float)
+    boot = paired_bootstrap({"x": arr}, lambda d: d["x"].mean(axis=-1))
+    return {"estimate": float(arr.mean()), "ci95": [boot.low, boot.high]}
+
+
+def aggregate_medcpt_comparison(rows: list[dict]) -> dict:
+    """Return aggregate-only full/visible metrics and paired patient-bootstrap CIs."""
+    from trialguide.eval.stats import paired_bootstrap
+    if not rows:
+        return {metric: None for metric in [f"recall@{k}" for k in KS] + ["P@10"]}
+    out = {}
+    for metric in [f"recall@{k}" for k in KS] + ["P@10"]:
+        full = np.asarray([row["full"][metric] for row in rows], dtype=float)
+        visible = np.asarray([row["visible"][metric] for row in rows], dtype=float)
+        delta = paired_bootstrap({"f": full, "v": visible},
+                                 lambda d: d["v"].mean(axis=-1) - d["f"].mean(axis=-1))
+        out[metric] = {"full": _mean_ci(full), "visible": _mean_ci(visible),
+                       "visible_minus_full": delta.estimate,
+                       "visible_minus_full_ci95": [delta.low, delta.high]}
+    return out
 
 
 # Rank the full shared corpus with the already-built dense article index.
@@ -120,11 +195,12 @@ def aggregate_retrieval_results(results_by_system: dict, gold: dict, k: int = 10
 
 # Evaluate already-loaded DEV records against their cohort-specific shared corpora.
 def evaluate_loaded_dev(patients: dict, gold: dict, corpora: dict, scorers: dict,
-                        k: int = 10) -> dict:
-    """Mask each DEV note, run the four T18 systems, and return aggregate-only metrics."""
+                        manifest: dict, k: int = 10) -> dict:
+    """Mask each DEV note, run T18 retrieval systems, and return aggregate-only metrics."""
     results_by_system = {system: {} for system in SYSTEMS}
+    comparison_rows = []
     for patient_id, patient in patients.items():
-        visible_note = mask_random(patient, 0.4, base_seed=0).visible
+        visible_note = visible_from_manifest(patient, manifest["patients"][patient_id]["hidden_ids"])
         if patient.cohort not in corpora or patient.cohort not in scorers:
             raise ValueError(f"missing shared corpus or MedCPT index for cohort {patient.cohort!r}")
         trials = corpora[patient.cohort]
@@ -136,9 +212,14 @@ def evaluate_loaded_dev(patients: dict, gold: dict, corpora: dict, scorers: dict
         results_by_system["bm25"][patient_id] = bm25_retrieve(
             visible_note, trials, top_k=len(trials)
         )
-        results_by_system["medcpt"][patient_id] = _medcpt_results(
-            visible_note, trials, scorers[patient.cohort]
-        )
+        full_note = VisibleNote(patient.patient_id, patient.split, dict(patient.sentences))
+        med_full = _medcpt_results(full_note, trials, scorers[patient.cohort])
+        med_visible = _medcpt_results(visible_note, trials, scorers[patient.cohort])
+        results_by_system["medcpt"][patient_id] = med_visible
+        eligible = {trial_id for trial_id, grade in gold.get(patient_id, {}).items() if grade == 2}
+        if eligible:
+            comparison_rows.append({"full": retrieval_scores(med_full, eligible),
+                                    "visible": retrieval_scores(med_visible, eligible)})
         results_by_system["keyword_bm25_rrf"][patient_id] = retrieve_trials(
             visible_note, trials, top_k=len(trials)
         )
@@ -157,41 +238,38 @@ def evaluate_loaded_dev(patients: dict, gold: dict, corpora: dict, scorers: dict
             medcpt_scorer=scorers[patient.cohort],
         )
 
-    return aggregate_retrieval_results(results_by_system, gold, k=k)
+    summary = aggregate_retrieval_results(results_by_system, gold, k=k)
+    return {"systems": summary, "medcpt_full_vs_visible": aggregate_medcpt_comparison(comparison_rows),
+            "medcpt_patients_scored": len(comparison_rows)}
 
 
 # Load DEV inputs and each of the three shared corpus indexes once per run.
 def run_dev_evaluation(raw: Path, cache_dir: Path, *, device: str = "auto",
-                       batch_size: int = 16, fp16: bool = False) -> dict:
-    """Load DEV notes/qrels, build or reuse one index per cohort, and aggregate metrics."""
+                       batch_size: int = 16, fp16: bool = False,
+                       manifest_path: Path = Path("results/dev_run/manifest.json")) -> dict:
+    """Load DEV inputs, validate the rule manifest, and reuse pre-existing indexes only."""
     patients = load_dev_patients(raw)
     gold = load_dev_gold_grades(raw)
+    manifest = load_rule_manifest(manifest_path, patients)
     corpora = {}
     scorers = {}
     config = MedCPTConfig()
     for cohort in SUPPORTED_COHORTS:
         corpus = load_trial_corpus(raw, cohort)
-        index = get_or_build_corpus_index(
-            corpus,
-            cohort,
-            Path(cache_dir) / cohort,
-            config,
-            batch_size=batch_size,
-            device=device,
-            fp16=fp16,
-        )
+        index = load_corpus_index(Path(cache_dir) / cohort, cohort, config, trials=corpus)
         corpora[cohort] = corpus
         scorers[cohort] = make_medcpt_scorer(index, config, device=device, fp16=fp16)
 
+    evaluation = evaluate_loaded_dev(patients, gold, corpora, scorers, manifest)
     return {
         "split": Split.DEV.value,
-        "mask": "mask_random(patient, 0.4, base_seed=0)",
+        "mask": "rule-targeted 40%; exact hidden sentence IDs from the DEV run manifest",
         "query": "VisibleNote sentence text in sentence-ID order; no numeric prefixes; max 256 tokens",
         "article": "[trial['title'], trial['text']]; max 512 tokens",
         "medcpt_query_revision": config.query_revision,
         "medcpt_article_revision": config.article_revision,
         "rank_fusion": "existing equal-weight RRF: sum(1 / (20 + rank)), rank starts at 1",
-        "systems": evaluate_loaded_dev(patients, gold, corpora, scorers),
+        **evaluation,
     }
 
 

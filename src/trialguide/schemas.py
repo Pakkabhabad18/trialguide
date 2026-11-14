@@ -2,7 +2,7 @@
 
 Every part of the system (data, checker, tools, doctor, selector, policy, eval)
 passes these objects to each other, so all components agree on one shape.
-Change this file only through a reviewed pull request and a decision-log entry,
+Change this file only through a reviewed pull request and document the protocol,
 because a change here can break everyone's code.
 
 Plain dataclasses and string enums are used on purpose:
@@ -12,8 +12,7 @@ Plain dataclasses and string enums are used on purpose:
 
 Terms follow the proposal:
 - Section 3 for the four information categories and the harmful-inference rule;
-- Section 5 for the decision policy and the question loop;
-- decisions D8, D10 and D11 in docs/decision_log.md for the conversation and the doctor.
+- Section 5 for the decision policy and the question loop.
 """
 
 from __future__ import annotations

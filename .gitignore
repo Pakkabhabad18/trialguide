@@ -5,6 +5,7 @@
 /checkpoints/
 /cache/
 /outputs/
+/.evaluation_artifacts/
 /runs/
 /wandb/
 /annotations/
