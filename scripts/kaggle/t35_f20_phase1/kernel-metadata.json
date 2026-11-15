@@ -1,0 +1,19 @@
+{
+  "id": "mettavenkataramana/trialguide-t35-f20-phase1",
+  "title": "trialguide t35 f20 phase1",
+  "code_file": "t35_phase1.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "keywords": [
+    "gpu"
+  ],
+  "dataset_sources": [],
+  "kernel_sources": [],
+  "competition_sources": [],
+  "model_sources": [],
+  "machine_shape": "NvidiaTeslaT4"
+}
