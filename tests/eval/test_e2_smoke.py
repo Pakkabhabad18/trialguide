@@ -74,3 +74,13 @@ def test_summary_counts_lost_rules_against_the_full_note(tmp_path):
     # rules lost to masking only when sentence 0 was hidden; B6 never infers, so it recovers nothing there
     for p in ("B2", "B5"):
         assert s[p]["lost_rules"] >= 0 and s[p]["recovered"][0] == 0.0
+
+
+def test_merge_parts_summarises_all_patients(tmp_path):
+    for part, pid in (("a", "p1"), ("b", "p2")):
+        d = tmp_path / part
+        chosen = sm.run(fake_check, {pid: PATIENTS[pid]}, TRIALS, 1, 0.5, d, workers=2)
+        (d / "chosen.json").write_text(json.dumps({"seed": 1, "patients": chosen, "fraction": 0.5, "trials_per_patient": 1}))
+    res = sm.merge_parts([tmp_path / "a", tmp_path / "b"], tmp_path / "merged", "rule50", n_boot=50)
+    assert res["patients"] == 2
+    assert json.loads((tmp_path / "merged" / "chosen.json").read_text())["patients"] == {"p1": ["NCT1"], "p2": ["NCT2"]}

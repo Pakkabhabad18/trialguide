@@ -114,7 +114,33 @@ def summarise(out: Path, condition: str, n_boot: int = 5000) -> dict:
     return res
 
 
+def merge_parts(parts: list, out: Path, condition: str, n_boot: int = 10000) -> dict:
+    """Merge the per-GPU outputs (checks of each part, chosen trials) into `out` and summarise all patients."""
+    out.mkdir(parents=True, exist_ok=True)
+    chosen = {}
+    for cond in ("full", condition):
+        with open(out / f"checks_{cond}.jsonl", "w", encoding="utf-8") as f:
+            for part in parts:
+                f.write(Path(part, f"checks_{cond}.jsonl").read_text(encoding="utf-8"))
+    for part in parts:
+        info = json.loads(Path(part, "chosen.json").read_text())
+        chosen.update(info["patients"])
+    (out / "chosen.json").write_text(json.dumps({**info, "patients": chosen}, indent=1))
+    res = summarise(out, condition, n_boot)
+    (out / "summary.json").write_text(json.dumps(res, indent=1))
+    return res
+
+
 def main(argv=None) -> None:
+    import sys
+    if argv is None and "--merge" in sys.argv:                 # CPU only: merge the per-GPU parts, no model, no data
+        ap = argparse.ArgumentParser()
+        ap.add_argument("--merge", nargs="+", required=True, help="the per-part output folders")
+        ap.add_argument("--out", type=Path, required=True)
+        ap.add_argument("--condition", default="rule40")
+        a = ap.parse_args()
+        print(json.dumps(merge_parts(a.merge, a.out, a.condition), indent=1))
+        return
     from trialguide.data import e2
     from trialguide.pipeline import checker
     from trialguide.schemas import Split

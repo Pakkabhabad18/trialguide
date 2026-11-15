@@ -1,0 +1,1 @@
+{"commit": "55be3fe", "branch": "murthy-T38-e2-smoke", "patients": 10, "trials_per_patient": 2, "fraction": 0.4, "exit_codes": {"a": 0, "b": 0}, "gpus": 2, "elapsed_min": 78.2}
