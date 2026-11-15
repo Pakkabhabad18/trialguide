@@ -10,6 +10,7 @@ Every system is this one loop with different settings (proposal Section 7):
     B6  policy B6 (no inference, no asking)            B2  policy B2 (inference, no risk control)
     B5  policy B5 (confidence threshold)               B7  policy B7 (lambda-hat), strategy "ranking"
     B3  B7 policy, strategy "all" with a large budget  B4  B7 policy, strategy "fixed"
+    A7  B7 policy, but the questions are chosen all at once, as a one-time form (run_patient_form)
 The checker and the doctor are passed in, so tests run without a model.
 Owner of this file: Prateek (T16, T22; shared runner for the baselines).
 """
@@ -106,11 +107,60 @@ def run_patient(note: VisibleNote, rules: list[TrialRule], config: PolicyConfig,
                          [(t.question, t.answer) for t in state.turns], n_checks)
 
 
-def checker(model: str, n_samples: int = 1, tools: bool = True) -> CheckFn:
+def checker(model: str, n_samples: int = 1, tools: bool = True, evidence: bool = True) -> CheckFn:
     """Vidur's rule checker (T12) with a fixed model. With one sample (greedy) the confidence is the
     model's probability of its status; with more, the vote share of the samples. tools=False is
-    ablation A5 (no eGFR, BMI or drug-class results in the prompt)."""
+    ablation A5 (no eGFR, BMI or drug-class results in the prompt); evidence=False is ablation A4
+    (the checker is not asked to cite sentences, so its conclusions are not grounded in them)."""
     from trialguide.checker.rule_checker import check_rule
     mode = "logprob" if n_samples == 1 else "votes"
+    extra = {} if evidence else {"evidence": False}      # default calls stay byte-identical (cache)
     return lambda note, rule: check_rule(note, rule, model, n_samples=n_samples, confidence=mode,
-                                         tools=tools)
+                                         tools=tools, **extra)
+
+
+def run_patient_form(note: VisibleNote, rules: list[TrialRule], config: PolicyConfig, check: CheckFn,
+                     doctor: Doctor, budget: int = 3,
+                     p_answer: Optional[Callable[[str], float]] = None) -> PatientResult:
+    """Ablation A7: the same system, but all questions are chosen at once, as a one-time form.
+
+    The top `budget` questions are picked from the first rule checks with the same selector as B7
+    (Eq. 1, answerability-weighted, same stopping rule), each pick leaving out the facts already on the
+    form. The doctor answers them all; the answers are appended to the note; the rules they can settle
+    are re-checked once, with every answer visible. No re-ranking between questions and no follow-up
+    after an "unsure" answer, since a form cannot follow up.
+    """
+    from trialguide.schemas import Turn
+    by_ref = {(r.trial_id, r.rule_id): r for r in rules}
+    checks = {ref: check(note, r) for ref, r in by_ref.items()}
+    n_checks = len(checks)
+    state = ConversationState(note.patient_id, budget=budget)
+    doctor_certainty: dict[int, Certainty] = {}
+    actions = decide_all(checks.values(), config, doctor_certainty, set())
+
+    form, planned = [], ConversationState(note.patient_id, budget=budget)
+    candidates = merge_candidates(question_candidates(actions, checks.values()))
+    while config.allow_asking and planned.can_ask():
+        question = select_question(candidates, effective_checks(list(checks.values()), actions), planned,
+                                   strategy="ranking", p_answer=p_answer)
+        if question is None:
+            break
+        form.append(question)
+        planned.turns.append(Turn(question, None))       # placeholder: only marks the fact as on the form
+    to_recheck = []
+    for question in form:
+        answer = doctor.answer(note.patient_id, question)
+        state.add_turn(question, answer)
+        note, sentence_id = merge_answer(note, question, answer)
+        if sentence_id is not None:
+            doctor_certainty[sentence_id] = answer.certainty
+            to_recheck += [ref for ref in question.rule_refs if ref in by_ref and ref not in to_recheck]
+    for ref in to_recheck:                               # once, with every answer on the note
+        checks[ref] = check(note, by_ref[ref])
+        n_checks += 1
+    actions = finalize(decide_all(checks.values(), config, doctor_certainty, state.asked_fact_keys()))
+    final = effective_checks(list(checks.values()), actions)
+    trials = sorted({r.trial_id for r in rules})
+    scores = {t: trial_score(c for c in final if c.trial_id == t) for t in trials}
+    return PatientResult(note.patient_id, scores, list(checks.values()), actions,
+                         [(t.question, t.answer) for t in state.turns], n_checks)
