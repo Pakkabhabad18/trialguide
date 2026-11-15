@@ -1,0 +1,17 @@
+{
+  "id": "mettavenkataramana/trialguide-t38-e2-smoke",
+  "title": "trialguide t38 e2 smoke",
+  "code_file": "t38_e2_smoke.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "keywords": ["gpu"],
+  "dataset_sources": [],
+  "kernel_sources": [],
+  "competition_sources": [],
+  "model_sources": [],
+  "machine_shape": "NvidiaTeslaT4"
+}
