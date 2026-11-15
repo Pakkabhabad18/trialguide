@@ -66,6 +66,16 @@ Do not use patient, trial, or rule IDs, or generic keys like "unknown".
 """
 
 
+# Ablation A4 (post hoc): the same prompt without the request to cite sentences. Only the evidence
+# lines change, so the comparison with SYSTEM_PROMPT isolates grounding.
+SYSTEM_PROMPT_NO_EVIDENCE = (SYSTEM_PROMPT
+    .replace("Only stated or inferred results may have a decisive status, and they must\n"
+             "cite valid visible-note sentence IDs.", "Only stated or inferred results may have a decisive status.")
+    .replace('  "evidence_ids": [0],\n', "")
+    .replace("The evidence_ids must be integer IDs copied from the visible note.\n", ""))
+assert SYSTEM_PROMPT_NO_EVIDENCE.count("evidence_ids") == 0, "A4 prompt still asks for evidence ids"
+
+
 def user_prompt(rule, note_text, tool_text="", sample_index=0, n_samples=1):
     """The checker's user message for one rule and one visible note (shared with finetune/data.py)."""
     return f"""
@@ -146,8 +156,11 @@ def _normalise_status(value, kind):
     return value
 
 
-def _parse_sample(raw, visible_ids, kind):
-    """Validate one model response; return None for malformed responses."""
+def _parse_sample(raw, visible_ids, kind, evidence=True):
+    """Validate one model response; return None for malformed responses.
+
+    evidence=False (ablation A4): the model was not asked to cite sentences, so a stated or inferred
+    conclusion is kept without them; the whole visible note is recorded as its evidence."""
     try:
         data = parse_json(raw)
 
@@ -184,6 +197,8 @@ def _parse_sample(raw, visible_ids, kind):
             status = RuleStatus.NOT_ENOUGH_INFO.value
             evidence_ids = []
 
+        if not evidence and category in (InfoCategory.STATED.value, InfoCategory.INFERRED.value):
+            evidence_ids = sorted(visible_ids)
         # A stated/inferred conclusion must have valid supporting evidence.
         if category in (
             InfoCategory.STATED.value,
@@ -217,7 +232,8 @@ def _status_probability(tokens):
     if match is None:
         return 0.0
     return math.exp(span_logprob(tokens, *match.span(1)))
-def check_rule(note, rule, model, n_samples=5, confidence="votes", tools=False, temperature=0, seed=None):
+def check_rule(note, rule, model, n_samples=5, confidence="votes", tools=False, temperature=0, seed=None,
+               evidence=True):
     """Check a trial rule against only the visible note.
 
     confidence="votes": the modal-status vote fraction over requested samples;
@@ -229,6 +245,7 @@ def check_rule(note, rule, model, n_samples=5, confidence="votes", tools=False, 
     status it chose (risk control, T30, calibrates it). n_samples must be 1.
     tools=True: the prompt also gets the tool results for the visible note (eGFR, BMI, drug
     classes; tools/note_tools.py). Ablation A5 sets it to False.
+    evidence=False: ablation A4, the prompt does not ask for cited sentences (SYSTEM_PROMPT_NO_EVIDENCE).
     """
     if n_samples < 1:
         raise ValueError("n_samples must be at least 1")
@@ -267,7 +284,7 @@ def check_rule(note, rule, model, n_samples=5, confidence="votes", tools=False, 
         try:
             raw = chat(
                 [
-                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "system", "content": SYSTEM_PROMPT if evidence else SYSTEM_PROMPT_NO_EVIDENCE},
                     {"role": "user", "content": prompt},
                 ],
                 model,
@@ -280,7 +297,7 @@ def check_rule(note, rule, model, n_samples=5, confidence="votes", tools=False, 
                 status_probability = _status_probability(raw["tokens"])
                 raw = raw["text"]
 
-            parsed = _parse_sample(raw, visible_ids, rule.kind)
+            parsed = _parse_sample(raw, visible_ids, rule.kind, evidence)
 
             if parsed is not None:
                 samples.append(parsed)

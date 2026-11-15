@@ -39,6 +39,10 @@ SYSTEMS = {
     # B7 with the copied "prior_chemotherapy" fact_key dropped on unrelated rules
     # (selector.drop_copied_key). Added after the test run, so its test result is post hoc.
     "B7-keyfix": ("B7", "ranking", 3, True, True, True),
+    # Added after the test run (post hoc, run on Kaggle on the 24-patient test subset of T35):
+    "B7-b5": ("B7", "ranking", 5, True, True),       # budget sweep: B7 with 5 questions
+    "A7": ("B7", "form", 3, True, True),             # all 3 questions chosen at once (pipeline.run_patient_form)
+    "B7-imperfect": ("B7", "ranking", 3, True, True),  # B7 with the imperfect doctor (simulator/imperfect.py)
 }
 LABELS = ("0", "1", "2")
 
@@ -121,7 +125,15 @@ def main():
         if keyfix and keyfix[0]:                     # B7-keyfix only
             from trialguide.selector.selector import without_copied_keys
             check = without_copied_keys(check)
-        return run_patient(notes[pid], rules[pid], config, check, doctor=doctor,
+        who = doctor
+        if system == "B7-imperfect":
+            from trialguide.simulator.imperfect import ImperfectDoctor
+            who = ImperfectDoctor(doctor)
+        if strategy == "form":                       # A7
+            from trialguide.pipeline import run_patient_form
+            return run_patient_form(notes[pid], rules[pid], config, check, who, budget=budget,
+                                    p_answer=p_answer if weighted else None)
+        return run_patient(notes[pid], rules[pid], config, check, doctor=who,
                            strategy=strategy, budget=budget, p_answer=p_answer if weighted else None)
 
     jobs = [(s, pid) for s in args.systems for pid in notes]

@@ -59,6 +59,8 @@ def main():
     ap.add_argument("--thresholds", nargs="*", default=[], metavar="NAME=VALUE",
                     help="test only, e.g. B2=0 B5=0.9 B7=0.93")
     ap.add_argument("--no-tools", action="store_true", help="checker without tools (A5)")
+    ap.add_argument("--no-evidence", action="store_true",
+                    help="checker not asked to cite sentences (A4, post hoc)")
     ap.add_argument("--workers", type=int, default=16)
     ap.add_argument("--out", type=Path, required=True)
     args = ap.parse_args()
@@ -83,7 +85,7 @@ def main():
             rules[pid].append(rule)
             reference[(pid, rule.trial_id, rule.rule_id)] = RuleStatus(EXPERT[row.expert_eligibility])
 
-    check = checker(CHECKER_MODEL, n_samples=1, tools=not args.no_tools)
+    check = checker(CHECKER_MODEL, n_samples=1, tools=not args.no_tools, evidence=not args.no_evidence)
     jobs = [(pid, r) for pid in rules for r in rules[pid]]
     with ThreadPoolExecutor(args.workers) as pool:
         results = list(pool.map(lambda job: check(notes[job[0]], job[1]), jobs))
@@ -95,6 +97,7 @@ def main():
             f.write(json.dumps({"patient_id": pid, "checks": to_json(cs)}) + "\n")
 
     info = {"split": args.split, "checker": CHECKER_MODEL, "tools": not args.no_tools,
+            "evidence": not args.no_evidence,
             "mask": "rule", "fraction": args.fraction, "reference": "expert labels",
             "patients": len(checks), "rules": len(jobs)}
     if args.split == "cal":
