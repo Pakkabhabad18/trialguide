@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TrialGuide · Trial matching copilot</title>
+<meta name="description" content="TrialGuide research demo: an AI copilot that matches a patient to clinical trials and asks the doctor instead of guessing.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230f766e'/%3E%3Cpath d='M9 17h4l2-5 3 9 2-4h3' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <div class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg></div>
+    <div>TrialGuide<small>Clinical-trial matching copilot · research demo</small></div>
+  </div>
+  <div class="spacer"></div>
+  <span class="chip-dark" id="chipModel">Checker: Qwen3-8B</span>
+  <span class="chip-dark" id="chipLambda">Risk control λ = 0.766 · α = 5%</span>
+  <span class="chip-dark chip-warn">Replays recorded model runs</span>
+  <button class="btn-ghost-dark" id="btnHelp" title="How TrialGuide works"><span data-icon="info"></span>How it works</button>
+  <button class="btn-ghost-dark" id="btnSave" title="Download this session as JSON"><span data-icon="download"></span><span class="lbl">Save session</span></button>
+</header>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div>
+      <div class="side-title">Patients · development set</div>
+      <div class="plist" id="plist"></div>
+    </div>
+    <div>
+      <div class="side-title lg">How a rule ended up</div>
+      <div class="legend">
+        <div><span class="sq stated"></span>Stated in the note</div>
+        <div><span class="sq inferred"></span>Inferred, passed risk control</div>
+        <div><span class="sq answered"></span>Settled by your answer</div>
+        <div><span class="sq against"></span>Rules the trial out</div>
+        <div><span class="sq open"></span>Open: asked or abstained</div>
+      </div>
+    </div>
+    <div class="side-foot">
+      Team Zenith · IIIT Hyderabad<br>
+      <a href="https://github.com/Pakkabhabad18/trialguide" target="_blank" rel="noopener">Code and results on GitHub ↗</a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <section class="pthead">
+      <div class="avatar" id="ptAvatar">P1</div>
+      <div>
+        <h1 id="ptTitle">Patient</h1>
+        <p id="ptDesc"></p>
+      </div>
+      <div class="spacer"></div>
+      <span class="pill" id="ptCohort"></span>
+      <label class="switch" title="Show the sentences TrialGuide cannot see"><input type="checkbox" id="reveal"><span class="track"></span>Show hidden sentences</label>
+      <button class="btn" id="btnUndo"><span data-icon="undo"></span>Undo</button>
+      <button class="btn" id="btnRestart"><span data-icon="refresh"></span>Start over</button>
+    </section>
+
+    <section class="kpis">
+      <div class="card kpi" id="kpiNdcg"></div>
+      <div class="card kpi" id="kpiRules"></div>
+      <div class="card kpi" id="kpiQs"></div>
+      <div class="card kpi" id="kpiHeld"></div>
+    </section>
+
+    <section class="work">
+      <div class="card panel note">
+        <div class="panel-h"><span data-icon="note"></span><h2>Clinical note</h2><span class="meta" id="noteMeta"></span></div>
+        <div class="panel-b" id="note"></div>
+        <div class="note-legend"><span><span data-icon="lock"></span> hidden from the AI</span><span><span class="sq answered"></span> added from your answer</span><span><span class="sq" style="background:#fcd34d"></span> cited by a rule</span></div>
+      </div>
+
+      <div class="card panel chatp">
+        <div class="panel-h"><span data-icon="spark"></span><h2>TrialGuide copilot</h2><span class="meta" id="chatMeta"></span></div>
+        <div class="panel-b"><div class="chat" id="chat"></div></div>
+        <div class="composer" id="composer">
+          <div class="row">
+            <button class="ans" data-a="y">Yes</button>
+            <button class="ans" data-a="n">No</button>
+            <button class="ans" data-a="d">Not in the record</button>
+          </div>
+          <div><div class="seg" id="seg"><button data-c="s" class="on">Sure</button><button data-c="p">Probably</button><button data-c="u">Unsure</button></div><span class="hint" id="segHint">How sure are you?</span></div>
+        </div>
+      </div>
+
+      <div class="card panel trials">
+        <div class="panel-h"><span data-icon="rank"></span><h2>Trial matches</h2>
+          <div class="viewtoggle" id="view"><button data-v="tg" class="on">TrialGuide</button><button data-v="b6">Abstain only (B6)</button></div>
+        </div>
+        <div class="panel-b" id="trials"></div>
+      </div>
+    </section>
+
+    <p class="disclaimer">Research prototype for the LMA course project. It replays answers recorded from the real system on three development patients (TREC 2021 / SIGIR 2016 cohorts) and is not for clinical use.
+      <a href="#" id="linkHelp">How it works</a></p>
+  </main>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-h">
+    <div class="ring-wrap" id="dRing"></div>
+    <div style="min-width:0">
+      <h3 id="dTitle"></h3>
+      <div class="id" id="dSub"></div>
+    </div>
+    <button class="x" id="dClose" aria-label="Close"><span data-icon="x"></span></button>
+  </div>
+  <div class="drawer-b" id="dBody"></div>
+</aside>
+
+<div class="modal hidden" id="modal">
+  <div class="box">
+    <div class="hero-art" id="heroArt"></div>
+    <h2>Meet TrialGuide</h2>
+    <p class="lead">An AI copilot that checks a patient against every rule of every candidate trial, and when the note is silent, asks the doctor instead of guessing.</p>
+    <div class="flow" id="flow"></div>
+    <div class="steps3">
+      <div><b>1 · Pick a patient</b>Grey, blurred sentences are the parts of the note the AI cannot see.</div>
+      <div><b>2 · Answer as the doctor</b>You see the whole record. Answer at most 3 questions, and say how sure you are.</div>
+      <div><b>3 · Watch the trials move</b>Every answer settles rules and re-ranks the trials. Click a trial to see why.</div>
+    </div>
+    <div class="foot"><small>Research prototype · not for clinical use</small><button class="btn btn-primary" id="btnStart">Start the demo →</button></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
