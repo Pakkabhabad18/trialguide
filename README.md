@@ -13,6 +13,8 @@ Team Zenith · Language Models and Agents (CL3410), Monsoon 2026 · IIIT Hyderab
 
 **Live demo:** [huggingface.co/spaces/Pakkabhabad18/trialguide-demo](https://huggingface.co/spaces/Pakkabhabad18/trialguide-demo) (play the doctor in the browser, no install; see [Demo](#demo))
 
+**Final report:** [`docs/final_report/Zenith_final_report.pdf`](docs/final_report/Zenith_final_report.pdf)
+
 Proposal: [`docs/proposal/Zenith.pdf`](docs/proposal/Zenith.pdf)
 
 ## The problem

@@ -9,7 +9,7 @@ from trialguide.pipeline import run_patient, run_patient_form
 from trialguide.policy.policy import PolicyConfig
 from trialguide.schemas import Certainty, DoctorAnswer, Question, RuleKind
 from trialguide.simulator.imperfect import ImperfectDoctor
-from tests.test_pipeline import NOTE, RULES, FakeDoctor, fake_check
+from test_pipeline import NOTE, RULES, FakeDoctor, fake_check
 
 CFG = PolicyConfig("test", allow_inference=True, allow_asking=True, threshold=0.5)
 
