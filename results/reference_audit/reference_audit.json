@@ -1,0 +1,71 @@
+{
+ "patients": 19,
+ "rules": 266,
+ "agreement_all": {
+  "estimate": 0.5451127819548872,
+  "low": 0.4951444412716543,
+  "high": 0.6033362068965518,
+  "n_boot": 5000,
+  "n_undefined": 0
+ },
+ "expert_settled_rules": 161,
+ "checker_settles_them": {
+  "estimate": 0.7391304347826086,
+  "low": 0.6647390343420605,
+  "high": 0.8160940669371196,
+  "n_boot": 5000,
+  "n_undefined": 0
+ },
+ "accuracy_when_settled_by_both": {
+  "estimate": 0.907563025210084,
+  "low": 0.8365340909090909,
+  "high": 0.9562123135512535,
+  "n_boot": 5000,
+  "n_undefined": 0
+ },
+ "wrong_toward_eligibility": {
+  "estimate": 0.012422360248447204,
+  "low": 0.0,
+  "high": 0.03015075376884422,
+  "n_boot": 5000,
+  "n_undefined": 0
+ },
+ "expert_nei_rules": 86,
+ "checker_settles_expert_nei": {
+  "estimate": 0.5697674418604651,
+  "low": 0.415482992293383,
+  "high": 0.72,
+  "n_boot": 5000,
+  "n_undefined": 0
+ },
+ "evidence_rules": 65,
+ "evidence_precision": {
+  "estimate": 0.8395061728395061,
+  "low": 0.6959913043478261,
+  "high": 0.9625,
+  "n_boot": 5000,
+  "n_undefined": 0
+ },
+ "evidence_recall": {
+  "estimate": 0.7391304347826086,
+  "low": 0.635277149321267,
+  "high": 0.8552631578947368,
+  "n_boot": 5000,
+  "n_undefined": 0
+ },
+ "evidence_exact_match": {
+  "estimate": 0.7692307692307693,
+  "low": 0.6617647058823529,
+  "high": 0.8701358826358825,
+  "n_boot": 5000,
+  "n_undefined": 0
+ },
+ "evidence_any_overlap": {
+  "estimate": 0.9538461538461539,
+  "low": 0.9076923076923077,
+  "high": 1.0,
+  "n_boot": 5000,
+  "n_undefined": 0
+ },
+ "invalid_citations": 0
+}
