@@ -1,0 +1,68 @@
+{
+ "split": "test",
+ "checker": "Qwen/Qwen3-8B",
+ "tools": false,
+ "mask": "rule",
+ "fraction": 0.4,
+ "reference": "expert labels",
+ "patients": 26,
+ "rules": 496,
+ "at_threshold": {
+  "B2": {
+   "threshold": "0",
+   "n_patients": 26,
+   "unsettled_rules": 431,
+   "accepted_inferences": 15,
+   "harmful_inferences": 3,
+   "harmful_rate": {
+    "estimate": 0.007692307692307693,
+    "low": 0.0,
+    "high": 0.01730769230769231,
+    "n_boot": 10000,
+    "n_undefined": 0
+   },
+   "inference_coverage": {
+    "estimate": 0.03480278422273782,
+    "low": 0.017937219730941704,
+    "high": 0.0558145437374572,
+    "n_boot": 10000,
+    "n_undefined": 0
+   },
+   "useful_coverage": {
+    "estimate": 0.02088167053364269,
+    "low": 0.0061472266921452304,
+    "high": 0.0398862293144208,
+    "n_boot": 10000,
+    "n_undefined": 0
+   }
+  },
+  "B7": {
+   "threshold": "0.5431717139959166",
+   "n_patients": 26,
+   "unsettled_rules": 431,
+   "accepted_inferences": 13,
+   "harmful_inferences": 2,
+   "harmful_rate": {
+    "estimate": 0.00576923076923077,
+    "low": 0.0,
+    "high": 0.015384615384615385,
+    "n_boot": 10000,
+    "n_undefined": 0
+   },
+   "inference_coverage": {
+    "estimate": 0.030162412993039442,
+    "low": 0.0128841260843199,
+    "high": 0.05141529941025252,
+    "n_boot": 10000,
+    "n_undefined": 0
+   },
+   "useful_coverage": {
+    "estimate": 0.018561484918793503,
+    "low": 0.004395604395604396,
+    "high": 0.0378623371802659,
+    "n_boot": 10000,
+    "n_undefined": 0
+   }
+  }
+ }
+}
