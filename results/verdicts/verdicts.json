@@ -1,0 +1,196 @@
+{
+ "H1": {
+  "patients": 73,
+  "oracle_floor_gap": 0.05320125354610039,
+  "recovery": {
+   "B7": {
+    "estimate": 0.07627549644828042,
+    "low": -0.4680433198133593,
+    "high": 0.5639867973884656,
+    "resamples": 10000,
+    "dropped_resamples": 415
+   },
+   "B4": {
+    "estimate": 0.04413090519415233,
+    "low": -0.5160240095632763,
+    "high": 0.5193335905203125,
+    "resamples": 10000,
+    "dropped_resamples": 415
+   },
+   "B2": {
+    "estimate": -0.09651337902942363,
+    "low": -0.7149330490003414,
+    "high": 0.34538832340090014,
+    "resamples": 10000,
+    "dropped_resamples": 415
+   }
+  },
+  "recovery_gain_B7_minus_B4": {
+   "estimate": 0.032144591254128094,
+   "low": -0.0007928666259535632,
+   "high": 0.1058749932457517,
+   "resamples": 10000,
+   "dropped_resamples": 415
+  },
+  "ndcg_difference_B7_minus_B4": {
+   "estimate": 0.0017101325494466074,
+   "low": -4.230552919914312e-05,
+   "high": 0.0043530043538417525,
+   "resamples": 10000,
+   "dropped_resamples": 0
+  },
+  "false_eligible": {
+   "B7": {
+    "estimate": 0.018776824034334765,
+    "low": 0.012834502352963727,
+    "high": 0.025382164246032072,
+    "resamples": 10000,
+    "dropped_resamples": 0
+   },
+   "B4": {
+    "estimate": 0.018776824034334765,
+    "low": 0.012834502352963727,
+    "high": 0.025382164246032072,
+    "resamples": 10000,
+    "dropped_resamples": 0
+   },
+   "B7_minus_B4": {
+    "estimate": 0.0,
+    "low": 0.0,
+    "high": 0.0,
+    "resamples": 10000,
+    "dropped_resamples": 0
+   },
+   "lost_rules": 3728
+  },
+  "false_eligible_not_higher": true,
+  "verdict": "inconclusive"
+ },
+ "H2": {
+  "primary_cluster_run": {
+   "B2": {
+    "harmful_rate": {
+     "estimate": 0.041134532293141485,
+     "low": 0.013663087081609357,
+     "high": 0.07625331548066126,
+     "resamples": 10000,
+     "dropped_resamples": 0
+    },
+    "accepted": 50,
+    "harmful": 12
+   },
+   "B5": {
+    "harmful_rate": {
+     "estimate": 0.029687645846255033,
+     "low": 0.008097165991902834,
+     "high": 0.060399017906757835,
+     "resamples": 10000,
+     "dropped_resamples": 0
+    },
+    "accepted": 44,
+    "harmful": 10
+   },
+   "B7": {
+    "harmful_rate": {
+     "estimate": 0.039303030461639646,
+     "low": 0.012465411265720873,
+     "high": 0.074069348231351,
+     "resamples": 10000,
+     "dropped_resamples": 0
+    },
+    "accepted": 46,
+    "harmful": 11
+   }
+  },
+  "verdict": "inconclusive",
+  "kaggle_rerun": {
+   "thresholds": {
+    "B7": 0.7660011405599875,
+    "B5": 0.9,
+    "B2": 0.0,
+    "uncorrected_tuned": 0.5621765025686553
+   },
+   "harmful_rate": {
+    "B7": {
+     "estimate": 0.03936807831544674,
+     "low": 0.013714842662211084,
+     "high": 0.07196290941027782,
+     "resamples": 10000,
+     "dropped_resamples": 0
+    },
+    "B5": {
+     "estimate": 0.022274061221429643,
+     "low": 0.009067969067969068,
+     "high": 0.03788882998093524,
+     "resamples": 10000,
+     "dropped_resamples": 0
+    },
+    "B2": {
+     "estimate": 0.04322387164492428,
+     "low": 0.015873015873015872,
+     "high": 0.07693559218559216,
+     "resamples": 10000,
+     "dropped_resamples": 0
+    },
+    "uncorrected_tuned": {
+     "estimate": 0.04119958014694857,
+     "low": 0.014960263907632328,
+     "high": 0.0739633431870274,
+     "resamples": 10000,
+     "dropped_resamples": 0
+    }
+   },
+   "B7_minus": {
+    "B5": {
+     "estimate": 0.017094017094017096,
+     "low": 0.0,
+     "high": 0.04700854700854701,
+     "resamples": 10000,
+     "dropped_resamples": 0
+    },
+    "B2": {
+     "estimate": -0.0038557933294775387,
+     "low": -0.009735878156930791,
+     "high": 0.0,
+     "resamples": 10000,
+     "dropped_resamples": 0
+    },
+    "uncorrected_tuned": {
+     "estimate": -0.001831501831501832,
+     "low": -0.005494505494505499,
+     "high": 0.0,
+     "resamples": 10000,
+     "dropped_resamples": 0
+    }
+   }
+  }
+ },
+ "McNemar": {
+  "lost_rules": 3728,
+  "B7_vs_B6": {
+   "B7_only_right": 844,
+   "B6_only_right": 0,
+   "p_value": 1.704957883129772e-254
+  },
+  "B7_vs_B4": {
+   "B7_only_right": 9,
+   "B4_only_right": 4,
+   "p_value": 0.266845703125
+  },
+  "B7_vs_A1": {
+   "B7_only_right": 820,
+   "A1_only_right": 4,
+   "p_value": 3.425806613144449e-238
+  },
+  "B7_vs_A6": {
+   "B7_only_right": 1,
+   "A6_only_right": 38,
+   "p_value": 1.4551915228366852e-10
+  },
+  "B7_vs_B3": {
+   "B7_only_right": 0,
+   "B3_only_right": 37,
+   "p_value": 1.4551915228366852e-11
+  }
+ }
+}
