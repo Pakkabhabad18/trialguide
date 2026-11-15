@@ -384,3 +384,4 @@ button { font: inherit; cursor: pointer; }
   .rt-h .status { margin-left: 36px; }
 }
 .pol.two td:last-child { text-align: left; white-space: normal; }
+#ptDesc { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; max-width: 520px; }
