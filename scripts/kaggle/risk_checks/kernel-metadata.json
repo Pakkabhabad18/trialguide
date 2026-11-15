@@ -1,0 +1,17 @@
+{
+  "id": "mettavenkataramana/trialguide-risk-checks",
+  "title": "TrialGuide risk checks T36",
+  "code_file": "risk_checks.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "keywords": ["gpu"],
+  "dataset_sources": [],
+  "kernel_sources": [],
+  "competition_sources": [],
+  "model_sources": [],
+  "machine_shape": "NvidiaTeslaT4"
+}
