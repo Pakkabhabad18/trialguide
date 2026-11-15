@@ -48,7 +48,7 @@ from the same environment), and the primary cluster numbers in the README are un
   resplits overlap heavily with it and with each other. The spread is real but narrower than the
   uncertainty of one new sample of patients.
 - Each half has 26 patients and about 400 unsettled rules, with 44 to 53 accepted inferences. Rates
-  are small counts: one more harmful inference moves a half by about 2 points of patient-level rate.
+  are small counts: with a median of 14 unsettled rules per patient, one more harmful inference moves a half's rate by about 0.27 percentage points.
 - The expert labels cover SIGIR only. Nothing here says how risk control behaves on TREC patients.
 - "At or below 5%" refers to the point estimate of each half, not to its confidence bound. The primary
   result's CI (upper end above 5%) is the statement to quote for H2.
