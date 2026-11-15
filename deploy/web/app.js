@@ -131,7 +131,9 @@ function render(animate) {
   renderNote(p, st);
   renderChat(p, st, animate);
   renderTrials(p, st, animate);
-  if (S.drawer) openDrawer(S.drawer, true);
+  renderPipe(p, st);
+  if (S.drawer) (S.drawer.startsWith("stage:") ? openStage(S.drawer.slice(6), true) : openDrawer(S.drawer, true));
+  $("btnReport").classList.toggle("pulse", n.done);
   $("btnUndo").disabled = S.path.length === 0;
   document.querySelectorAll(".ans").forEach((b) => (b.disabled = n.done || S.busy));
 }
@@ -215,7 +217,8 @@ function questionHtml(q) {
   const text = esc(q.text).replace(fact, `<u>${fact}</u>`);
   const label = q.followup ? "Follow-up · you were unsure" : `Question ${q.turn} of ${DATA.meta.budget}`;
   return `<div class="tiny">${label}</div><div class="q">${text}</div>
-    <div class="why">Why this one: an answer can settle <b>${q.rules} rule${q.rules > 1 ? "s" : ""}</b> in <b>${q.trials.length} trial${q.trials.length > 1 ? "s" : ""}</b> (${q.trials.map(esc).join(", ")}), and it is the question most likely to change the top of the ranking.</div>`;
+    <div class="why">Why this one: an answer can settle <b>${q.rules} rule${q.rules > 1 ? "s" : ""}</b> in <b>${q.trials.length} trial${q.trials.length > 1 ? "s" : ""}</b> (${q.trials.map(esc).join(", ")}), and it is the question most likely to change the top of the ranking.</div>
+    <div class="howto"><b>Yes</b> the record shows it · <b>No</b> the record rules it out · <b>Not in the record</b> it does not say</div>`;
 }
 function renderChat(p, st, animate) {
   const root = p.nodes[""], msgs = [];
@@ -240,12 +243,12 @@ function renderChat(p, st, animate) {
     let open = 0;
     Object.values(st.rules).forEach((v) => { if (v[5] === "open") open++; });
     msgs.push(ai(`<div class="tiny" style="color:${COL.stated}">Finished</div>${st.turns.length} question${st.turns.length === 1 ? "" : "s"} asked. ${open} rules are still open; they are reported as open for the care team to decide, never guessed.
-      <div class="why">TrialGuide stops early when no remaining question can change the top ten. Click any trial to see each rule, or <a href="#" data-act="save">save the session</a>.</div>`));
+      <div class="why">TrialGuide stops early when no remaining question can change the top ten. Your result is ready: <a href="#" data-act="report">open the match report</a>, or click any trial to see each rule.</div>`));
   }
   const old = S.shownTurns;
   $("chat").innerHTML = msgs.map((m, i) => m.replace('class="msg', `class="msg${animate && i >= old ? "" : " static"}`)).join("");
   S.shownTurns = msgs.length;
-  $("chatMeta").textContent = n.done ? "finished" : "waiting for your answer";
+  $("chatMeta").textContent = n.done ? "finished" : "your turn";
   const box = $("chat").parentElement;
   box.scrollTo({ top: box.scrollHeight, behavior: animate ? "smooth" : "auto" });
 }
@@ -270,7 +273,7 @@ function renderTrials(p, st, animate) {
     const strip = rules.map((r) => `<i class="${r.cls}" title="${esc(r.id)}: ${esc(CLASS_LABEL[r.cls])}"></i>`).join("");
     return `<div class="trial${moved}" data-tid="${esc(tid)}" tabindex="0" role="button" aria-label="Open ${esc(tid)}">
       <div class="rk">${i + 1}${mv}</div>
-      <div style="min-width:0"><div class="tt">${esc(t.title || tid)}</div><div class="id">${esc(tid)} · ${rules.length} rules</div><div class="strip">${strip}</div></div>
+      <div style="min-width:0"><div class="tt">${esc(t.title || tid)}</div><div class="id">${esc(tid)} · ${rules.length} rule${rules.length === 1 ? "" : "s"}</div><div class="strip">${strip}</div></div>
       <div style="text-align:right">${ring(scores[tid], scls)}<div><span class="status ${scls}">${stxt}</span></div><div class="expert">Expert label: <b>${g}</b></div></div></div>`;
   }).join("");
   if (animate) {
@@ -328,6 +331,218 @@ function closeDrawer() {
 function highlight(ids) {
   document.querySelectorAll("#note .sent.hl").forEach((el) => el.classList.remove("hl"));
   ids.forEach((id) => { const el = document.querySelector(`#note .sent[data-sid="${id}"]`); if (el) { el.classList.add("hl"); el.scrollIntoView({ block: "nearest", behavior: "smooth" }); } });
+}
+
+
+/* ---------- pipeline strip: input → check → decide → ask → output, live for this patient ---------- */
+const STAGES = [
+  { id: "input", icon: "note", title: "Input", sub: "Note + candidate trials" },
+  { id: "check", icon: "list", title: "Check each rule", sub: "LLM reads the note" },
+  { id: "decide", icon: "split", title: "Infer · ask · abstain", sub: "Safety policy with λ" },
+  { id: "ask", icon: "ask", title: "Ask the doctor", sub: "You answer, max 3" },
+  { id: "output", icon: "rank", title: "Ranked trials", sub: "With reasons and gaps" },
+];
+function tally(st) {
+  const p = patient(), out = { met: 0, not_met: 0, unknown: 0, use_stated: 0, accept_inference: 0, ask: 0, abstain: 0,
+    infElig: 0, infExcl: 0, open: 0 };
+  const kind = {};
+  p.trials.forEach((t) => t.rules.forEach((r) => (kind[`${t.id}|${r.id}`] = r.kind)));
+  for (const [k, v] of Object.entries(st.rules)) {
+    const [status, , decision] = v;
+    if (status === "met") out.met++; else if (status === "not_met") out.not_met++; else out.unknown++;
+    out[decision] = (out[decision] || 0) + 1;
+    if (decision === "accept_inference") {
+      const elig = (kind[k] === "inclusion" && status === "met") || (kind[k] === "exclusion" && status === "not_met");
+      elig ? out.infElig++ : out.infExcl++;
+    }
+    if (v[5] === "open") out.open++;
+  }
+  return out;
+}
+function renderPipe(p, st) {
+  const n = st.node, t = tally(st), vis = Object.keys(p.visible).length, hid = Object.keys(p.hidden).length;
+  const nRules = Object.keys(st.rules).length, asked = st.turns.length;
+  const top = order(n.scores)[0];
+  const metric = {
+    input: `${vis} of ${vis + hid} sentences visible · ${p.trials.length} trials · ${nRules} rules`,
+    check: `${t.met} met · ${t.not_met} not met · ${t.unknown} not enough info`,
+    decide: `${t.use_stated} used · ${t.accept_inference} inferred · ${t.ask} to ask · ${t.abstain} abstain`,
+    ask: n.done ? `${asked} question${asked === 1 ? "" : "s"} answered` : `Question ${n.q.turn} of ${DATA.meta.budget}: waiting for you`,
+    output: `#1 ${top} · NDCG ${fmt(n.ndcg)}`,
+  };
+  const state = { input: "done", check: "done", decide: "done", ask: n.done ? "done" : "now", output: n.done ? "now" : "live" };
+  const chip = { done: "Done", now: n.done ? "Ready" : "Your turn", live: "Updating live" };
+  $("pipe").innerHTML = STAGES.map((s, i) => `${i ? `<div class="conn ${state[s.id] === "now" || state[s.id] === "live" ? "flow" : ""}"><i></i></div>` : ""}
+    <button class="stg ${state[s.id]}" data-stage="${s.id}" title="See what goes in and out of this step">
+      <div class="stg-top"><span class="stg-ic">${icon(s.icon, 17)}</span><span class="stg-n">${i + 1}</span><span class="stg-chip">${chip[state[s.id]]}</span></div>
+      <div class="stg-t">${s.title}</div><div class="stg-m">${esc(metric[s.id])}</div></button>`).join("");
+}
+
+/* ---------- stage inspector: what goes in, what happens, what comes out ---------- */
+function ioRow(inp, proc, out) {
+  return `<div class="io"><div><span class="io-l in">In</span>${inp}</div><div><span class="io-l pr">What happens</span>${proc}</div><div><span class="io-l out">Out</span>${out}</div></div>`;
+}
+function sampleRule(st, cat) {
+  const p = patient();
+  for (const t of p.trials) for (const r of t.rules) {
+    const v = st.rules[`${t.id}|${r.id}`];
+    if (v && v[1] === cat && (r.text.match(/[a-z]/gi) || []).length > 8 && (cat === "missing" || v[4].length)) return { t, r, v };
+  }
+  return null;
+}
+function checkCard(st, s) {
+  if (!s) return "";
+  const ev = s.v[4].map((id) => { const x = sentenceText(st, String(id)); return x ? `${x.doc ? "your answer" : "sentence " + id}: “${esc(x.text.slice(0, 110))}”` : ""; }).filter(Boolean);
+  return `<div class="xcard"><div class="xrule"><span class="io-l pr">${esc(s.t.id)} · ${s.r.kind}</span>${esc(s.r.text)}</div>
+    <table class="kv"><tr><td>status</td><td><b>${esc(STATUS[s.v[0]] || s.v[0])}</b></td></tr>
+    <tr><td>source</td><td>${esc(s.v[1] === "missing" ? "missing from the note" : s.v[1])}</td></tr>
+    <tr><td>cites</td><td>${ev.length ? ev.join("<br>") : "nothing"}</td></tr>
+    <tr><td>confidence</td><td>${fmt(s.v[3])}</td></tr>
+    <tr><td>decision</td><td><span class="dec">${esc(DECISION[s.v[2]] || s.v[2])}</span></td></tr></table></div>`;
+}
+function stageHtml(id, p, st) {
+  const n = st.node, t = tally(st), vis = Object.keys(p.visible).length, hid = Object.keys(p.hidden).length, lam = fmt(DATA.meta.threshold, 3);
+  const nRules = Object.keys(st.rules).length;
+  if (id === "input") return `
+    ${ioRow(`The clinical note, ${vis + hid} sentences`, `${hid} sentences are hidden from the AI`, `${vis} sentences the AI can read`)}
+    <div class="grp">Three inputs</div>
+    <div class="inputs">
+      <div><span class="io-l in">Given</span><b>Clinical note</b><p>The patient's free-text note, split into numbered sentences. ${vis} are visible to the AI, ${hid} are hidden.</p></div>
+      <div><span class="io-l in">Given</span><b>${p.trials.length} candidate trials</b><p>Each trial's eligibility text is split into ${nRules} rules in total (inclusion and exclusion).</p></div>
+      <div><span class="io-l you">You</span><b>Your answers</b><p>When the note is silent, TrialGuide asks you. You answer Yes, No or Not in the record, and say how sure you are.</p></div>
+    </div>
+    <div class="grp">Why some sentences are hidden</div>
+    <p class="para">Real notes leave things out. To test this, we hide 40% of the sentences that the experts used to judge the rules (a rule-targeted mask). You play the doctor, who has the full record. Use “Show hidden sentences” to see them.</p>
+    <div class="grp">Trials for this patient</div>
+    ${p.trials.map((tr) => `<div class="mini"><b>${esc(tr.id)}</b> ${esc(tr.title)} <span>${tr.rules.length} rule${tr.rules.length === 1 ? "" : "s"}</span></div>`).join("")}
+    <p class="para muted">In real use the note would come from the hospital record and the trials from a ClinicalTrials.gov search. These patients come from the TREC 2021 and SIGIR 2016 benchmarks, which have expert eligibility labels.</p>`;
+  if (id === "check") return `
+    ${ioRow(`${nRules} (trial, rule) pairs + the visible note`, `${DATA.meta.model.split("/").pop()} reads the note once per rule, with small calculators (eGFR, BMI, drug class)`, `For every rule: status, source, cited sentences, confidence`)}
+    <div class="grp">Result now</div>
+    <div class="stackbar"><i style="flex:${t.met};background:${COL.stated}" title="met"></i><i style="flex:${t.not_met};background:${COL.against}" title="not met"></i><i style="flex:${t.unknown};background:${COL.open}" title="not enough information"></i></div>
+    <div class="dsum"><div><span class="sq stated"></span><b>${t.met}</b> met</div><div><span class="sq against"></span><b>${t.not_met}</b> not met</div><div><span class="sq open"></span><b>${t.unknown}</b> not enough information</div></div>
+    <p class="para muted">“Met” means the condition in the rule holds for the patient. For an exclusion rule that is bad for eligibility.</p>
+    <div class="grp">Real outputs from this patient</div>
+    ${checkCard(st, sampleRule(st, "inferred"))}${checkCard(st, sampleRule(st, "stated"))}${checkCard(st, sampleRule(st, "missing"))}`;
+  if (id === "decide") return `
+    ${ioRow("Each rule check from step 2", `A fixed policy decides what the system may use. λ = ${lam}`, "Use · infer · ask · abstain, for every rule")}
+    <div class="grp">The policy, with counts for this patient now</div>
+    <table class="pol">
+      <tr><td>Stated in the note, or a “Sure” answer</td><td>Use it</td><td><b>${t.use_stated}</b></td></tr>
+      <tr><td>Inferred, and it pushes the patient <i>out</i> of a trial</td><td>Accept</td><td><b>${t.infExcl}</b></td></tr>
+      <tr><td>Inferred toward eligibility, confidence ≥ λ</td><td>Accept</td><td><b>${t.infElig}</b></td></tr>
+      <tr><td>Inferred toward eligibility, confidence &lt; λ</td><td>Ask or abstain</td><td><b>${n.held}</b> held back</td></tr>
+      <tr><td>Missing, or not enough information</td><td>Ask if a question can settle it, else abstain</td><td><b>${t.ask}</b> ask · <b>${t.abstain}</b> abstain</td></tr>
+    </table>
+    <div class="grp">Why <span style="text-transform:none">λ</span></div>
+    <p class="para">The dangerous mistake is a wrong guess that makes a patient look eligible. λ = ${lam} was set with conformal risk control on 26 calibration patients, so that such wrong accepted guesses stay under α = 5%. Guesses that push a patient out of a trial cannot cause that harm, so they are accepted.</p>
+    <p class="para muted">Open rules are never filled in by guessing. They are reported as open, for the care team to check.</p>`;
+  if (id === "ask") {
+    const cur = !n.done && n.q ? `<div class="xcard"><span class="io-l you">Asking now</span><div class="q" style="margin-top:4px">${esc(n.q.text)}</div>
+      <div class="para muted" style="margin:6px 0 0">Can settle ${n.q.rules} rule${n.q.rules > 1 ? "s" : ""} in ${esc(n.q.trials.join(", "))} · selection score ${fmt(n.q.score, 3)}</div></div>` : `<p class="para">No more questions: ${st.turns.length ? "the budget is used or" : ""} no remaining question can change the top ten.</p>`;
+    return `
+    ${ioRow(`${t.ask} rules marked “ask”`, "Group them by the fact they need, score each fact, ask the best one", "One question, then your answer is added to the note and the rules are re-checked")}
+    <div class="grp">How the question is chosen</div>
+    <p class="para">Rules that need the same fact become one question, so one answer can settle rules in several trials. Each question is scored by how much its answer is expected to change the trial scores, counting top-ranked trials more, and weighted by how likely the record is to contain the answer. TrialGuide asks the best one, at most ${DATA.meta.budget}, and stops early when no question can change the top ten.</p>
+    ${cur}
+    <div class="grp">What your answer does</div>
+    <table class="pol two">
+      <tr><td><b>Sure</b></td><td>Added to the note as a fact; rules citing it are settled</td></tr>
+      <tr><td><b>Probably</b></td><td>Treated as an inference; it must pass λ to be used toward eligibility</td></tr>
+      <tr><td><b>Unsure</b></td><td>Nothing is settled; one follow-up question may be asked</td></tr>
+      <tr><td><b>Not in the record</b></td><td>The rules stay open and are reported as open</td></tr>
+    </table>
+    ${st.turns.length ? `<div class="grp">Your answers so far</div>${st.turns.map((x, i) => `<div class="mini"><b>Q${i + 1}</b> ${esc(x.turn.question)} <span>${esc(answerLabel(x.code).filter(Boolean).join(" · "))} → ${x.turn.settled.length} rule${x.turn.settled.length === 1 ? "" : "s"} settled</span></div>`).join("")}` : ""}`;
+  }
+  const ord = order(n.scores);
+  return `
+    ${ioRow("All rule decisions + your answers", "Score each trial from its rules (TrialGPT's linear score) and sort", "A ranked list with reasons, and what is still unknown")}
+    <div class="grp">Ranking now</div>
+    ${ord.map((tid, i) => { const r = rulesOf(st, tid), [s, c] = trialStatus(r); return `<div class="mini"><b>${i + 1}. ${esc(tid)}</b> ${esc(p.trials.find((x) => x.id === tid).title.slice(0, 70))} <span>score ${fmt(n.scores[tid])} · <span class="status ${c}">${s}</span></span></div>`; }).join("")}
+    <div class="grp">Score</div>
+    <p class="para">Share of inclusion rules met, minus 1 if any inclusion rule is not met, minus 1 if any exclusion rule is met. Open rules count as not enough information, so they lower the share but never rule a trial out.</p>
+    <div class="grp">How good is the ranking? (benchmark only)</div>
+    <p class="para">NDCG@10 compares this order with the experts' labels (eligible, excluded, not relevant); 1.00 is a perfect order. Now: <b>${fmt(n.ndcg)}</b>, abstain-only baseline (B6): <b>${fmt(p.b6.ndcg)}</b>. A real user would not see this score, since real patients have no expert labels.</p>
+    <button class="btn btn-primary" data-act="report">${icon("note", 15)} Open the match report</button>`;
+}
+function openStage(id, refresh) {
+  const p = patient(), st = stateAt(p, S.path), s = STAGES.find((x) => x.id === id), i = STAGES.indexOf(s);
+  S.drawer = "stage:" + id;
+  $("dRing").innerHTML = `<div class="stg-big">${icon(s.icon, 26)}</div>`;
+  $("dTitle").textContent = `Step ${i + 1} · ${s.title}`;
+  $("dSub").innerHTML = `${esc(s.sub)} · <a href="#" data-step="${i - 1}" ${i ? "" : 'class="hidden"'}>← previous step</a> ${i < STAGES.length - 1 ? `<a href="#" data-step="${i + 1}">next step →</a>` : ""}`;
+  $("dBody").innerHTML = stageHtml(id, p, st);
+  if (!refresh) { $("drawer").classList.add("on"); $("scrim").classList.add("on"); $("drawer").setAttribute("aria-hidden", "false"); }
+}
+
+/* ---------- match report: what a clinician would take away ---------- */
+function reportHtml() {
+  const p = patient(), st = stateAt(p, S.path), n = st.node, ord = order(n.scores);
+  const open = tally(st).open;
+  const today = new Date().toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+  const cite = (r) => {
+    const s = r.ev.map((id) => { const x = sentenceText(st, String(id)); return x ? (x.doc ? "your answer" : `sentence ${id}`) : null; }).filter(Boolean);
+    return s.length ? ` <span class="cite">(${s.join(", ")})</span>` : "";
+  };
+  const ruleTxt = (r) => (r.text.match(/[a-z]/gi) || []).length < 3 ? "(empty criterion)" : esc(r.text.length > 160 ? r.text.slice(0, 157) + "…" : r.text);
+  const trials = ord.map((tid, i) => {
+    const t = p.trials.find((x) => x.id === tid), rules = rulesOf(st, tid), [s, c] = trialStatus(rules);
+    const against = rules.filter((r) => r.cls === "against");
+    const ok = rules.filter((r) => ["stated", "inferred", "answered"].includes(r.cls));
+    const todo = rules.filter((r) => r.cls === "open" && (r.text.match(/[a-z]/gi) || []).length >= 3)
+      .sort((a, b) => (a.kind === b.kind ? 0 : a.kind === "inclusion" ? -1 : 1));
+    return `<div class="rt"><div class="rt-h"><span class="rt-n">${i + 1}</span><div style="min-width:0"><b>${esc(t.title)}</b><div class="muted">${esc(tid)} · score ${fmt(n.scores[tid])}</div></div><span class="status ${c}">${s}</span></div>
+      ${against.length ? `<div class="rt-g against">Why it is ruled out</div><ul>${against.slice(0, 4).map((r) => `<li>${r.kind === "inclusion" ? "Needs" : "Excludes"}: ${ruleTxt(r)}${cite(r)}</li>`).join("")}${against.length > 4 ? `<li class="muted">and ${against.length - 4} more</li>` : ""}</ul>` : ""}
+      <div class="rt-g ok">Settled in favour · ${ok.length}</div>
+      ${todo.length ? `<div class="rt-g open">To confirm with the patient · ${todo.length}</div><ul>${todo.slice(0, 4).map((r) => `<li>${r.kind === "inclusion" ? "Needs" : "Must not have"}: ${ruleTxt(r)}</li>`).join("")}${todo.length > 4 ? `<li class="muted">and ${todo.length - 4} more</li>` : ""}</ul>` : ""}</div>`;
+  }).join("");
+  return `<div class="rp-h"><div><div class="tiny">Trial match report · research demo</div><h2>Patient ${S.pi + 1} <span class="muted" style="font-weight:500;font-size:15px">${esc(p.id)}</span></h2>
+      <p class="muted" style="margin:2px 0 0">${esc(firstSentence(p))}</p></div><div class="muted" style="text-align:right;font-size:12px">${today}<br>TrialGuide · ${esc(DATA.meta.model.split("/").pop())} · λ = ${fmt(DATA.meta.threshold, 3)}</div></div>
+    <div class="rp-k"><div><b>${p.trials.length}</b>trials checked</div><div><b>${Object.keys(st.rules).length}</b>rules checked</div><div><b>${st.turns.length}</b>questions answered</div><div><b>${open}</b>rules still open</div></div>
+    ${st.turns.length ? `<div class="rt-g">Questions and answers</div><ul>${st.turns.map((x) => `<li>${esc(x.turn.question)} <b>${esc(answerLabel(x.code).filter(Boolean).join(", "))}</b></li>`).join("")}</ul>` : `<p class="para muted">No questions answered yet. Answer the copilot's questions to settle more rules.</p>`}
+    <div class="rt-g">Trials, best match first</div>${trials}
+    <p class="para muted" style="margin-top:14px">Open rules are not guessed: confirm them before referral. This report replays recorded runs on benchmark patients and is not for clinical use.</p>
+    <div class="foot no-print"><button class="btn" data-act="close">Close</button><button class="btn" data-act="save">${icon("download", 15)} Download JSON</button><button class="btn btn-primary" data-act="print">${icon("note", 15)} Print or save as PDF</button></div>`;
+}
+function showReport(on) {
+  if (on) { closeDrawer(); $("reportBox").innerHTML = reportHtml(); $("report").scrollTop = 0; }
+  $("report").classList.toggle("hidden", !on);
+  document.body.classList.toggle("printing-report", on);
+}
+
+/* ---------- guided tour for a first-time user ---------- */
+const TOUR = [
+  { el: "#pipe", t: "The pipeline, live", b: "This is how TrialGuide works, from input to output, for the patient on screen. Each step shows what it produced. Click a step any time to see what goes in and what comes out." },
+  { el: ".panel.note", t: "Input: the clinical note", b: "This is what the AI reads. Blurred lines are hidden from it, to copy a note that leaves things out. You play the doctor, who knows the full record." },
+  { el: ".panel.trials", t: "Output: matching trials", b: "Every candidate trial, best match first. The coloured squares are its rules: green stated, blue inferred, purple settled by you, red rules it out, grey still open. Click a trial to see every rule and the sentence it relies on." },
+  { el: ".chatp", t: "Processing: the copilot", b: "TrialGuide tells you what it found and asks about the one fact that can change the ranking most." },
+  { el: "#composer", t: "Your input: answer here", b: "Pick how sure you are, then answer Yes, No or Not in the record. At most 3 questions. Each answer re-checks the rules and re-ranks the trials." },
+  { el: ".kpis", t: "How it is doing", b: "Ranking quality against expert labels (TrialGuide vs the abstain-only baseline), how the rules ended up, questions used, and risky guesses held back by λ." },
+  { el: "#btnReport", t: "Take away the result", b: "The match report lists each trial with why it is ruled out and what to confirm with the patient. Print it or save it as PDF." },
+];
+let tourI = -1;
+function tour(i) {
+  document.querySelectorAll(".tour-on").forEach((e) => e.classList.remove("tour-on"));
+  if (i < 0 || i >= TOUR.length) { tourI = -1; $("tourLayer").classList.add("hidden"); return; }
+  closeDrawer(); showModal(false); showReport(false);
+  tourI = i;
+  const s = TOUR[i], el = document.querySelector(s.el);
+  $("tourLayer").classList.remove("hidden");
+  el.scrollIntoView({ block: "center" });
+  requestAnimationFrame(() => {
+    const r = el.getBoundingClientRect(), pad = 6, spot = $("tourSpot"), card = $("tourCard");
+    Object.assign(spot.style, { left: r.left - pad + "px", top: r.top - pad + "px", width: r.width + 2 * pad + "px", height: r.height + 2 * pad + "px" });
+    card.innerHTML = `<div class="tiny">Step ${i + 1} of ${TOUR.length}</div><h4>${s.t}</h4><p>${s.b}</p>
+      <div class="tour-dots">${TOUR.map((_, j) => `<i class="${j === i ? "on" : ""}"></i>`).join("")}</div>
+      <div class="tour-f"><button class="btn" data-t="skip">Skip</button><span style="flex:1"></span>${i ? '<button class="btn" data-t="back">Back</button>' : ""}<button class="btn btn-primary" data-t="next">${i === TOUR.length - 1 ? "Finish" : "Next"}</button></div>`;
+    const W = innerWidth, H = innerHeight, cw = Math.min(360, W - 24);
+    card.style.width = cw + "px";
+    const ch = card.offsetHeight;
+    let top = r.bottom + 14, left = Math.min(Math.max(12, r.left), W - cw - 12);
+    if (top + ch > H - 12) top = r.top - ch - 14;
+    if (top < 12) { top = H - ch - 12; }
+    card.style.top = top + "px"; card.style.left = left + "px";
+  });
 }
 
 /* ---------- actions ---------- */
@@ -389,7 +604,22 @@ function bind() {
   $("chat").addEventListener("click", (e) => {
     const c = e.target.closest(".chipbtn"); if (c) openDrawer(c.dataset.tid);
     const a = e.target.closest("[data-act=save]"); if (a) { e.preventDefault(); save(); }
+    const r = e.target.closest("[data-act=report]"); if (r) { e.preventDefault(); showReport(true); }
   });
+  $("pipe").addEventListener("click", (e) => { const b = e.target.closest(".stg"); if (b) openStage(b.dataset.stage); });
+  $("dSub").addEventListener("click", (e) => { const a = e.target.closest("[data-step]"); if (a) { e.preventDefault(); openStage(STAGES[Number(a.dataset.step)].id, true); } });
+  $("dBody").addEventListener("click", (e) => { if (e.target.closest("[data-act=report]")) showReport(true); });
+  $("btnReport").addEventListener("click", () => showReport(true));
+  $("report").addEventListener("click", (e) => {
+    if (e.target.id === "report" || e.target.closest("[data-act=close]")) showReport(false);
+    if (e.target.closest("[data-act=save]")) save();
+    if (e.target.closest("[data-act=print]")) window.print();
+  });
+  $("btnTour").addEventListener("click", () => tour(0));
+  $("btnTour2").addEventListener("click", () => tour(0));
+  $("tourCard").addEventListener("click", (e) => { const b = e.target.closest("[data-t]"); if (!b) return;
+    tour(b.dataset.t === "next" ? tourI + 1 : b.dataset.t === "back" ? tourI - 1 : -1); });
+  addEventListener("resize", () => { if (tourI >= 0) tour(tourI); });
   $("dBody").addEventListener("mouseover", (e) => { const r = e.target.closest(".rule"); highlight(r && r.dataset.ev ? r.dataset.ev.split(",") : []); });
   $("dBody").addEventListener("mouseleave", () => highlight([]));
   $("dClose").addEventListener("click", closeDrawer);
@@ -402,7 +632,7 @@ function bind() {
   $("linkHelp").addEventListener("click", (e) => { e.preventDefault(); showModal(true); });
   $("btnStart").addEventListener("click", () => showModal(false));
   $("modal").addEventListener("click", (e) => { if (e.target.id === "modal") showModal(false); });
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closeDrawer(); showModal(false); } });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closeDrawer(); showModal(false); showReport(false); tour(-1); } });
 }
 
 function buildModal() {
