@@ -68,3 +68,14 @@ def test_stand_in_question_names_are_short_and_readable():
     assert _fact_label("Patients with a history of congestive heart failure") == "congestive_heart_failure"
     assert _fact_label(">40 years of age") == "age"
     assert _fact_label("For COPD patients:") is None
+
+
+def test_live_page_panels_render_for_a_session():
+    from trialguide.demo import live_view
+    s = session()
+    record = {"trials": [{"trial_id": "T1", "title": "Breast trial"}, {"trial_id": "T2", "title": "Other trial"}]}
+    assert "Breast trial" in live_view.trials(s, record)
+    assert "trials checked" in live_view.tiles(s)
+    assert "Patient:" in live_view.patient_bar(s)
+    assert ("Question" in live_view.question(s)) or ("All done" in live_view.question(s))
+    assert "Recorded demo" in live_view.header(True, "https://example.org")
