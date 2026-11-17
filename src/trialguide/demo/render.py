@@ -14,6 +14,7 @@ COLOURS = {
     "answered": "#7c3aed",    # settled by the doctor's answer
     "open": "#9ca3af",        # still open: asked, abstained, or held back
     "against": "#dc2626",     # a settled rule that rules the trial out
+    "second": "#0891b2",      # live demo only: decided by the second model
 }
 GOLD = {0: ("not relevant", "#6b7280"), 1: ("excluded / potential", "#d97706"), 2: ("eligible", "#16a34a")}
 STEPS = ["Read the note", "Check every rule", "Infer · ask · abstain", "Ask the doctor", "Re-rank"]
@@ -123,7 +124,7 @@ def stepper(session: DemoSession | None) -> str:
 
 
 def kpis(session: DemoSession, gold: dict) -> str:
-    total = {"stated": 0, "inferred": 0, "answered": 0, "open": 0}
+    total = {"stated": 0, "inferred": 0, "answered": 0, "second": 0, "open": 0}
     for t in session.trial_ids():
         for k, v in session.counts(t).items():
             total[k] += v
@@ -133,6 +134,8 @@ def kpis(session: DemoSession, gold: dict) -> str:
     tiles = [(total["stated"], "rules stated in the note", COLOURS["stated"]),
              (total["inferred"], "rules inferred from evidence", COLOURS["inferred"]),
              (total["answered"], "rules settled by your answers", COLOURS["answered"]),
+             *([(total["second"], "rules decided by the second model", COLOURS["second"])]
+               if hasattr(session, "by_second") else []),
              (total["open"], "rules still open", COLOURS["open"]),
              (inf["held_back"], "inferences held back by λ", "#d97706"),
              (f"{session.state.questions_left()}/{session.state.budget}", "questions left", "#4f46e5")]
@@ -182,14 +185,18 @@ def _rule_colour(session: DemoSession, ref) -> str:
               (c.kind == RuleKind.EXCLUSION and c.status == RuleStatus.MET)
     if against:
         return COLOURS["against"]
+    if ref in getattr(session, "by_second", ()):
+        return COLOURS["second"]
     if any(i in session.doctor_certainty for i in c.evidence_ids):
         return COLOURS["answered"]
     return COLOURS["inferred"] if a.action == ActionType.ACCEPT_INFERENCE else COLOURS["stated"]
 
 
-def legend() -> str:
+def legend(second: bool = False) -> str:
     items = [("stated", "stated in the note"), ("inferred", "inferred (passed λ)"), ("answered", "answered by you"),
              ("against", "rules the trial out"), ("open", "open")]
+    if second:
+        items.insert(3, ("second", "decided by the second model"))
     return '<div class="tg-legend">' + "".join(
         f'<span><i style="background:{COLOURS[k]}"></i>{escape(v)}</span>' for k, v in items) + "</div>"
 
@@ -210,16 +217,17 @@ def trials_html(session: DemoSession, patient: dict) -> str:
         refs = sorted(r for r in session.rules if r[0] == tid)
         dots = "".join(f'<span title="{escape(r[1])}" style="background:{_rule_colour(session, r)}"></span>' for r in refs)
         c = session.counts(tid)
+        second = f'{c["second"]} by second model · ' if "second" in c else ""
         pct = (ours[tid] - lo) / (hi - lo) * 100 if hi > lo else 0
         cards.append(
             f'<div class="tg-trial"><div class="tg-rank">{rank}{move_html}</div>'
             f'<div><div class="tg-title">{escape(t.get("title", "")[:110] or tid)}</div>'
             f'<div class="tg-sub">{escape(tid)} · {c["stated"]} stated · {c["inferred"]} inferred · '
-            f'{c["answered"]} answered · {c["open"]} open {_tag("gold: " + gold_text, gold_colour) if gold_text else ""}</div>'
+            f'{c["answered"]} answered · {second}{c["open"]} open {_tag("gold: " + gold_text, gold_colour) if gold_text else ""}</div>'
             f'<div class="tg-dots">{dots}</div></div>'
             f'<div class="tg-score">score {ours[tid]:.2f} <span style="color:#94a3b8">(B6 {b6[tid]:.2f})</span>'
             f'<div class="tg-track"><div class="tg-fill" style="width:{max(pct, 3):.0f}%"></div></div></div></div>')
-    return (f'<div class="tg-card"><h3>Candidate trials, best first</h3>{legend()}'
+    return (f'<div class="tg-card"><h3>Candidate trials, best first</h3>{legend(hasattr(session, "by_second"))}'
             f'<div style="height:10px"></div>' + "".join(cards) + "</div>")
 
 
@@ -303,7 +311,9 @@ def rules_html(session: DemoSession | None, trial_id: str | None) -> str:
             f'<b>{escape(row["rule"])}</b><div style="color:#64748b;font-size:11px">{escape(row["kind"])}</div></td>'
             f'<td>{criterion_text(row["text"])}</td><td>{escape(row["status"].replace("_", " "))}'
             f'<div style="color:#64748b;font-size:11px">{escape(row["category"])}</div></td>'
-            f'<td>{escape(row["decision"].replace("_", " "))}</td>'
+            f'<td>{escape(row["decision"].replace("_", " "))}'
+            + (f'<div style="color:#64748b;font-size:11px">{escape(row["decided_by"])}</div>' if "decided_by" in row else "")
+            + '</td>'
             f'<td><span class="tg-conf"><i style="width:{conf * 100:.0f}%;background:{colour}"></i></span> {conf:.2f}</td>'
             f'<td style="color:#334155">{escape(row["evidence"]) or "<span style=color:#94a3b8>none</span>"}</td></tr>')
     return (f'<div class="tg-card"><h3>Rules of {escape(trial_id)}</h3><table class="tg-rules"><tr><th>rule</th>'
