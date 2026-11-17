@@ -1,2 +1,7 @@
-# Gradio itself is installed by the Space (sdk_version in README.md); this adds the TrialGuide code.
+# Gradio itself is installed by the Space (sdk_version in README.md); this adds the TrialGuide code
+# and what the live page needs (trial search, sentence splitting, PDF upload).
 trialguide @ git+https://github.com/Pakkabhabad18/trialguide.git@main
+rank-bm25==0.2.2
+nltk==3.9.2
+pyyaml
+pypdf

@@ -52,3 +52,19 @@ def test_answer_and_added_information_update_the_note():
 def test_note_from_facts():
     note = note_from_facts("54", "Female", "type 2 diabetes")
     assert list(note.sentences.values()) == ["The patient is a 54-year-old female.", "Main diagnosis: type 2 diabetes."]
+
+
+def test_stand_in_reads_age_from_the_note():
+    from trialguide.demo.live import _age_check
+    note = note_from_text("A 64-year-old man with lung cancer.")
+    older = TrialRule("NCT1", "inc_0", RuleKind.INCLUSION, "Age 18 years or older")
+    younger = TrialRule("NCT1", "inc_1", RuleKind.INCLUSION, "Aged 18 to 60 years")
+    assert _age_check(note, older)[0].value == "met"
+    assert _age_check(note, younger)[0].value == "not_met"
+
+
+def test_stand_in_question_names_are_short_and_readable():
+    from trialguide.demo.live import _fact_label
+    assert _fact_label("Patients with a history of congestive heart failure") == "congestive_heart_failure"
+    assert _fact_label(">40 years of age") == "age"
+    assert _fact_label("For COPD patients:") is None
