@@ -278,6 +278,63 @@ def _words(text: str) -> set:
     return {w for w in re.findall(r"[a-z][a-z0-9-]{2,}", text.lower()) if w not in _STOP}
 
 
+_LEAD = re.compile(r"^(patients?|subjects?|participants?)?\s*(who|with|that|must|should|have|has|had|are|is|be|"
+                   r"a|an|the|any|known|documented|presence of|evidence of|diagnosis of|history of|prior)\b\s*", re.I)
+
+
+_TAIL = {"or", "and", "of", "a", "an", "the", "with", "to", "in", "on", "for", "by", "at", "as", "be", "is", "are"}
+
+
+def _fact_label(text: str) -> Optional[str]:
+    """A short readable name for the fact a rule needs, used as the question (stand-in only).
+    The real checker writes its own name for the fact; this keeps the stand-in's questions readable."""
+    t = re.sub(r"\s+", " ", (text or "")).strip(" .;:-*").lower()
+    if not t or "empty criterion" in t:
+        return None
+    if re.search(r"\bage\b|years? (of age|old)", t):
+        return "age"                                  # one word is fine here
+    for _ in range(4):                               # drop leading filler such as "patients with a history of"
+        t2 = _LEAD.sub("", t).strip()
+        if t2 == t:
+            break
+        t = t2
+    t = re.sub(r"\([^)]*\)?", " ", t)                 # drop bracketed asides, even unclosed ones
+    t = re.split(r"[,;:]| (?:who|with|that|which|or within|defined as|such as|including) ", t)[0]
+    if t.startswith("for "):                          # a heading such as "For COPD patients", not a rule
+        return None
+    words = t.replace("/", " ").split()[:9]
+    while words and words[-1] in _TAIL:              # no dangling "or", "of", "a" at the end
+        words.pop()
+    return "_".join(words) if len(words) >= 2 else None
+
+
+_AGE = re.compile(r"(\d{1,3})[- ]year[- ]old|aged? (\d{1,3})", re.I)
+
+
+def _age_check(note: VisibleNote, rule: TrialRule):
+    """(status, sentence id) for an age rule when the note states the age, else None (stand-in only).
+    MET means the rule's text is true for the patient, as for every check (also for exclusion rules)."""
+    text = rule.text.lower()
+    if not re.search(r"\bage\b|years? (of age|old)|\byears\b", text):
+        return None
+    nums = [int(n) for n in re.findall(r"\d{1,3}", text) if 0 < int(n) < 120]
+    if not nums:
+        return None
+    for sid, sent in note.sentences.items():
+        m = _AGE.search(sent)
+        if not m:
+            continue
+        age = int(m.group(1) or m.group(2))
+        if len(nums) >= 2 and re.search(r"\d\s*(-|to|and)\s*\d", text):
+            ok = min(nums[:2]) <= age <= max(nums[:2])
+        elif re.search(r"<|≤|younger|under|less|below|up to", text):
+            ok = age <= nums[0] if re.search(r"≤|<=|or younger|or less|up to", text) else age < nums[0]
+        else:
+            ok = age >= nums[0] if re.search(r"≥|>=|or older|or over|at least|or more", text) else age >= nums[0]
+        return (RuleStatus.MET if ok else RuleStatus.NOT_MET), sid
+    return None
+
+
 def keyword_checker(settle_open: bool = False) -> CheckFn:
     """settle_open=False: the 'first model' (stated if the rule's words appear in a sentence).
     settle_open=True: the 'second model' (also settles consent / willingness rules by inference)."""
@@ -289,13 +346,17 @@ def keyword_checker(settle_open: bool = False) -> CheckFn:
         hit = best is not None and len(words & _words(best[1])) >= 2
         base = dict(patient_id=note.patient_id, trial_id=rule.trial_id, rule_id=rule.rule_id,
                     kind=rule.kind, n_samples=1)
+        age = _age_check(note, rule)
+        if age is not None:
+            return RuleCheck(**base, status=age[0], category=InfoCategory.STATED,
+                             evidence_ids=[age[1]], confidence=0.95, explanation="age stated in the note")
         if hit:
             return RuleCheck(**base, status=RuleStatus.MET, category=InfoCategory.STATED,
                              evidence_ids=[best[0]], confidence=0.95, explanation="words match")
         if settle_open and re.search(r"consent|willing|able to comply", rule.text, re.I) and note.sentences:
             return RuleCheck(**base, status=RuleStatus.MET, category=InfoCategory.INFERRED,
                              evidence_ids=[min(note.sentences)], confidence=0.8, explanation="assumed willing")
-        key = "_".join(sorted(words, key=len, reverse=True)[:2]) or None
+        key = _fact_label(rule.text)
         return RuleCheck(**base, status=RuleStatus.NOT_ENOUGH_INFO, category=InfoCategory.MISSING,
                          confidence=0.5, explanation="not in the note", fact_key=key)
 

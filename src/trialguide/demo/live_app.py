@@ -46,12 +46,12 @@ def hero(live: bool, home: str = "") -> str:
             'Rules it cannot settle go to a <b>second model</b>. Only what neither model can settle is '
             '<b>asked</b> of you, the doctor.</p>'
             + "".join(f'<span class="tg-pill">{p}</span>' for p in pills)
-            + (f'<p><a href="{home}" style="color:#fff">Back to the recorded demo</a></p>' if home else "")
+            + (f'<p><a href="{home}" target="_top" style="color:#fff">Back to the recorded demo</a></p>' if home else "")
             + "</div>")
 
 
 def build(raw: Path, fake: bool = False, cohorts=("sigir", "trec_2021"), home: str = ""):
-    """home: link back to the recorded demo, when both are served together (deploy/web/app.py)."""
+    """home: link back to the recorded demo page (set on the Hugging Face Space, deploy/hf_space/app.py)."""
     import gradio as gr
 
     if fake:

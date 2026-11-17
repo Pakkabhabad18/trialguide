@@ -112,7 +112,7 @@ scripts/       data download and cluster job scripts
 splits/        the frozen patient splits (with checksums)
 results/       result files and their READMEs (dev_run, dev60_run, test_run, retrieval)
 demo/          recorded demo bundle (3 development patients)
-deploy/        web/: the web demo and its Space app (recorded page at /, your own patient at /live/); hf_space/: the Python demo's Hugging Face Space
+deploy/        web/: the web demo (static page and its data); hf_space/: the Hugging Face Space for trying your own patient
 tests/         unit tests (run automatically on every pull request)
 docs/          proposal, mid-submission report, leakage checklist, E2 limits
 ```
@@ -142,7 +142,7 @@ Try it online: [huggingface.co/spaces/Pakkabhabad18/trialguide-demo](https://hug
 
 The page runs no model. It replays decisions recorded from the real system (`demo/demo_bundle.json`: Qwen3-8B checks at λ̂ = 0.766) for every path of answers, up to 3 questions. Two known limits: the questions keep the system's wording ("What does the patient's record say about ...?") while the answers are fixed to Yes / No / Not in the record, so some questions read awkwardly; and two of the three patients were recorded before the copied "prior chemotherapy" key was found, so their first question is about prior chemotherapy (see B7-keyfix under Results).
 
-**Your own patient.** The "Try your own patient" button on the same page opens a live version (`src/trialguide/demo/live.py`, `live_app.py`). You paste or upload a note, or start from a few facts (age, sex, main diagnosis). BM25 finds the best-matching trials in the SIGIR and TREC 2021 collections, Qwen3-8B checks every rule, and a second model (Llama-3.1-8B) looks at the rules Qwen3-8B could not settle. Only rules neither model settles are asked of you, and you can add new information at any time. Rules settled by the second model are shown in their own colour, because the 5% risk result was measured for Qwen3-8B with its threshold only. The free Space has no GPU, so there the two models are replaced by a word-matching stand-in and the page says so. With two GPUs (e.g. Kaggle T4 x2) the real models run:
+**Your own patient.** The "Try your own patient" button on the same page opens a live version at [huggingface.co/spaces/Pakkabhabad18/trialguide](https://huggingface.co/spaces/Pakkabhabad18/trialguide) (`src/trialguide/demo/live.py`, `live_app.py`). You paste or upload a note, or start from a few facts (age, sex, main diagnosis). BM25 finds the best-matching trials in the SIGIR and TREC 2021 collections, Qwen3-8B checks every rule, and a second model (Llama-3.1-8B) looks at the rules Qwen3-8B could not settle. Only rules neither model settles are asked of you, and you can add new information at any time. Rules settled by the second model are shown in their own colour, because the 5% risk result was measured for Qwen3-8B with its threshold only. The free Space has no GPU, so there the two models are replaced by a word-matching stand-in and the page says so. With two GPUs (e.g. Kaggle T4 x2) the real models run:
 
 ```bash
 LLM_HF_DEVICES="Qwen/Qwen3-8B=0,meta-llama/Llama-3.1-8B-Instruct=1" LLM_HF_4BIT=1 python -m trialguide.demo.live_app --share
@@ -161,7 +161,7 @@ and open http://localhost:8000. To rebuild its data file from the bundle (after 
 python -m trialguide.demo.export_web --bundle demo/demo_bundle.json --out deploy/web/data.json
 ```
 
-**Python version.** The earlier demo, built with Gradio, is at [huggingface.co/spaces/Pakkabhabad18/trialguide](https://huggingface.co/spaces/Pakkabhabad18/trialguide). It runs from the same bundle on a laptop without a GPU:
+**Python version.** The earlier demo, built with Gradio, runs from the same bundle on a laptop without a GPU (its Space now hosts the live page above):
 
 ```bash
 pip install -r requirements-demo.txt
