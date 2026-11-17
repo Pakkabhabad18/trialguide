@@ -108,7 +108,7 @@ def _complete_api(messages, model, temperature, logprobs=False, seed=None, top_p
 class _HFBatcher:
 	"""Loads one model and serves requests from many threads in small batches."""
 
-	def __init__(self, model_name):
+	def __init__(self, model_name, device=None):
 		import torch
 		from transformers import AutoModelForCausalLM, AutoTokenizer
 
@@ -137,7 +137,8 @@ class _HFBatcher:
 			quant = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
 				bnb_4bit_compute_dtype=torch.float16, bnb_4bit_use_double_quant=True)
 		self.model = AutoModelForCausalLM.from_pretrained(
-			model_name, dtype=dtype, device_map="auto", max_memory=max_memory,
+			model_name, dtype=dtype, device_map="auto" if device is None else {"": device},
+			max_memory=None if device is not None else max_memory,
 			quantization_config=quant,
 		)
 		# LLM_HF_ADAPTER=<folder> puts a LoRA adapter (finetune/train_qlora.py) on top of the
@@ -283,10 +284,23 @@ def span_logprob(tokens, start, end):
 
 
 _hf = None
+# Live demo only: LLM_HF_DEVICES="Qwen/Qwen3-8B=0,meta-llama/Llama-3.1-8B-Instruct=1" lets one process
+# serve two models, each pinned to its own GPU (the checker and the second model). Unset, the
+# backend serves one model per process, exactly as in the experiments.
+HF_DEVICES = dict(part.rsplit("=", 1) for part in os.getenv("LLM_HF_DEVICES", "").split(",") if "=" in part)
+_hf_by_model = {}
 
 
 def _complete_hf(messages, model, temperature, logprobs=False, seed=None, top_p=1.0):
 	global _hf
+	if HF_DEVICES:
+		# one batcher per model, created on first use and placed on the GPU named for it
+		with _lock:
+			if model not in _hf_by_model:
+				if model not in HF_DEVICES:
+					raise ValueError(f"{model} has no GPU in LLM_HF_DEVICES")
+				_hf_by_model[model] = _HFBatcher(model, device=int(HF_DEVICES[model]))
+		return _hf_by_model[model].submit(messages, temperature, logprobs, seed, top_p)
 	with _lock:
 		if _hf is None:
 			_hf = _HFBatcher(model)
