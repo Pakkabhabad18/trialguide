@@ -256,6 +256,61 @@ class RemoteChecker:
         return self.many(note, {0: rule})[0]
 
 
+# ---------------------------------------------------------------------------
+# Demo safeguard (live page only, not part of the evaluated system): a model's conclusion counts only
+# if a sentence it cites is about the rule. In the first runs on new notes the models often "settled"
+# rules such as "written informed consent" or "active infection" by citing an unrelated sentence
+# ("He has not received docetaxel."). Such a result is turned back into an open rule, so the doctor
+# is asked instead of the model guessing.
+# ---------------------------------------------------------------------------
+
+_GENERIC = {"cancer", "disease", "treatment", "therapy", "history", "previous", "prior", "within", "least",
+            "months", "years", "year", "weeks", "days", "study", "trial", "including", "other", "than",
+            "more", "less", "must", "should", "will", "been", "were", "this", "that", "such", "following"}
+
+
+def _topic_words(text: str) -> set:
+    return {w for w in _words(text) if len(w) >= 4 and w not in _GENERIC}
+
+
+def grounded(check, rule: TrialRule, note: VisibleNote) -> bool:
+    """True when a cited sentence (or a tool result) shares a topic word with the rule."""
+    if check.tool_calls:
+        return True
+    words = _topic_words(rule.text)
+    if not words:                                      # nothing to compare (e.g. an empty criterion)
+        return True
+    return any(words & _topic_words(note.sentences.get(i, "")) for i in check.evidence_ids)
+
+
+class Guarded:
+    """Wraps a checker with the demo safeguard. strict=False (first model): only inferences must be
+    grounded. strict=True (second model): every conclusion must be, since it has no risk threshold."""
+
+    def __init__(self, inner: CheckFn, strict: bool = False):
+        self.inner, self.strict = inner, strict
+
+    @property
+    def failed(self) -> bool:                          # the remote GPU stopped (see RemoteChecker)
+        return getattr(self.inner, "failed", False)
+
+    def _guard(self, c, rule: TrialRule, note: VisibleNote):
+        settled = c.status in (RuleStatus.MET, RuleStatus.NOT_MET, RuleStatus.NOT_APPLICABLE)
+        check_it = c.category == InfoCategory.INFERRED or (self.strict and c.category == InfoCategory.STATED)
+        if settled and check_it and not grounded(c, rule, note):
+            return replace(c, status=RuleStatus.NOT_ENOUGH_INFO, category=InfoCategory.MISSING, evidence_ids=[],
+                           tool_calls=[], fact_key=c.fact_key or _fact_label(rule.text),
+                           explanation="left open: the cited sentence is not about this rule")
+        return c
+
+    def many(self, note: VisibleNote, rules: dict) -> dict:
+        out = check_many(self.inner, note, rules)
+        return {r: self._guard(c, rules[r], note) for r, c in out.items()}
+
+    def __call__(self, note: VisibleNote, rule: TrialRule):
+        return self._guard(self.inner(note, rule), rule, note)
+
+
 def settles(check) -> bool:
     """Does a check settle the rule from the note (a decided status backed by cited sentences)?"""
     return (check.status in (RuleStatus.MET, RuleStatus.NOT_MET, RuleStatus.NOT_APPLICABLE)

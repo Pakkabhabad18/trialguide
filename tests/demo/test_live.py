@@ -101,3 +101,28 @@ def test_website_falls_back_to_the_stand_in_when_the_gpu_is_gone():
     s.start()                                       # no server on port 9: every check uses the stand-in
     assert remote.failed
     assert s.checks[("T1", "inc_0")].status.value == "met"
+
+
+def test_demo_safeguard_reopens_conclusions_that_cite_an_unrelated_sentence():
+    # cases seen with the real models on a prostate cancer note (Kaggle run)
+    from trialguide.demo.live import Guarded
+    from trialguide.schemas import InfoCategory, RuleCheck, RuleStatus
+    note = note_from_text("A 67-year-old man has metastatic prostate cancer with bone metastases. "
+                          "His PSA is rising on androgen deprivation therapy. He has not received docetaxel. "
+                          "ECOG performance status is 1.")
+    def rule(rid, kind, text):
+        return TrialRule("T", rid, kind, text)
+    cases = [  # (rule, status, category, cited sentence, open afterwards for the first / second model)
+        (rule("i11", RuleKind.INCLUSION, "Written informed consent"), "not_met", "inferred", 0, True, True),
+        (rule("e8", RuleKind.EXCLUSION, "Active uncontrolled bacterial, viral or fungal infection"),
+         "not_met", "stated", 2, False, True),
+        (rule("i3", RuleKind.INCLUSION, "WHO performance status of 2 or less"), "met", "stated", 3, False, False),
+        (rule("i2", RuleKind.INCLUSION, "Bone metastases (6 lesions or more) on bone scintigraphy"),
+         "not_met", "inferred", 0, False, False),
+    ]
+    for r, status, cat, sid, open_first, open_second in cases:
+        c = RuleCheck(note.patient_id, "T", r.rule_id, r.kind, RuleStatus(status), InfoCategory(cat),
+                      evidence_ids=[sid], confidence=0.9, n_samples=1)
+        model = lambda n, x, c=c: c
+        assert Guarded(model)(note, r).unresolved == open_first, r.text
+        assert Guarded(model, strict=True)(note, r).unresolved == open_second, r.text
