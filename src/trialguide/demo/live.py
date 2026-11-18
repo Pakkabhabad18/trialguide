@@ -295,6 +295,11 @@ class Guarded:
         return getattr(self.inner, "failed", False)
 
     def _guard(self, c, rule: TrialRule, note: VisibleNote):
+        from trialguide.selector.selector import CHEMO_WORDS, COPIED_KEY
+        # the copied "prior_chemotherapy" key (B7-keyfix in the report): a rule that is not about
+        # cancer drugs gets its own short name instead, so unrelated rules do not share one question
+        if c.fact_key == COPIED_KEY and not CHEMO_WORDS.search(rule.text or ""):
+            c = replace(c, fact_key=_fact_label(rule.text))
         settled = c.status in (RuleStatus.MET, RuleStatus.NOT_MET, RuleStatus.NOT_APPLICABLE)
         check_it = c.category == InfoCategory.INFERRED or (self.strict and c.category == InfoCategory.STATED)
         if settled and check_it and not grounded(c, rule, note):

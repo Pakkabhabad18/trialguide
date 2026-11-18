@@ -126,3 +126,16 @@ def test_demo_safeguard_reopens_conclusions_that_cite_an_unrelated_sentence():
         model = lambda n, x, c=c: c
         assert Guarded(model)(note, r).unresolved == open_first, r.text
         assert Guarded(model, strict=True)(note, r).unresolved == open_second, r.text
+
+
+def test_copied_chemotherapy_key_is_replaced_on_unrelated_rules():
+    from trialguide.demo.live import Guarded
+    from trialguide.schemas import InfoCategory, RuleCheck, RuleStatus
+    note = note_from_text(NOTE)
+    def open_check(rule):
+        return RuleCheck(note.patient_id, rule.trial_id, rule.rule_id, rule.kind, RuleStatus.NOT_ENOUGH_INFO,
+                         InfoCategory.MISSING, confidence=0.5, n_samples=1, fact_key="prior_chemotherapy")
+    consent = TrialRule("T", "i1", RuleKind.INCLUSION, "Signed informed consent")
+    chemo = TrialRule("T", "i2", RuleKind.INCLUSION, "No prior chemotherapy for metastatic disease")
+    assert Guarded(lambda n, r: open_check(r))(note, consent).fact_key == "signed_informed_consent"
+    assert Guarded(lambda n, r: open_check(r))(note, chemo).fact_key == "prior_chemotherapy"
