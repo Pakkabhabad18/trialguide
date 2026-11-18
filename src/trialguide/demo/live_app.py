@@ -19,13 +19,15 @@ from __future__ import annotations
 import argparse
 import datetime
 import json
+import os
+import time
 from pathlib import Path
 
 from trialguide.demo import live_view as view_
 from trialguide.demo import render
 from trialguide.demo.live import (
-    FIRST_MODEL, SECOND_MODEL, TrialIndex, TwoModelSession, keyword_checker, note_from_facts,
-    note_from_text, patient_record, read_upload, rules_of_corpus_trial,
+    FIRST_MODEL, SECOND_MODEL, RemoteChecker, TrialIndex, TwoModelSession, keyword_checker, note_from_facts,
+    note_from_text, patient_record, read_upload, rules_of_corpus_trial, safe, serve_checks,
 )
 from trialguide.schemas import Certainty
 
@@ -33,20 +35,49 @@ CERTAINTY = {"Sure": Certainty.SURE, "Probably": Certainty.PROBABLY, "Unsure": C
 SESSIONS_DIR = Path("outputs/live_sessions")
 THRESHOLD = 0.766          # lambda-hat from calibration (results/calibration), the first model's cut-off
 
+# Shared secret between the website and the Kaggle GPU notebook (a Space secret and a Kaggle secret
+# with the same value). Without it the website never uses a GPU, and the notebook serves no one else.
+KEY = os.getenv("TRIALGUIDE_KEY", "")
+# Website side: the GPU notebook's current link, sent by the notebook every 2 minutes
+BACKEND = {"url": "", "seen": 0.0}
+
+
+def current_backend() -> str:
+    """The GPU notebook's link if it checked in during the last 10 minutes and answers now, else ''."""
+    import urllib.request
+    if not (KEY and BACKEND["url"]) or time.time() - BACKEND["seen"] > 600:
+        return ""
+    try:
+        with urllib.request.urlopen(BACKEND["url"].rstrip("/") + "/config", timeout=5) as r:
+            return BACKEND["url"] if r.status == 200 else ""
+    except Exception:                                # noqa: BLE001  (not reachable: demo mode)
+        return ""
+
+
 EXAMPLE_NOTE = ("A 58-year-old woman presents with a palpable mass in the left breast. Biopsy shows invasive "
                 "ductal carcinoma, estrogen receptor positive, HER2 negative. She has type 2 diabetes treated "
                 "with metformin. She has not received chemotherapy. ECOG performance status is 1.")
 
 
-def build(raw: Path, fake: bool = False, cohorts=("sigir", "trec_2021"), home: str = ""):
-    """The live page. home: link back to the recorded demo (set on the Hugging Face Space)."""
+def build(raw: Path, fake: bool = False, cohorts=("sigir", "trec_2021"), home: str = "",
+          remote: bool = False, serve: bool = False):
+    """The live page. home: link back to the recorded demo.
+    remote=True (the free website): use the Kaggle GPU notebook's models while it is running, else the stand-in.
+    serve=True (the Kaggle notebook): also answer rule checks sent by the website."""
     import gradio as gr
 
     if fake:
         first, second = keyword_checker(), keyword_checker(settle_open=True)
     else:
         from trialguide.pipeline import checker
-        first, second = checker(FIRST_MODEL, 1), checker(SECOND_MODEL, 1)
+        first, second = safe(checker(FIRST_MODEL, 1)), safe(checker(SECOND_MODEL, 1))
+
+    def checkers():
+        """The two checkers for a new patient, and whether they are the real models."""
+        url = current_backend() if remote else ""
+        if url:
+            return (RemoteChecker(url, FIRST_MODEL, KEY, first), RemoteChecker(url, SECOND_MODEL, KEY, second), True)
+        return first, second, not fake
     print("building the trial index ...", flush=True)
     index = TrialIndex(raw, cohorts)
     print(f"{len(index.trials)} trials indexed", flush=True)
@@ -56,7 +87,9 @@ def build(raw: Path, fake: bool = False, cohorts=("sigir", "trec_2021"), home: s
         order = s.order(s.scores())
         trial = trial if trial in order else (order[0] if order else None)
         live = not s.finished
-        return (s, record,
+        models = getattr(s, "live_models", not fake) and not any(
+            getattr(c, "failed", False) for c in (s.check, s.second_check))
+        return (s, record, view_.header(not models, home),
                 gr.update(visible=False), gr.update(visible=False),        # hide the start form and the steps
                 gr.update(visible=True),                                   # show the results
                 view_.patient_bar(s), view_.tiles(s), view_.question(s), view_.trials(s, record),
@@ -83,9 +116,13 @@ def build(raw: Path, fake: bool = False, cohorts=("sigir", "trec_2021"), home: s
         if not found:
             raise gr.Error("No trial matched this note. Add the diagnosis or more detail.")
         rules = [r for t in found for r in rules_of_corpus_trial(t)]
-        progress(0.3, desc=f"Checking {len(rules)} rules of {len(found)} trials")
-        s = TwoModelSession(note, rules, first, second, threshold=THRESHOLD,
+        progress(0.25, desc="Looking for the GPU models")
+        one, two, models = checkers()
+        progress(0.3, desc=f"Checking {len(rules)} rules of {len(found)} trials"
+                           + (" with the real models (about a minute)" if models else ""))
+        s = TwoModelSession(note, rules, one, two, threshold=THRESHOLD,
                             budget=max(int(budget), 6) if mode == "facts" else int(budget))
+        s.live_models = models
         s.start()
         return view(s, patient_record(note, found))
 
@@ -133,7 +170,7 @@ def build(raw: Path, fake: bool = False, cohorts=("sigir", "trec_2021"), home: s
     with gr.Blocks(title="TrialGuide · try your own patient", theme=theme, css=render.CSS + view_.CSS,
                    js=view_.FORCE_LIGHT) as demo:
         state, record, mode = gr.State(None), gr.State(None), gr.State("note")
-        gr.HTML(view_.header(fake, home))
+        top = gr.HTML(view_.header(fake, home))
 
         # ---- 1. the start form: three ways to give the patient, as tabs ----
         with gr.Column(elem_classes="lv-panel") as form:
@@ -201,7 +238,7 @@ def build(raw: Path, fake: bool = False, cohorts=("sigir", "trec_2021"), home: s
         tab_upload.select(lambda: ("upload", 3), None, [mode, budget])
         tab_facts.select(lambda: ("facts", 6), None, [mode, budget])
         example.click(lambda: EXAMPLE_NOTE, None, text)
-        outputs = [state, record, form, steps, results, patient, tiles, question, trials, conv, note, pick, rules,
+        outputs = [state, record, top, form, steps, results, patient, tiles, question, trials, conv, note, pick, rules,
                    answer_box]
         go.click(start, [mode, text, upload, age, sex, condition, other, n_trials, budget], outputs)
         for btn, value in ((yes, "yes"), (no, "no"), (na, "not in the record")):
@@ -212,6 +249,28 @@ def build(raw: Path, fake: bool = False, cohorts=("sigir", "trec_2021"), home: s
         again.click(restart, None, [state, record, form, steps, results])
         pick.change(lambda s, t: render.rules_html(s, t), [state, pick], [rules])
         save_btn.click(save, [state], [saved])
+
+        # ---- the link between the website and the Kaggle GPU notebook ----
+        if remote:
+            # the badge says whether the real models are on when the page opens
+            demo.load(lambda: view_.header(not current_backend(), home), None, top)
+
+            def register_backend(url: str, key: str) -> str:
+                """Called by the Kaggle notebook every 2 minutes with its current public link."""
+                if not KEY or key != KEY or not url.startswith("http"):
+                    return "refused"
+                BACKEND.update(url=url, seen=time.time())
+                return "registered"
+            gr.api(register_backend, api_name="register_backend")
+        if serve:
+            served = {FIRST_MODEL: first, SECOND_MODEL: second}
+
+            def check_rules(payload: str, key: str) -> str:
+                """Rule checks sent by the website: one model, one note, many rules."""
+                if not KEY or key != KEY:
+                    raise gr.Error("refused")
+                return serve_checks(payload, served)
+            gr.api(check_rules, api_name="check_rules")
     return demo
 
 

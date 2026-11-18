@@ -148,11 +148,112 @@ def patient_record(note: VisibleNote, trials: list[dict]) -> dict:
 # ---------------------------------------------------------------------------
 
 def check_many(check: CheckFn, note: VisibleNote, rules: dict) -> dict:
-    """Check many rules at once (threads, so the GPU batches them). rules: ref -> TrialRule."""
+    """Check many rules at once (threads, so the GPU batches them). rules: ref -> TrialRule.
+    A checker with a .many method (the remote checker) gets all rules in one call instead."""
+    if hasattr(check, "many"):
+        return check.many(note, rules)
     refs = list(rules)
     with ThreadPoolExecutor(WORKERS) as pool:
         results = list(pool.map(lambda ref: check(note, rules[ref]), refs))
     return dict(zip(refs, results))
+
+
+def safe(check: CheckFn) -> CheckFn:
+    """A checker that never stops the page: if one rule check fails (a model or network error),
+    that rule is left open, as an unresolved check, and the error is printed for the log."""
+    import traceback
+    from trialguide.schemas import RuleCheck
+
+    def run(note: VisibleNote, rule: TrialRule):
+        try:
+            return check(note, rule)
+        except Exception as e:                       # noqa: BLE001  (any failure leaves the rule open)
+            traceback.print_exc()
+            return RuleCheck(note.patient_id, rule.trial_id, rule.rule_id, rule.kind, RuleStatus.NOT_ENOUGH_INFO,
+                             InfoCategory.MISSING, confidence=0.0, n_samples=1,
+                             explanation=f"check failed: {type(e).__name__}")
+    return run
+
+
+# ---------------------------------------------------------------------------
+# Remote models: the free website sends rule checks to the GPU notebook on Kaggle when it is
+# running, and uses the word-matching stand-in when it is not.
+# ---------------------------------------------------------------------------
+
+def check_to_json(c) -> dict:
+    """A RuleCheck as plain JSON (enums as their values)."""
+    from dataclasses import asdict
+    d = asdict(c)
+    for k in ("kind", "status", "category"):
+        d[k] = getattr(c, k).value
+    return d
+
+
+def note_to_json(note: VisibleNote) -> dict:
+    return {"patient_id": note.patient_id, "sentences": {str(i): t for i, t in note.sentences.items()}}
+
+
+def note_from_json(d: dict) -> VisibleNote:
+    return VisibleNote(d["patient_id"], Split.DEV, {int(i): t for i, t in d["sentences"].items()})
+
+
+def rule_to_json(r: TrialRule) -> dict:
+    return {"trial_id": r.trial_id, "rule_id": r.rule_id, "kind": r.kind.value, "text": r.text}
+
+
+def rule_from_json(d: dict) -> TrialRule:
+    return TrialRule(d["trial_id"], d["rule_id"], RuleKind(d["kind"]), d["text"])
+
+
+def serve_checks(payload: str, checkers: dict) -> str:
+    """GPU side: one request = one model, one note, many rules. Returns the checks as JSON."""
+    import json
+    req = json.loads(payload)
+    check = checkers[req["model"]]
+    note = note_from_json(req["note"])
+    rules = {i: rule_from_json(r) for i, r in enumerate(req["rules"])}
+    out = check_many(check, note, rules)
+    return json.dumps([check_to_json(out[i]) for i in range(len(rules))])
+
+
+_clients: dict = {}
+
+
+class RemoteChecker:
+    """Website side: checks rules with a model running on the Kaggle GPU (url = its gradio.live link).
+    If the GPU stops answering, the rules are checked by the fallback (the stand-in) instead and
+    self.failed is set, so the page can say so."""
+
+    def __init__(self, url: str, model: str, key: str, fallback: CheckFn):
+        self.url, self.model, self.key, self.fallback = url, model, key, fallback
+        self.failed = False
+
+    def _client(self):
+        from gradio_client import Client
+        if self.url not in _clients:
+            _clients[self.url] = Client(self.url, verbose=False)
+        return _clients[self.url]
+
+    def many(self, note: VisibleNote, rules: dict) -> dict:
+        import json
+        refs = list(rules)
+        payload = json.dumps({"model": self.model, "note": note_to_json(note),
+                              "rules": [rule_to_json(rules[r]) for r in refs]})
+        if not self.failed:
+            try:
+                job = self._client().submit(payload, self.key, api_name="/check_rules")
+                from trialguide.policy.calibrate import check_from_json
+                got = [check_from_json(d) for d in json.loads(job.result(timeout=900))]
+                return dict(zip(refs, got))
+            except Exception:                        # noqa: BLE001  (GPU gone: use the stand-in)
+                import traceback
+                traceback.print_exc()
+                self.failed = True
+                _clients.pop(self.url, None)
+        return {r: self.fallback(note, rules[r]) for r in refs}
+
+    def __call__(self, note: VisibleNote, rule: TrialRule):
+        return self.many(note, {0: rule})[0]
 
 
 def settles(check) -> bool:

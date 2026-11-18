@@ -1,8 +1,8 @@
 """Hugging Face Space entry point for TrialGuide live: try your own patient (no GPU needed).
 
 Paste or upload a note, or start from a few facts, and answer TrialGuide's questions as the doctor.
-The Space has no GPU for the two 8B models, so it runs the word-matching stand-in (fake=True) and the
-page says so. The recorded demo with real Qwen3-8B decisions is the static page at
+The Space has no GPU for the two 8B models. While the Kaggle notebook trialguide_live_kaggle.ipynb runs,
+the page uses the real models there; otherwise it runs the word-matching stand-in, and the badge says which. The recorded demo with real Qwen3-8B decisions is the static page at
 huggingface.co/spaces/Pakkabhabad18/trialguide-demo. The code is installed from the GitHub repo
 (requirements.txt). Owner: Prakash.
 """
@@ -39,4 +39,6 @@ except ImportError:          # running outside Hugging Face
     pass
 
 HOME = "https://huggingface.co/spaces/Pakkabhabad18/trialguide-demo"
-build(RAW, fake=True, home=HOME).queue().launch()
+# remote=True: while the Kaggle GPU notebook is running (it checks in every 2 minutes), rule checks
+# go to the real Qwen3-8B and Llama-3.1-8B there; otherwise the word-matching stand-in is used.
+build(RAW, fake=True, home=HOME, remote=True).queue().launch()

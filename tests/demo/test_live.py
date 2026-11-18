@@ -79,3 +79,25 @@ def test_live_page_panels_render_for_a_session():
     assert "Patient:" in live_view.patient_bar(s)
     assert ("Question" in live_view.question(s)) or ("All done" in live_view.question(s))
     assert "Recorded demo" in live_view.header(True, "https://example.org")
+
+
+def test_rule_checks_survive_the_trip_to_the_gpu_and_back():
+    import json
+    from trialguide.demo.live import check_to_json, note_to_json, rule_to_json, serve_checks
+    from trialguide.policy.calibrate import check_from_json
+    note = note_from_text(NOTE)
+    payload = json.dumps({"model": "m", "note": note_to_json(note), "rules": [rule_to_json(r) for r in RULES]})
+    back = [check_from_json(d) for d in json.loads(serve_checks(payload, {"m": keyword_checker()}))]
+    direct = [keyword_checker()(note, r) for r in RULES]
+    assert [c.status for c in back] == [c.status for c in direct]
+    assert check_to_json(back[0])["kind"] == "inclusion"
+
+
+def test_website_falls_back_to_the_stand_in_when_the_gpu_is_gone():
+    from trialguide.demo.live import RemoteChecker
+    remote = RemoteChecker("http://127.0.0.1:9", "m", "key", fallback=keyword_checker())
+    s = TwoModelSession(note_from_text(NOTE), RULES, remote, keyword_checker(settle_open=True),
+                        threshold=0.766, budget=3)
+    s.start()                                       # no server on port 9: every check uses the stand-in
+    assert remote.failed
+    assert s.checks[("T1", "inc_0")].status.value == "met"

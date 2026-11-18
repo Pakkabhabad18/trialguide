@@ -66,7 +66,7 @@ footer{display:none !important}
 .lv-patient b{color:#0f172a}
 .lv-answer button{font-size:16px !important;font-weight:700 !important;min-height:52px !important}
 .lv-big button,.lv-big{font-size:17px !important;font-weight:700 !important;min-height:54px !important}
-@media (max-width:760px){.lv-how,.lv-tiles{grid-template-columns:1fr 1fr}.lv-top{flex-wrap:wrap}.lv-tag{display:none}}
+@media (max-width:760px){.lv-how{grid-template-columns:1fr}.lv-tiles{grid-template-columns:1fr 1fr}.lv-top{flex-wrap:wrap;padding:12px 14px}.lv-tag,.lv-badge{display:none}.lv-panel{padding:12px !important}.lv-q .t{font-size:18px}.lv-trial{grid-template-columns:30px 1fr;padding:12px}.lv-row{flex-wrap:wrap;gap:6px}.gradio-container{padding:0 10px !important}}
 """
 
 # Forces the light look: a Gradio page follows the browser's dark setting by default, and the
@@ -131,12 +131,20 @@ def tiles(session) -> str:
         f'<div class="lv-tile"><div class="v">{v}</div><div class="l">{escape(l)}</div></div>' for v, l in items) + "</div>"
 
 
+def _asked(session) -> str:
+    """'3 questions answered, 1 update added': added information is not counted as a question."""
+    added = sum(t.question == "You added information" for t in session.turns)
+    asked = len(session.turns) - added
+    text = f"{asked} question{'s' if asked != 1 else ''} answered"
+    return text + (f", {added} update{'s' if added != 1 else ''} added" if added else "")
+
+
 def question(session) -> str:
     """The current question in a bold card, or a 'done' card when the conversation is over."""
     if session.finished or session.question is None:
         c = _counts(session)
         return ('<div class="lv-done"><div class="t">✓ All done</div>'
-                f'<p>{len(session.turns)} question(s) answered. {c["open"]} rule(s) are still open: the note does not '
+                f'<p>{_asked(session)}. {c["open"]} rule(s) are still open: the note does not '
                 'settle them, so they are left for the doctor and never guessed.</p>'
                 '<p>Add new information below to re-check, or start over with a new patient.</p></div>')
     q = session.question
@@ -182,7 +190,8 @@ def conversation(session) -> str:
     rows = []
     for t in session.turns:
         n = len(t.settled)
-        rows.append(f'<div class="lv-turn"><b>{escape(t.question)}</b><br>You: {escape(t.answer)} '
-                    f'<span class="lv-muted">({escape(t.certainty)})</span> · '
+        said = ("Not in the record" if t.certainty == "not_documented"
+                else f'{escape(t.answer)} <span class="lv-muted">({escape(t.certainty)})</span>')
+        rows.append(f'<div class="lv-turn"><b>{escape(t.question)}</b><br>You: {said} · '
                     f'<span class="r">{n} rule{"s" if n != 1 else ""} settled</span></div>')
     return '<div class="lv-conv"><h4>Conversation</h4>' + "".join(rows) + "</div>"
