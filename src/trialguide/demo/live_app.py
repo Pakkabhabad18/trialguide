@@ -26,7 +26,7 @@ from pathlib import Path
 from trialguide.demo import live_view as view_
 from trialguide.demo import render
 from trialguide.demo.live import (
-    FIRST_MODEL, SECOND_MODEL, RemoteChecker, TrialIndex, TwoModelSession, keyword_checker, note_from_facts,
+    FIRST_MODEL, SECOND_MODEL, Guarded, RemoteChecker, TrialIndex, TwoModelSession, keyword_checker, note_from_facts,
     note_from_text, patient_record, read_upload, rules_of_corpus_trial, safe, serve_checks,
 )
 from trialguide.schemas import Certainty
@@ -76,8 +76,11 @@ def build(raw: Path, fake: bool = False, cohorts=("sigir", "trec_2021"), home: s
         """The two checkers for a new patient, and whether they are the real models."""
         url = current_backend() if remote else ""
         if url:
-            return (RemoteChecker(url, FIRST_MODEL, KEY, first), RemoteChecker(url, SECOND_MODEL, KEY, second), True)
-        return first, second, not fake
+            one, two, models = RemoteChecker(url, FIRST_MODEL, KEY, first), RemoteChecker(url, SECOND_MODEL, KEY, second), True
+        else:
+            one, two, models = first, second, not fake
+        # the demo safeguard: a conclusion must cite a sentence about the rule (live.Guarded)
+        return Guarded(one), Guarded(two, strict=True), models
     print("building the trial index ...", flush=True)
     index = TrialIndex(raw, cohorts)
     print(f"{len(index.trials)} trials indexed", flush=True)
